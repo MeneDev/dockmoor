@@ -1,0 +1,93 @@
+version: 2
+jobs:
+  create_builder:
+    machine: true
+    steps:
+      - checkout
+      - restore_cache:
+          key: builder-{{ checksum ".builder/Dockerfile" }}
+          paths:
+              - /tmp/builder_pushed
+      - run:
+          name: Build and push image if builder/Dockerfile has changed
+          command:  |
+            if [ ! -f /tmp/docker_pushed ]; then
+              docker login -u $DOCKER_USER -p $DOCKER_PASS
+              docker build -f .builder/Dockerfile -t "$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME-builder:latest" .
+              docker push "$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME-builder:latest"
+              echo 1 > /tmp/docker_pushed
+            fi
+      - save_cache:
+          key: builder-{{ checksum ".builder/Dockerfile" }}
+          paths:
+              - /tmp/builder_pushed
+  build:
+    docker:
+      - image: "$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME-builder:latest"
+      
+    working_directory: /go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME
+    environment:
+      - DEP_VERSION: 0.5.0
+      - GOCACHE: "/tmp/go/cache"
+    steps:
+      - checkout
+      - restore_cache:
+          key: gopkg-{{ checksum "Gopkg.lock" }}
+          paths:
+              - /go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/vendor
+              - /tmp/go/cache
+      - run:
+          name: Download and build libraries
+          command: |
+            if [ ! -d ./vendor ]; then
+                /go/bin/dep ensure
+                find vendor/ -maxdepth 3 -mindepth 3 -exec bash -c 'cd $0 && go build  ./...' {} \;
+            fi
+      - save_cache:
+          key: gopkg-{{ checksum "Gopkg.lock" }}
+          paths:
+              - ./vendor
+              - /tmp/go/cache
+
+      - run:
+          name: Build project
+          command: |
+            tag="$(semantics --output-tag --dry-run)"
+            gox -ldflags="-s -w -X \"main.Version=${tag:-not a release}\" -X \"main.BuildDate=$(date --utc)\" -X \"main.BuildNumber=$CIRCLE_BUILD_NUM\" -X \"main.BuildCommit=$CIRCLE_SHA1\"" -os="linux" -arch="amd64" -output "release/$CIRCLE_PROJECT_REPONAME-{{.OS}}_{{.Arch}}"
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - release
+  release:
+    docker:
+      - image: "$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME-builder:latest"
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Release new version if applicable
+          command: |
+            tag="$(semantics --output-tag --dry-run)"
+            if [ ! -z "$tag" ]; then
+              ghr -t "$GITHUB_TOKEN" -u "$CIRCLE_PROJECT_USERNAME" -r "$CIRCLE_PROJECT_REPONAME" --replace "$tag" /tmp/workspace/release/
+            else
+              echo "not releasing, no new version"
+            fi
+      
+workflows:
+  version: 2
+  create_builder_and_release:
+    jobs:
+      - create_builder
+      - build:
+          requires:
+              - create_builder
+      - release:
+          requires:
+              - build
+          filters:
+            branches:
+              only:
+                - master

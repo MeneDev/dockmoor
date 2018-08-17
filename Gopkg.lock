@@ -167,6 +167,22 @@
   version = "v1.6.2"
 
 [[projects]]
+  branch = "master"
+  digest = "1:d1971637b21871ec2033a44ca87c99c5608a7340cb34ec75fab8d2ab503276c9"
+  name = "github.com/hashicorp/errwrap"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d6c0cd88035724dd42e0f335ae30161c20575ecc"
+
+[[projects]]
+  branch = "master"
+  digest = "1:46fb6a9f1b9667f32ac93e08b1da118b2c666991424ea12e848b05d4fe5155ef"
+  name = "github.com/hashicorp/go-multierror"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3d5d8f294aa03d8e98859feac328afbdf1ae0703"
+
+[[projects]]
   digest = "1:a2cff208d4759f6ba1b1cd228587b0a1869f95f22542ec9cd17fff64430113c7"
   name = "github.com/jessevdk/go-flags"
   packages = ["."]
@@ -343,9 +359,8 @@
     "github.com/docker/docker/api/types/registry",
     "github.com/docker/docker/client",
     "github.com/docker/docker/registry",
-    "github.com/docker/go-connections/sockets",
-    "github.com/docker/go-connections/tlsconfig",
     "github.com/gianarb/testcontainer-go",
+    "github.com/hashicorp/go-multierror",
     "github.com/jessevdk/go-flags",
     "github.com/moby/buildkit/frontend/dockerfile/command",
     "github.com/moby/buildkit/frontend/dockerfile/parser",

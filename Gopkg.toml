@@ -69,3 +69,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/gianarb/testcontainer-go"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/hashicorp/go-multierror"

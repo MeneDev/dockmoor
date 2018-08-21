@@ -186,7 +186,7 @@ func mdPrintf(writer io.Writer, format string, a ...interface{}) (n int, err err
 }
 
 func WriteMarkdown(parser *flags.Parser, writer io.Writer) {
-	mdPrintf(writer, "# %s [![CircleCI](https://circleci.com/gh/MeneDev/dockfix.svg?style=svg)](https://circleci.com/gh/MeneDev/dockfix)\n", parser.Name)
+	mdPrintf(writer, "# %s [![CircleCI](https://circleci.com/gh/MeneDev/dockfix.svg?style=svg)](https://circleci.com/gh/MeneDev/dockfix) [![Coverage Status](https://coveralls.io/repos/github/MeneDev/dockfix/badge.svg)](https://coveralls.io/github/MeneDev/dockfix)\n", parser.Name)
 	mdPrintf(writer, "%s Version %s\n\n",  parser.Name, Version)
 	mdPrintf(writer, "%s\n\n", parser.LongDescription)
 	mdPrintf(writer, "## Usage\n")

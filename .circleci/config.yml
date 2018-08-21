@@ -61,7 +61,7 @@ jobs:
       - run:
           name: Build project
           command: |
-            tag="$(semantics --output-tag --dry-run 2>/dev/null || true)"
+            tag="$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"
             find cmd/ -maxdepth 1 -mindepth 1 -exec bash -c 'cd $0 && gox -ldflags="-s -w -X \"main.Version=${tag:-not a release}\" -X \"main.BuildDate=$(date --utc)\" -X \"main.BuildNumber=$CIRCLE_BUILD_NUM\" -X \"main.BuildCommit=$CIRCLE_SHA1\"" -os="linux windows darwin" -arch="amd64" -output "../../release/${0##*/}-{{.OS}}_{{.Arch}}"' {} \;
 
       - persist_to_workspace:
@@ -71,32 +71,63 @@ jobs:
   release:
     docker:
       - image: "$CI_PROJECT_PATH-builder:latest"
+    working_directory: /go/src/github.com/MeneDev/dockfix
     steps:
       - checkout
       - attach_workspace:
           at: /tmp/workspace
       - run:
+          name: Update README.md
+          command: |
+            tag="$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"
+            git config --global user.email "$GIT_EMAIL"
+            git config --global user.name "$GIT_USER"
+
+            digest=$(git rev-parse HEAD)
+            git checkout -b master
+            git reset --hard $digest
+
+            /tmp/workspace/release/dockfix-linux_amd64 --markdown > README.md
+
+            git add README.md
+            git commit -m ":gem: Release $tag"
+            git push -q origin master
+
+      - run:
           name: Release new version if applicable
           command: |
-            tag="$(semantics --output-tag --dry-run)"
+            tag="$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"
             if [ ! -z "$tag" ]; then
               ghr -t "$GITHUB_TOKEN" -u "$CIRCLE_PROJECT_USERNAME" -r "$CIRCLE_PROJECT_REPONAME" --replace "$tag" /tmp/workspace/release/
             else
               echo "not releasing, no new version"
             fi
-      
+
+
 workflows:
   version: 2
   create_builder_and_release:
     jobs:
-      - create_builder
+      - create_builder:
+          filters:
+            branches:
+              ignore:
+              - master
       - build:
           requires:
               - create_builder
+          filters:
+            branches:
+              ignore:
+              - master
       - release:
           requires:
               - build
           filters:
+            tags:
+              only: /^v.*/
             branches:
               only:
+                - release
+              ignore:
                 - master

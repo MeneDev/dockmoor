@@ -106,7 +106,8 @@ func (suite *PinSuite) SetupTest() {
 
 // In order for 'go test' to run this suite, we need to create
 // a normal test function and pass our suite to suite.Run
-func TestExampleTestSuite(t *testing.T) {
+func TestDockerfileTestSuite(t *testing.T) {
+	t.SkipNow()
 	suite.Run(t, new(PinSuite))
 }
 

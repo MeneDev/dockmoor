@@ -47,10 +47,10 @@ func TestSingleExclusivePredicatesFail(t *testing.T) {
 	for _, a := range strings {
 		t.Run(a, func(t *testing.T) {
 			fo := &FindOptions{}
-			fo.Any = equalsAnyString("any", a)
-			fo.Outdated = equalsAnyString("outdated", a)
-			fo.Unpinned = equalsAnyString("unpinned", a)
-			fo.Latest = equalsAnyString("latest", a)
+			fo.Predicates.Any = equalsAnyString("any", a)
+			fo.Predicates.Outdated = equalsAnyString("outdated", a)
+			fo.Predicates.Unpinned = equalsAnyString("unpinned", a)
+			fo.Predicates.Latest = equalsAnyString("latest", a)
 			err := verifyFindOptions(fo)
 			assert.Nil(t, err)
 		})
@@ -68,10 +68,10 @@ func TestMultipleExclusivePredicatesFail(t *testing.T) {
 
 			t.Run(a+" and "+b, func(t *testing.T) {
 				fo := &FindOptions{}
-				fo.Any = equalsAnyString("any", a, b)
-				fo.Outdated = equalsAnyString("outdated", a, b)
-				fo.Unpinned = equalsAnyString("unpinned", a, b)
-				fo.Latest = equalsAnyString("latest", a, b)
+				fo.Predicates.Any = equalsAnyString("any", a, b)
+				fo.Predicates.Outdated = equalsAnyString("outdated", a, b)
+				fo.Predicates.Unpinned = equalsAnyString("unpinned", a, b)
+				fo.Predicates.Latest = equalsAnyString("latest", a, b)
 				err := verifyFindOptions(fo)
 				assert.Equal(t, ERR_AT_MOST_ONE_PREDICATE, err)
 			})
@@ -95,10 +95,10 @@ func TestMultipleExclusivePredicatesFail(t *testing.T) {
 
 				t.Run(a+" and "+b+" and "+c, func(t *testing.T) {
 					fo := &FindOptions{}
-					fo.Any = equalsAnyString("any", a, b, c)
-					fo.Outdated = equalsAnyString("outdated", a, b, c)
-					fo.Unpinned = equalsAnyString("unpinned", a, b, c)
-					fo.Latest = equalsAnyString("latest", a, b, c)
+					fo.Predicates.Any = equalsAnyString("any", a, b, c)
+					fo.Predicates.Outdated = equalsAnyString("outdated", a, b, c)
+					fo.Predicates.Unpinned = equalsAnyString("unpinned", a, b, c)
+					fo.Predicates.Latest = equalsAnyString("latest", a, b, c)
 					err := verifyFindOptions(fo)
 					assert.Equal(t, ERR_AT_MOST_ONE_PREDICATE, err)
 				})
@@ -110,10 +110,10 @@ func TestMultipleExclusivePredicatesFail(t *testing.T) {
 
 func TestAllExclusivePredicatesAtOnceFail(t *testing.T) {
 	fo := &FindOptions{}
-	fo.Any = true
-	fo.Outdated = true
-	fo.Unpinned = true
-	fo.Latest = true
+	fo.Predicates.Any = true
+	fo.Predicates.Outdated = true
+	fo.Predicates.Unpinned = true
+	fo.Predicates.Latest = true
 	err := verifyFindOptions(fo)
 	assert.Equal(t, ERR_AT_MOST_ONE_PREDICATE, err)
 }
@@ -170,7 +170,7 @@ func TestInvalidDockerfile(t *testing.T) {
 		mainOptions: mainOptions.MainOptions,
 	}
 
-	fo.Any = true
+	fo.Predicates.Any = true
 	fo.Positional.InputFile = flags.Filename(NotADockerfile)
 
 	// when
@@ -193,7 +193,7 @@ func TestNoPredicateForNoFlags(t *testing.T) {
 
 func TestAnyPredicateWhenAnyFlag(t *testing.T) {
 	fo := &FindOptions{}
-	fo.Any = true
+	fo.Predicates.Any = true
 
 	predicate := fo.getPredicate()
 
@@ -205,7 +205,7 @@ func TestAnyPredicateWhenAnyFlag(t *testing.T) {
 func TestLatestPredicateWhenLatestFlag(t *testing.T) {
 	t.Skip()
 	fo := &FindOptions{}
-	fo.Latest = true
+	fo.Predicates.Latest = true
 
 	predicate := fo.getPredicate()
 
@@ -231,7 +231,7 @@ func TestFindCallsFindExecute(t *testing.T) {
 
 func TestOpenErrorsArePropagated(t *testing.T) {
 	fo := FindOptionsTest()
-	fo.Latest = true
+	fo.Predicates.Latest = true
 	expectedError := errors.New("Could not open")
 	fo.MainOptions().openerMock.On("Open", mock.Anything).Return(nil, expectedError)
 

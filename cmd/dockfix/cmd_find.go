@@ -11,13 +11,18 @@ import (
 
 
 type FindOptions struct {
-	Any      bool     `required:"no" long:"any" description:"Find all images"`
-	Latest   bool     `required:"no" long:"latest" description:"Using latest tag"`
-	Unpinned bool     `required:"no" long:"unpinned" description:"Using unpinned images"`
-	Outdated bool     `required:"no" long:"outdated" description:"Find all images with newer versions available"`
-	Name     []string `required:"no" long:"name" description:"Find all images matching one of the specified names"`
-	Domain   []string `required:"no" long:"domain" description:"Find all images matching one of the specified domains"`
+	Predicates struct{
+		Any      bool     `required:"no" long:"any" description:"Find all images"`
+		Latest   bool     `required:"no" long:"latest" description:"Using latest tag"`
+		Unpinned bool     `required:"no" long:"unpinned" description:"Using unpinned images"`
+		Outdated bool     `required:"no" long:"outdated" description:"Find all images with newer versions available"`
+	} `group:"Predicates" description:"Specify which kind of image references should be selected. Exactly one must be specified"`
 
+	Filters struct {
+		Name   []string `required:"no" long:"name" description:"Find all images matching one of the specified names"`
+		Domain []string `required:"no" long:"domain" description:"Find all images matching one of the specified domains"`
+	} `group:"Filters" description:"Optional additional filters. Specifying each kind of filter must be matched at least once"`
+	
 	Positional struct {
 		InputFile flags.Filename `required:"yes"`
 	} `positional-args:"yes"`
@@ -40,7 +45,7 @@ func addFindCommand(mainOptions *MainOptions) (*flags.Command, error) {
 
 	return parser.AddCommand("find",
 		"Test if a file contains image references with certain predicates.",
-		"The find returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions, non-null otherwise",
+		"The find command returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions, non-null otherwise",
 		&findOptions)
 }
 
@@ -51,27 +56,29 @@ var (
 
 func verifyFindOptions(fo *FindOptions) error {
 
-	if !fo.Any &&
-		!fo.Latest &&
-		!fo.Unpinned &&
-		len(fo.Name) == 0 &&
-		len(fo.Domain) == 0 &&
-		!fo.Outdated {
+	p := fo.Predicates
+	f := fo.Filters
+	if !p.Any &&
+		!p.Latest &&
+		!p.Unpinned &&
+		len(f.Name) == 0 &&
+		len(f.Domain) == 0 &&
+		!p.Outdated {
 
 		return ERR_AT_LEAST_ONE_PREDICATE
 	}
 
 	set := 0
-	if fo.Any {
+	if p.Any {
 		set++
 	}
-	if fo.Latest {
+	if p.Latest {
 		set++
 	}
-	if fo.Unpinned {
+	if p.Unpinned {
 		set++
 	}
-	if fo.Outdated {
+	if p.Outdated {
 		set++
 	}
 	if set > 1 {
@@ -104,7 +111,8 @@ func (opts *FindOptions) ExecuteWithExitCode(args []string) (exitCode int, err e
 }
 
 func (opts *FindOptions) getPredicate() dockproc.Predicate {
-	if opts.Any {
+	predicates := opts.Predicates
+	if predicates.Any {
 		return dockproc.AnyPredicateNew()
 	}
 

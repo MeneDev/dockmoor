@@ -86,6 +86,13 @@ func TestManIsNotError(t *testing.T) {
 	assert.Contains(t, s, "OPTIONS")
 }
 
+func TestMarkdownIsNotError(t *testing.T) {
+	_, _, exitCode, stdout := testMain([]string{"--markdown"})
+	s := stdout.String()
+	assert.Equal(t, 0, exitCode)
+	assert.NotEmpty(t, s)
+}
+
 func TestOpensStdin(t *testing.T) {
 
 	optionsTest := MainOptionsTest()

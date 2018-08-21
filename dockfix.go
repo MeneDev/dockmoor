@@ -87,7 +87,7 @@ func Pin(log logrus.FieldLogger, formatProvider dockfmt.FormatProvider, repo doc
 
 		dig := r.Digest()
 		var canonical reference.Reference
-		if named != nil {
+		if named != nil && dig != "" {
 			canonical, err = reference.WithDigest(named, dig)
 		} else {
 			if dig != "" {
@@ -113,7 +113,7 @@ func Pin(log logrus.FieldLogger, formatProvider dockfmt.FormatProvider, repo doc
 
 		return canonical.String(), nil
 
-		return "", nil
+		//return "", nil
 	}
 
 	err := fileFormat.Process(log, reader, w, imageNameProcessor)

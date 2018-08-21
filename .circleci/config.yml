@@ -51,6 +51,8 @@ jobs:
               - ./vendor
               - /tmp/go/cache
 
+      - setup_remote_docker
+
       - run:
           name: Test
           command: |

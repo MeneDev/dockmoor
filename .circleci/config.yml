@@ -56,9 +56,8 @@ jobs:
       - run:
           name: Test
           command: |
-            go test -v -cover -race -coverprofile=/home/ubuntu/coverage.out
-            $GOPATH/bin/goveralls
-            $GOPATH/bin/goveralls -coverprofile=/home/ubuntu/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
+            go test -v ./... -cover -race -coverprofile=/tmp/coverage.out
+            $GOPATH/bin/goveralls -coverprofile=/tmp/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
       - run:
           name: Build project
           command: |

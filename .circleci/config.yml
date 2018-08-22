@@ -91,12 +91,12 @@ jobs:
 
             git add README.md
             git commit -m ":gem: Release $tag"
-            git push -q origin master
+            git push --force-with-lease origin master
 
             digest=$(git rev-parse HEAD)
             git checkout -b develop
             git reset --hard $digest
-            git push -q origin develop
+            git push origin develop
 
       - run:
           name: Release new version if applicable

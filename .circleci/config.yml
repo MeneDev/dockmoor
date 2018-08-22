@@ -85,7 +85,7 @@ jobs:
             git config --global user.name "$GIT_USER"
 
             digest=$(git rev-parse HEAD)
-            git checkout -b master origin/master 2>/dev/null || git checkout -b master
+            git checkout -b master 2>/dev/null || git checkout master
             git reset --hard $digest
 
             /tmp/workspace/release/dockfix-linux_amd64 --markdown > README.md
@@ -93,11 +93,11 @@ jobs:
             git add README.md
             git commit -m ":gem: Release $tag"
             git push --delete origin "$tag"
-            git tag -fa "$tag" - "Release $tag"
+            git tag -fa "$tag" -m "Release $tag"
             git push --force-with-lease origin master --tags
 
             digest=$(git rev-parse HEAD)
-            git checkout -b develop origin/develop 2>/dev/null || git checkout develop
+            git checkout -b develop 2>/dev/null || git checkout develop
             git reset --hard $digest
             git push origin develop
 

@@ -93,6 +93,11 @@ jobs:
             git commit -m ":gem: Release $tag"
             git push -q origin master
 
+            digest=$(git rev-parse HEAD)
+            git checkout -b develop
+            git reset --hard $digest
+            git push -q origin develop
+
       - run:
           name: Release new version if applicable
           command: |
@@ -128,6 +133,6 @@ workflows:
               only: /^v.*/
             branches:
               only:
-                - release
+                - develop
               ignore:
                 - master

@@ -79,12 +79,13 @@ jobs:
       - run:
           name: Update README.md
           command: |
+            set -v
             tag="$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"
             git config --global user.email "$GIT_EMAIL"
             git config --global user.name "$GIT_USER"
 
             digest=$(git rev-parse HEAD)
-            git checkout -b master origin/master || git checkout master
+            git checkout -b master origin/master 2>/dev/null || git checkout -b master
             git reset --hard $digest
 
             /tmp/workspace/release/dockfix-linux_amd64 --markdown > README.md
@@ -92,7 +93,7 @@ jobs:
             git add README.md
             git commit -m ":gem: Release $tag"
             git push --delete origin "$tag"
-            git tag -fa "$tag"
+            git tag -fa "$tag" - "Release $tag"
             git push --force-with-lease origin master --tags
 
             digest=$(git rev-parse HEAD)

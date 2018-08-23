@@ -19,9 +19,9 @@ type FindOptions struct {
 	} `group:"Predicates" description:"Specify which kind of image references should be selected. Exactly one must be specified"`
 
 	Filters struct {
-		Name   []string `required:"no" long:"name" description:"Find all images matching one of the specified names"`
-		Domain []string `required:"no" long:"domain" description:"Find all images matching one of the specified domains"`
-	} `group:"Filters" description:"Optional additional filters. Specifying each kind of filter must be matched at least once"`
+		Name   []string `required:"no" long:"name" description:"Find all images matching one of the specified names" hidden:"true"`
+		Domain []string `required:"no" long:"domain" description:"Find all images matching one of the specified domains" hidden:"true"`
+	} `group:"Filters" description:"Optional additional filters. Specifying each kind of filter must be matched at least once" hidden:"true"`
 	
 	Positional struct {
 		InputFile flags.Filename `required:"yes"`

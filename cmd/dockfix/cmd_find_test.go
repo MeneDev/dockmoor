@@ -297,6 +297,8 @@ func TestFindHelpHidesUnimplemented(t *testing.T) {
 	assert.NotContains(t, buffer.String(), "--latest")
 	assert.NotContains(t, buffer.String(), "--unpinned")
 	assert.NotContains(t, buffer.String(), "--outdated")
+	assert.NotContains(t, buffer.String(), "--name")
+	assert.NotContains(t, buffer.String(), "--domain")
 
 	assert.Equal(t, 0, exitCode)
 }

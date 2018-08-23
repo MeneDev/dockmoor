@@ -62,6 +62,7 @@ jobs:
           name: Build project
           command: |
             tag="$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"
+            echo "Building Tag '$tag'"
             find cmd/ -maxdepth 1 -mindepth 1 -exec bash -c 'cd $0 && gox -ldflags="-s -w -X \"main.Version=${tag:-not a release}\" -X \"main.BuildDate=$(date --utc)\" -X \"main.BuildNumber=$CIRCLE_BUILD_NUM\" -X \"main.BuildCommit=$CIRCLE_SHA1\"" -os="linux windows darwin" -arch="amd64" -output "../../release/${0##*/}-{{.OS}}_{{.Arch}}"' {} \;
 
       - persist_to_workspace:

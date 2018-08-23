@@ -12,6 +12,8 @@ import (
 	"reflect"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
+	"io/ioutil"
+	"os"
 )
 
 type findOptionsTest struct {
@@ -31,7 +33,7 @@ func FindOptionsTest() *findOptionsTest {
 		mainOptionsTest: mainOptions,
 	}
 
-	findOptions.mainOptions = mainOptions.MainOptions
+	findOptions.mainOptions = mainOptions.mainOptions
 
 	return &findOptions
 }
@@ -140,16 +142,8 @@ func getReadCloser(args mock.Arguments, index int) io.ReadCloser {
 	return v
 }
 
-type ClosingBuffer struct {
-	*bytes.Buffer
-}
-
-func (cb *ClosingBuffer) Close() error {
-	return nil
-}
-
 func makeReadCloser(str string) io.ReadCloser {
-	return &ClosingBuffer{bytes.NewBufferString(str)}
+	return ioutil.NopCloser(bytes.NewBufferString(str))
 }
 
 func TestInvalidDockerfile(t *testing.T) {
@@ -158,7 +152,7 @@ func TestInvalidDockerfile(t *testing.T) {
 
 	formatProvider := mainOptions.FormatProvider()
 
-	format := new(dockfmt.FormatMock)
+	format := new(FormatMock)
 	format.OnName().Return("mock")
 	format.OnValidateInput(mock.Anything, mock.Anything, mock.Anything).Return(errors.New("Not my department"))
 
@@ -167,7 +161,7 @@ func TestInvalidDockerfile(t *testing.T) {
 	mainOptions.formatProvider = formatProvider
 
 	fo := &FindOptions{
-		mainOptions: mainOptions.MainOptions,
+		mainOptions: mainOptions.mainOptions,
 	}
 
 	fo.Predicates.Any = true
@@ -241,6 +235,71 @@ func TestOpenErrorsArePropagated(t *testing.T) {
 	assert.Equal(t, expectedError, err)
 }
 
+func TestExecuteReturnsError(t *testing.T) {
+	fo := FindOptionsTest()
+	expected := "Use ExecuteWithExitCode instead"
+	err := fo.Execute(nil)
+
+	assert.Equal(t, expected, err.Error())
+}
+
+func TestMainMarkdownWithFind(t *testing.T) {
+
+	os.Args = []string {"exe", "--markdown"}
+
+	mainOptions := MainOptionsTestNew(addFindCommand)
+	buffer := bytes.NewBuffer(nil)
+	mainOptions.SetStdout(buffer)
+	exitCode := doMain(mainOptions)
+
+	assert.Contains(t, buffer.String(), "find command")
+
+	assert.Equal(t, 0, exitCode)
+}
+
+func TestFindHelpIsNotAnError(t *testing.T) {
+
+	os.Args = []string {"exe", "find", "--help"}
+
+	mainOptions := MainOptionsTestNew(addFindCommand)
+	buffer := bytes.NewBuffer(nil)
+	mainOptions.SetStdout(buffer)
+	exitCode := doMain(mainOptions)
+
+	assert.Contains(t, buffer.String(), "find command")
+
+	assert.Equal(t, 0, exitCode)
+}
+
+func TestFindHelpContainsAny(t *testing.T) {
+
+	os.Args = []string {"exe", "find", "--help"}
+
+	mainOptions := MainOptionsTestNew(addFindCommand)
+	buffer := bytes.NewBuffer(nil)
+	mainOptions.SetStdout(buffer)
+	exitCode := doMain(mainOptions)
+
+	assert.Contains(t, buffer.String(), "--any")
+
+	assert.Equal(t, 0, exitCode)
+}
+
+func TestFindHelpHidesUnimplemented(t *testing.T) {
+
+	os.Args = []string {"exe", "find", "--help"}
+
+	mainOptions := MainOptionsTestNew(addFindCommand)
+	buffer := bytes.NewBuffer(nil)
+	mainOptions.SetStdout(buffer)
+	exitCode := doMain(mainOptions)
+
+	assert.NotContains(t, buffer.String(), "--latest")
+	assert.NotContains(t, buffer.String(), "--unpinned")
+	assert.NotContains(t, buffer.String(), "--outdated")
+
+	assert.Equal(t, 0, exitCode)
+}
 
 func equalsAnyString(needle string, values ...string) bool {
 	for _, v := range values {

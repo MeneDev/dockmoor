@@ -23,18 +23,20 @@ var _ dockfmt.Format = (*dockerfileFormat)(nil)
 type dockerfileFormat struct {
 	lines []string
 	result *parser.Result
+	parseFunction func(rwc io.Reader) (*parser.Result, error)
 }
 
-func (pinner *dockerfileFormat) Name() string {
+func (format *dockerfileFormat) Name() string {
 	return "Dockerfile"
 }
 
 func DockerfileFormatNew() *dockerfileFormat {
-	pinner := new(dockerfileFormat)
-	return pinner
+	format := new(dockerfileFormat)
+	format.parseFunction = parser.Parse
+	return format
 }
 
-func (pinner *dockerfileFormat) ValidateInput(log logrus.FieldLogger, reader io.Reader, filename string) error {
+func (format *dockerfileFormat) ValidateInput(log logrus.FieldLogger, reader io.Reader, filename string) error {
 	scanner := bufio.NewScanner(reader)
 	var split bufio.SplitFunc = func(data []byte, atEOF bool) (advance int, token []byte, err error) {
 		if atEOF && len(data) == 0 {
@@ -61,7 +63,7 @@ func (pinner *dockerfileFormat) ValidateInput(log logrus.FieldLogger, reader io.
 		full = full + line
 	}
 
-	result, err := parser.Parse(strings.NewReader(full))
+	result, err := format.parseFunction(strings.NewReader(full))
 	if err != nil {
 		return err
 	}
@@ -72,18 +74,35 @@ func (pinner *dockerfileFormat) ValidateInput(log logrus.FieldLogger, reader io.
 			return errors.Errorf("Unknown command %s", cmd)
 		}
 	}
-	pinner.lines = lines
-	pinner.result = result
+
+	if result.AST.Children == nil {
+		return errors.Errorf("No commands found")
+	}
+
+	// contains at least one FROM command
+	containsFrom := false
+	for _, cmd := range result.AST.Children {
+		if cmd.Value == "from" {
+			containsFrom = true
+		}
+	}
+
+	if !containsFrom {
+		return errors.Errorf("No FROM command found")
+	}
+
+	format.lines = lines
+	format.result = result
 
 	return nil
 }
 
-func (pinner *dockerfileFormat) Process(log logrus.FieldLogger, reader io.Reader, w io.Writer, imageNameProcessor dockfmt.ImageNameProcessor) error {
+func (format *dockerfileFormat) Process(log logrus.FieldLogger, reader io.Reader, w io.Writer, imageNameProcessor dockfmt.ImageNameProcessor) error {
 	writer := bufio.NewWriter(w)
 	defer writer.Flush()
 
-	root := pinner.result.AST
-	lines := pinner.lines
+	root := format.result.AST
+	lines := format.lines
 
 	curLineNum := 0
 	for _, cmd := range root.Children {
@@ -93,7 +112,7 @@ func (pinner *dockerfileFormat) Process(log logrus.FieldLogger, reader io.Reader
 			curLineNum++
 		}
 
-		handled, err := pinner.processNode(log, cmd, writer, imageNameProcessor)
+		handled, err := format.processNode(log, cmd, writer, imageNameProcessor)
 		if err != nil {
 			return err
 		}
@@ -125,25 +144,7 @@ func endLineOfNode(command *parser.Node) int {
 	return endLine
 }
 
-func (pinner *dockerfileFormat) processChildren(log logrus.FieldLogger, node *parser.Node, writer *bufio.Writer, imageNameProcessor dockfmt.ImageNameProcessor) (bool, error) {
-	currentLine := 1
-	handled := false
-	for _, n := range node.Children {
-		for currentLine < n.StartLine  {
-			writer.WriteString("\n")
-			currentLine++
-		}
-		nodeHandled, err := pinner.processNode(log, n, writer, imageNameProcessor)
-		if err != nil {
-			return false, err
-		}
-		handled = handled || nodeHandled
-	}
-
-	return handled, nil
-}
-
-func (pinner *dockerfileFormat) processNode(log logrus.FieldLogger, node *parser.Node, writer *bufio.Writer, imageNameProcessor dockfmt.ImageNameProcessor) (bool, error) {
+func (format *dockerfileFormat) processNode(log logrus.FieldLogger, node *parser.Node, writer *bufio.Writer, imageNameProcessor dockfmt.ImageNameProcessor) (bool, error) {
 	if node.Value == "from" {
 		from := node.Next.Value
 		log.Infof("Found image %s", from)
@@ -176,7 +177,7 @@ func (pinner *dockerfileFormat) processNode(log logrus.FieldLogger, node *parser
 		start := node.StartLine
 
 		for i := start; i <= end; i++ {
-			writer.WriteString(strings.Replace(pinner.lines[i - 1], from, canonicalString, 1))
+			writer.WriteString(strings.Replace(format.lines[i - 1], from, canonicalString, 1))
 		}
 		return true, nil
 	} else {

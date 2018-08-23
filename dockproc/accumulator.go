@@ -7,7 +7,7 @@ import (
 )
 
 type Accumulator interface {
-	Accumulate(format dockfmt.FormatProcessor) bool
+	Accumulate(format dockfmt.FormatProcessor)
 }
 
 var _ Accumulator = (*findAccumulator)(nil)
@@ -17,7 +17,7 @@ type findAccumulator struct {
 	predicate Predicate
 }
 
-func (accumulator *findAccumulator) Accumulate(format dockfmt.FormatProcessor) bool {
+func (accumulator *findAccumulator) Accumulate(format dockfmt.FormatProcessor) {
 
 	found := false
 	var processor dockfmt.ImageNameProcessor = func(r dockref.Reference) (string, error) {
@@ -28,7 +28,8 @@ func (accumulator *findAccumulator) Accumulate(format dockfmt.FormatProcessor) b
 	}
 
 	format.Process(processor)
-	return found
+
+	accumulator.result = found
 }
 
 func FindAccumulatorNew(predicate Predicate) (*findAccumulator, error) {

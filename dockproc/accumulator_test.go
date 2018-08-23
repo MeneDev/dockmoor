@@ -68,6 +68,12 @@ func formatMockProcessing(images []string) *delegatingFormatMock {
 	return mockFormat
 }
 
+func TestFindAccumulator_ReturnsErrorWhenParameterIsNil(t *testing.T) {
+	acc, err := FindAccumulatorNew(nil)
+	assert.Nil(t, acc)
+	assert.Error(t, err)
+}
+
 func TestFindAccumulator(t *testing.T) {
 	for _, num := range []int{0, 1, 2, 10} {
 		imgs := []string{}
@@ -95,7 +101,8 @@ func TestFindAccumulator(t *testing.T) {
 
 				formatProcessor := dockfmt.FormatProcessorNew(mockFormat, nil, nil)
 
-				result := findAccumulator.Accumulate(formatProcessor)
+				findAccumulator.Accumulate(formatProcessor)
+				result := findAccumulator.result
 				assert.Equal(t, matches, result)
 				p.AssertNumberOfCalls(t, "Matches", num)
 			})
@@ -130,8 +137,8 @@ func TestFindAccumulator(t *testing.T) {
 			findAccumulator, _ := FindAccumulatorNew(p)
 
 			formatProcessor := dockfmt.FormatProcessorNew(mockFormat, nil, nil)
-
-			result := findAccumulator.Accumulate(formatProcessor)
+			findAccumulator.Accumulate(formatProcessor)
+			result := findAccumulator.Result()
 			assert.True(t, result)
 		})
 	}

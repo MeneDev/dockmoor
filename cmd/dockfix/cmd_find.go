@@ -13,9 +13,9 @@ import (
 type FindOptions struct {
 	Predicates struct{
 		Any      bool     `required:"no" long:"any" description:"Find all images"`
-		Latest   bool     `required:"no" long:"latest" description:"Using latest tag"`
-		Unpinned bool     `required:"no" long:"unpinned" description:"Using unpinned images"`
-		Outdated bool     `required:"no" long:"outdated" description:"Find all images with newer versions available"`
+		Latest   bool     `required:"no" long:"latest" description:"Using latest tag" hidden:"true"`
+		Unpinned bool     `required:"no" long:"unpinned" description:"Using unpinned images" hidden:"true"`
+		Outdated bool     `required:"no" long:"outdated" description:"Find all images with newer versions available" hidden:"true"`
 	} `group:"Predicates" description:"Specify which kind of image references should be selected. Exactly one must be specified"`
 
 	Filters struct {
@@ -27,18 +27,14 @@ type FindOptions struct {
 		InputFile flags.Filename `required:"yes"`
 	} `positional-args:"yes"`
 
-	mainOptions *MainOptions
+	mainOptions *mainOptions
 }
 
-func (fo *FindOptions) MainOptions() *MainOptions {
+func (fo *FindOptions) MainOptions() *mainOptions {
 	return fo.mainOptions
 }
 
-func init() {
-	addFindCommand(&globalMainOptions)
-}
-
-func addFindCommand(mainOptions *MainOptions) (*flags.Command, error) {
+func addFindCommand(mainOptions *mainOptions) (*flags.Command, error) {
 	parser := mainOptions.Parser()
 	var findOptions FindOptions
 	findOptions.mainOptions = mainOptions
@@ -89,7 +85,7 @@ func verifyFindOptions(fo *FindOptions) error {
 }
 
 func (opts *FindOptions) Execute(args []string) error {
-	panic("Use ExecuteWithExitCode instead")
+	return errors.New("Use ExecuteWithExitCode instead")
 }
 
 func (opts *FindOptions) ExecuteWithExitCode(args []string) (exitCode int, err error) {
@@ -135,6 +131,7 @@ func (opts *FindOptions) find() (exitCode int, err error) {
 		}
 	}()
 	if err != nil {
+		log.Errorf("Could not open file: %s", err.Error())
 		exitCode = 1
 		return
 	}
@@ -163,5 +160,5 @@ func (opts *FindOptions) find() (exitCode int, err error) {
 	return
 }
 func (opts *FindOptions) Log() *logrus.Logger {
-	return opts.mainOptions.log
+	return opts.mainOptions.Log()
 }

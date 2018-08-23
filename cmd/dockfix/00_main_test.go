@@ -7,19 +7,18 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/sirupsen/logrus"
 	"github.com/jessevdk/go-flags"
-	"github.com/MeneDev/dockfix/dockfmt"
 )
 
 var NotADockerfile = "notDocker"
 
 type mainOptionsTest struct {
-	*MainOptions
+	*mainOptions
 	openerMock *ReadableOpenerMock
 }
 
 func MainOptionsTest() *mainOptionsTest {
-	mainOptions := mainOptionsTest{MainOptions: &MainOptions{}}
-	parser := flags.NewParser(mainOptions.MainOptions, flags.HelpFlag|flags.PassDoubleDash)
+	mainOptions := mainOptionsTest{mainOptions: &mainOptions{}}
+	parser := flags.NewParser(mainOptions.mainOptions, flags.HelpFlag|flags.PassDoubleDash)
 	mainOptions.parser = parser
 
 	stdout := bytes.NewBuffer(nil)
@@ -27,7 +26,7 @@ func MainOptionsTest() *mainOptionsTest {
 	mainOptions.log = logrus.New()
 	mainOptions.SetStdout(stdout)
 
-	mainOptions.formatProvider = new(dockfmt.FormatProviderMock)
+	mainOptions.formatProvider = new(FormatProviderMock)
 
 	mainOptions.openerMock = new(ReadableOpenerMock)
 	mainOptions.openerMock.On("Open", NotADockerfile).Return(makeReadCloser("not a dockerfile"), nil)
@@ -39,21 +38,21 @@ func MainOptionsTest() *mainOptionsTest {
 	return &mainOptions
 }
 
-func (options *mainOptionsTest) FormatProvider() *dockfmt.FormatProviderMock {
-	return options.formatProvider.(*dockfmt.FormatProviderMock)
+func (options *mainOptionsTest) FormatProvider() *FormatProviderMock {
+	return options.formatProvider.(*FormatProviderMock)
 }
 func (options *mainOptionsTest) Stdout() *bytes.Buffer {
 	return options.stdout.(*bytes.Buffer)
 }
 
-func testMain(args []string, registerOptions ...func(mainOptions *MainOptions) (*flags.Command, error)) (theCommand flags.Commander, cmdArgs []string, exitCode int, buffer *bytes.Buffer) {
+func testMain(args []string, registerOptions ...func(mainOptions *mainOptions) (*flags.Command, error)) (theCommand flags.Commander, cmdArgs []string, exitCode int, buffer *bytes.Buffer) {
 	mainOptions := MainOptionsTest()
 
 	for _, reg := range registerOptions {
-		reg(mainOptions.MainOptions)
+		reg(mainOptions.mainOptions)
 	}
 
-	cmd, args, exitCode := doMain(mainOptions.MainOptions, args)
+	cmd, args, exitCode := CommandFromArgs(mainOptions.mainOptions, args)
 
 	return cmd, args, exitCode, mainOptions.Stdout()
 }
@@ -96,7 +95,7 @@ func TestMarkdownIsNotError(t *testing.T) {
 func TestOpensStdin(t *testing.T) {
 
 	optionsTest := MainOptionsTest()
-	opener := defaultReadableOpener(optionsTest.MainOptions)
+	opener := defaultReadableOpener(optionsTest.mainOptions)
 
 	readCloser, e := opener("-")
 

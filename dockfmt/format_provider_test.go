@@ -122,3 +122,23 @@ func TestIdentifyFormatWithSeveralMatchingAndSeveralNonMatchingFormats(t *testin
 	assert.Contains(t, ambiguousFormatError.Formats, matchingFormatMock1)
 	assert.Contains(t, ambiguousFormatError.Formats, matchingFormatMock2)
 }
+
+func TestDefaultFormatProviderExits(t *testing.T) {
+	provider := DefaultFormatProvider()
+	assert.NotNil(t, provider)
+}
+
+func TestDefaultFormatProviderProvidesRegisteredFormat(t *testing.T) {
+
+	provider := DefaultFormatProvider()
+	formatMock := new(FormatMock)
+
+	formats := provider.Formats()
+	assert.NotContains(t, formats, formatMock)
+
+	RegisterFormat(formatMock)
+	formats = provider.Formats()
+
+	assert.Contains(t, formats, formatMock)
+}
+

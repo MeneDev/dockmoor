@@ -25,11 +25,7 @@ type ExitCodeCommander interface {
 	ExecuteWithExitCode(args []string) (exitCode int, err error)
 }
 
-type OutputFile struct {
-	Filename flags.Filename `description:"Input file" default:"-"`
-}
-
-type MainOptions struct {
+type mainOptions struct {
 	LogLevel    string `required:"no" short:"l" long:"log-level" description:"Sets the log-level" choice:"NONE" choice:"ERROR" choice:"WARN" choice:"INFO" choice:"DEBUG" default:"ERROR"`
 	ShowVersion bool   `required:"no" long:"version" description:"Show version and exit"`
 	Manpage     bool   `required:"no" long:"manpage" description:"Show man page and exit"`
@@ -43,29 +39,35 @@ type MainOptions struct {
 	stdin          io.ReadCloser
 }
 
-func (options *MainOptions) Parser() *flags.Parser {
+func MainOptionsNew() *mainOptions {
+	mainOptions := &mainOptions{}
+
+	parser := flags.NewParser(mainOptions, flags.HelpFlag|flags.PassDoubleDash)
+	mainOptions.parser = parser
+	mainOptions.readableOpener = defaultReadableOpener(mainOptions)
+	mainOptions.log = logrus.New()
+	mainOptions.formatProvider = dockfmt.DefaultFormatProvider()
+	mainOptions.stdout = os.Stdout
+	mainOptions.stdin = os.Stdin
+
+	return mainOptions
+}
+
+func (options *mainOptions) Parser() *flags.Parser {
 	return options.parser
 }
-func (options *MainOptions) Log() *logrus.Logger {
+func (options *mainOptions) Log() *logrus.Logger {
 	return options.log
 }
-func (options *MainOptions) FormatProvider() dockfmt.FormatProvider {
+func (options *mainOptions) FormatProvider() dockfmt.FormatProvider {
 	return options.formatProvider
 }
-func (options *MainOptions) SetStdout(writer io.Writer) {
+func (options *mainOptions) SetStdout(writer io.Writer) {
 	options.stdout = writer
 	options.log.SetOutput(writer)
 }
 
-var globalMainOptions MainOptions
-var globalParser = flags.NewParser(&globalMainOptions, flags.HelpFlag|flags.PassDoubleDash)
-
-func init() {
-	globalMainOptions.parser = globalParser
-	globalMainOptions.formatProvider = dockfmt.DefaultFormatProvider()
-}
-
-func defaultReadableOpener(options *MainOptions) func(filename string) (io.ReadCloser, error) {
+func defaultReadableOpener(options *mainOptions) func(filename string) (io.ReadCloser, error) {
 	return func(filename string) (io.ReadCloser, error) {
 		if filename == "-" {
 			return options.stdin, nil
@@ -74,34 +76,29 @@ func defaultReadableOpener(options *MainOptions) func(filename string) (io.ReadC
 	}
 }
 
+func doMain(mainOptions *mainOptions) (exitCode int) {
+	readableOpener := defaultReadableOpener(mainOptions)
+	mainOptions.readableOpener = readableOpener
+
+	cmd, cmdArgs, exitCode := CommandFromArgs(mainOptions, os.Args[1:])
+
+	if cmd != nil {
+		commander := cmd.(ExitCodeCommander)
+		exitCode, _ = commander.ExecuteWithExitCode(cmdArgs)
+	}
+
+	return
+}
+
 func main() {
+	mainOptions := MainOptionsNew()
+	addFindCommand(mainOptions)
 
-	exitCode := func() (exitCode int) {
-		// defers will not be run when using os.Exit, so wrap in function to ensure writer.Flush()
-		log := logrus.New()
-
-		globalMainOptions.log = log
-		writer := os.Stdout
-		globalMainOptions.SetStdout(writer)
-		globalMainOptions.stdin = os.Stdin
-
-		readableOpener := defaultReadableOpener(&globalMainOptions)
-		globalMainOptions.readableOpener = readableOpener
-
-		cmd, cmdArgs, exitCode := doMain(&globalMainOptions, os.Args[1:])
-
-		if cmd != nil {
-			commander := cmd.(ExitCodeCommander)
-			exitCode, _ = commander.ExecuteWithExitCode(cmdArgs)
-		}
-
-		return
-	}()
-
+	exitCode := doMain(mainOptions)
 	os.Exit(exitCode)
 }
 
-func doMain(mainOptions *MainOptions, args []string) (theCommand flags.Commander, cmdArgs []string, exitCode int) {
+func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.Commander, cmdArgs []string, exitCode int) {
 	parser := mainOptions.parser
 
 	name := path.Base(os.Args[0])
@@ -186,7 +183,7 @@ func mdPrintf(writer io.Writer, format string, a ...interface{}) (n int, err err
 }
 
 func WriteMarkdown(parser *flags.Parser, writer io.Writer) {
-	mdPrintf(writer, "# %s [![CircleCI](https://circleci.com/gh/MeneDev/dockfix.svg?style=svg)](https://circleci.com/gh/MeneDev/dockfix) [![Coverage Status](https://coveralls.io/repos/github/MeneDev/dockfix/badge.svg)](https://coveralls.io/github/MeneDev/dockfix)\n", parser.Name)
+	mdPrintf(writer, "# %s [![CircleCI](https://circleci.com/gh/MeneDev/dockfix.svg?style=shield)](https://circleci.com/gh/MeneDev/dockfix) [![Coverage Status](https://coveralls.io/repos/github/MeneDev/dockfix/badge.svg)](https://coveralls.io/github/MeneDev/dockfix)\n", parser.Name)
 	mdPrintf(writer, "%s Version %s\n\n",  parser.Name, Version)
 	mdPrintf(writer, "%s\n\n", parser.LongDescription)
 	mdPrintf(writer, "## Usage\n")

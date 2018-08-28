@@ -14,7 +14,7 @@ jobs:
             if [ ! -f /tmp/docker_pushed ]; then
               docker login -u $DOCKER_USER -p $DOCKER_PASS
               echo "Building $CI_PROJECT_PATH-builder:latest"
-              docker pull "$CI_PROJECT_PATH-builder:latest"
+              docker pull "$CI_PROJECT_PATH-builder:latest" || true
               docker build -f .builder/Dockerfile -t "$CI_PROJECT_PATH-builder:latest" .
               docker push "$CI_PROJECT_PATH-builder:latest"
               echo 1 > /tmp/docker_pushed
@@ -61,12 +61,18 @@ jobs:
       - run:
           name: Build project
           command: |
+            set -v
+            git --no-pager log --pretty=format:"%h %s" --graph
             tag=$CIRCLE_TAG
             tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
             echo "Building Tag '$tag'"
             echo "CIRCLE_TAG is $CIRCLE_TAG"
-            find cmd/ -maxdepth 1 -mindepth 1 -exec bash -c 'cd $0 && gox -ldflags="-s -w -X \"main.Version=${tag:-not a release}\" -X \"main.BuildDate=$(date --utc)\" -X \"main.BuildNumber=$CIRCLE_BUILD_NUM\" -X \"main.BuildCommit=$CIRCLE_SHA1\"" -os="linux windows darwin" -arch="amd64" -output "../../release/${0##*/}-{{.OS}}_{{.Arch}}"' {} \;
-
+            export tag
+            find cmd/ -maxdepth 1 -mindepth 1 -exec bash -c 'cd $0 && gox -ldflags="-s -w -X \"main.Version=${tag}\" -X \"main.BuildDate=$(date --utc)\" -X \"main.BuildNumber=$CIRCLE_BUILD_NUM\" -X \"main.BuildCommit=$CIRCLE_SHA1\"" -os="linux windows darwin" -arch="amd64" -output "../../release/${0##*/}-{{.OS}}_{{.Arch}}"' {} \;
+            ls
+            ls release
+            release/dockfix-linux_amd64 --version
+            
       - persist_to_workspace:
           root: .
           paths:
@@ -83,9 +89,10 @@ jobs:
           name: Update README.md
           command: |
             set -v
+            git --no-pager log --pretty=format:"%h %s" --graph
             echo "CIRCLE_SHA1: $CIRCLE_SHA1"
             echo "CIRCLE_TAG: $CIRCLE_TAG"
-            
+
             tag=$CIRCLE_TAG
             git describe --tags
             echo "tag: $tag"
@@ -103,7 +110,7 @@ jobs:
             git add README.md
             git commit -m ":gem: Release $tag"
             git tag -fa "$tag" -m "Release $tag"
-            git push --delete origin "$tag"
+            git push --delete origin "$tag" || true
             git push --force-with-lease origin master --tags
 
             digest=$(git rev-parse HEAD)
@@ -116,9 +123,10 @@ jobs:
           command: |
             set -v
             tag=$CIRCLE_TAG
-            echo $tag
+            echo "CIRCLE_TAG is $tag"
             tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
-            echo $tag
+            echo "git tag is $(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"
+            /tmp/workspace/release/dockfix-linux_amd64 --version
             if [ ! -z "$tag" ]; then
               ghr -t "$GITHUB_TOKEN" -u "$CIRCLE_PROJECT_USERNAME" -r "$CIRCLE_PROJECT_REPONAME" --replace "$tag" /tmp/workspace/release/
             else

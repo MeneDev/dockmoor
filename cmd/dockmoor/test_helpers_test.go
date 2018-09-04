@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"io"
-	"github.com/MeneDev/dockfix/dockfmt"
+	"github.com/MeneDev/dockmoor/dockfmt"
 )
 
 var _ dockfmt.FormatProvider = (*FormatProviderMock)(nil)

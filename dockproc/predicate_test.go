@@ -3,7 +3,7 @@ package dockproc
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/MeneDev/dockfix/dockref"
+	"github.com/MeneDev/dockmoor/dockref"
 )
 
 func TestAnyPredicate(t *testing.T) {

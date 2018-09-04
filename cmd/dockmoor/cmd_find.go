@@ -3,9 +3,9 @@ package main
 import (
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
-	"github.com/MeneDev/dockfix/dockproc"
+	"github.com/MeneDev/dockmoor/dockproc"
 	"io"
-	"github.com/MeneDev/dockfix/dockfmt"
+	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/sirupsen/logrus"
 )
 

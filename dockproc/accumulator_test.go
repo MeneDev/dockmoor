@@ -4,11 +4,11 @@ import (
 	"strconv"
 	"testing"
 	"github.com/stretchr/testify/mock"
-	"github.com/MeneDev/dockfix/dockfmt"
+	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"github.com/sirupsen/logrus"
-	"github.com/MeneDev/dockfix/dockref"
+	"github.com/MeneDev/dockmoor/dockref"
 )
 
 var _ dockfmt.Format = (*delegatingFormatMock)(nil)

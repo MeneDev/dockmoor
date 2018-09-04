@@ -7,8 +7,8 @@ import (
 	"github.com/jessevdk/go-flags"
 	"io"
 	"bytes"
-	"github.com/MeneDev/dockfix/dockfmt"
-	_ "github.com/MeneDev/dockfix/dockfmt/dockerfile"
+	"github.com/MeneDev/dockmoor/dockfmt"
+	_ "github.com/MeneDev/dockmoor/dockfmt/dockerfile"
 	"path"
 	"strings"
 	"html"
@@ -183,7 +183,7 @@ func mdPrintf(writer io.Writer, format string, a ...interface{}) (n int, err err
 }
 
 func WriteMarkdown(parser *flags.Parser, writer io.Writer) {
-	mdPrintf(writer, "# %s [![CircleCI](https://circleci.com/gh/MeneDev/dockfix.svg?style=shield)](https://circleci.com/gh/MeneDev/dockfix) [![Coverage Status](https://coveralls.io/repos/github/MeneDev/dockfix/badge.svg)](https://coveralls.io/github/MeneDev/dockfix)\n", parser.Name)
+	mdPrintf(writer, "# %s [![CircleCI](https://circleci.com/gh/MeneDev/dockmoor.svg?style=shield)](https://circleci.com/gh/MeneDev/dockmoor) [![Coverage Status](https://coveralls.io/repos/github/MeneDev/dockmoor/badge.svg)](https://coveralls.io/github/MeneDev/dockmoor)\n", parser.Name)
 	mdPrintf(writer, "%s Version %s\n\n",  parser.Name, Version)
 	mdPrintf(writer, "%s\n\n", parser.LongDescription)
 	mdPrintf(writer, "## Usage\n")

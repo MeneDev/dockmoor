@@ -1,10 +1,10 @@
-# dockfix [![CircleCI](https://circleci.com/gh/MeneDev/dockfix.svg?style=shield)](https://circleci.com/gh/MeneDev/dockfix) [![Coverage Status](https://coveralls.io/repos/github/MeneDev/dockfix/badge.svg)](https://coveralls.io/github/MeneDev/dockfix)
-dockfix Version v0.0.1-rc12
+# 00_main [![CircleCI](https://circleci.com/gh/MeneDev/dockmoor.svg?style=shield)](https://circleci.com/gh/MeneDev/dockmoor) [![Coverage Status](https://coveralls.io/repos/github/MeneDev/dockmoor/badge.svg)](https://coveralls.io/github/MeneDev/dockmoor)
+00_main Version &lt;unknown Version&gt;
 
 Manage docker image references.
 
 ## Usage
-> dockfix \[OPTIONS\] &lt;[find](#find-command)&gt; \[command-OPTIONS\]
+> 00_main \[OPTIONS\] &lt;[find](#find-command)&gt; \[command-OPTIONS\]
 
 ## Application Options
 **-l**, **--log-level**  
@@ -28,7 +28,7 @@ Show this help message
  * [find](#find-command)
 
 ## find command
-> dockfix \[OPTIONS\] find \[find-OPTIONS\] InputFile
+> 00_main \[OPTIONS\] find \[find-OPTIONS\] InputFile
 
 The find command returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions, non-null otherwise
 

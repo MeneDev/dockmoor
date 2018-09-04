@@ -3,7 +3,7 @@ package dockfmt
 import (
 	"io"
 	"github.com/sirupsen/logrus"
-	"github.com/MeneDev/dockfix/dockref"
+	"github.com/MeneDev/dockmoor/dockref"
 	"bytes"
 )
 

@@ -10,8 +10,8 @@ import (
 	"strings"
 	"reflect"
 	"github.com/pkg/errors"
-	"github.com/MeneDev/dockfix/dockfmt"
-	"github.com/MeneDev/dockfix/dockref"
+	"github.com/MeneDev/dockmoor/dockfmt"
+	"github.com/MeneDev/dockmoor/dockref"
 )
 
 func init()  {

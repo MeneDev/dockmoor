@@ -6,7 +6,7 @@ import (
 	"bytes"
 	"strings"
 	"github.com/stretchr/testify/assert"
-	"github.com/MeneDev/dockfix/dockref"
+	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/pkg/errors"
 	"io"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"

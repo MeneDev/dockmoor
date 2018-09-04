@@ -27,7 +27,7 @@ jobs:
     docker:
       - image: "$CI_PROJECT_PATH-builder:latest"
       
-    working_directory: /go/src/github.com/MeneDev/dockfix
+    working_directory: /go/src/github.com/MeneDev/dockmoor
     environment:
       - DEP_VERSION: 0.5.0
       - GOCACHE: "/tmp/go/cache"
@@ -71,7 +71,7 @@ jobs:
             find cmd/ -maxdepth 1 -mindepth 1 -exec bash -c 'cd $0 && gox -ldflags="-s -w -X \"main.Version=${tag}\" -X \"main.BuildDate=$(date --utc)\" -X \"main.BuildNumber=$CIRCLE_BUILD_NUM\" -X \"main.BuildCommit=$CIRCLE_SHA1\"" -os="linux windows darwin" -arch="amd64" -output "../../release/${0##*/}-{{.OS}}_{{.Arch}}"' {} \;
             ls
             ls release
-            release/dockfix-linux_amd64 --version
+            release/dockmoor-linux_amd64 --version
             
       - persist_to_workspace:
           root: .
@@ -80,7 +80,7 @@ jobs:
   release:
     docker:
       - image: "$CI_PROJECT_PATH-builder:latest"
-    working_directory: /go/src/github.com/MeneDev/dockfix
+    working_directory: /go/src/github.com/MeneDev/dockmoor
     steps:
       - checkout
       - attach_workspace:
@@ -105,7 +105,7 @@ jobs:
             git checkout -b master 2>/dev/null || git checkout master
             git reset --hard $digest
 
-            /tmp/workspace/release/dockfix-linux_amd64 --markdown > README.md
+            /tmp/workspace/release/dockmoor-linux_amd64 --markdown > README.md
 
             git add README.md
             git commit -m ":gem: Release $tag"
@@ -126,7 +126,7 @@ jobs:
             echo "CIRCLE_TAG is $tag"
             tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
             echo "git tag is $(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"
-            /tmp/workspace/release/dockfix-linux_amd64 --version
+            /tmp/workspace/release/dockmoor-linux_amd64 --version
             if [ ! -z "$tag" ]; then
               ghr -t "$GITHUB_TOKEN" -u "$CIRCLE_PROJECT_USERNAME" -r "$CIRCLE_PROJECT_REPONAME" --replace "$tag" /tmp/workspace/release/
             else

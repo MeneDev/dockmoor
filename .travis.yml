@@ -1,0 +1,14 @@
+language: go
+
+go:
+- 1.10.3
+
+before_install:
+- mkdir -p /go/src/github.com/mitchellh/gox
+- git clone --branch master https://github.com/mitchellh/gox.git /go/src/github.com/mitchellh/gox
+- cd /go/src/github.com/mitchellh/gox && git reset --hard e05df8dccde397491cd731693a93d4506b5850d3
+- cd /go/src/github.com/mitchellh/gox && dep ensure && go install -v ./...
+- go get github.com/mattn/goveralls
+
+script:
+- go test -cpu=1,2 -v -tags integration ./...

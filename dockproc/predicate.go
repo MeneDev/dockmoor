@@ -1,6 +1,6 @@
 package dockproc
 
-import "github.com/MeneDev/dockfix/dockref"
+import "github.com/MeneDev/dockmoor/dockref"
 
 type Predicate interface {
 	Matches(ref dockref.Reference) bool

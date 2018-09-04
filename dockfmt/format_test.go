@@ -4,7 +4,7 @@ import (
 	"testing"
 	"github.com/sirupsen/logrus"
 	"strings"
-	"github.com/MeneDev/dockfix/dockref"
+	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/stretchr/testify/mock"
 	"bytes"
 )

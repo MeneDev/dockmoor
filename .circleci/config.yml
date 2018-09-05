@@ -204,6 +204,8 @@ workflows:
             branches:
               ignore:
               - master
+            tags:
+              only: /.*/
       - build:
           requires:
               - create_builder
@@ -211,10 +213,13 @@ workflows:
             branches:
               ignore:
               - master
+            tags:
+              only: /.*/
       - release:
           requires:
               - build
           filters:
+            tags:
+              only: /^v.*/
             branches:
-              ignore:
-              - master
+              ignore: /.*/

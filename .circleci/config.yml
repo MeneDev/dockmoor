@@ -4,6 +4,18 @@ jobs:
     machine: true
     steps:
       - checkout
+      - run:
+          name: Check commit of generated content
+          command: |
+            set -v
+            tag=$CIRCLE_TAG
+            tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
+
+            release_commit_msg="$(git log -1 --pretty=%B | grep -E "^:gem: Release $tag\$" || true)"
+            if [ ! -z "$release_commit_msg" ]; then
+              echo "This is a commit with generated content, skipping"
+              circleci step halt
+            fi
       - restore_cache:
           key: builder-{{ checksum ".builder/Dockerfile" }}
           paths:
@@ -11,6 +23,7 @@ jobs:
       - run:
           name: Build and push image if builder/Dockerfile has changed
           command:  |
+
             if [ ! -f /tmp/docker_pushed ]; then
               docker login -u $DOCKER_USER -p $DOCKER_PASS
               echo "Building $CI_PROJECT_PATH-builder:latest"
@@ -33,6 +46,18 @@ jobs:
       - GOCACHE: "/tmp/go/cache"
     steps:
       - checkout
+      - run:
+          name: Check commit of generated content
+          command: |
+            set -v
+            tag=$CIRCLE_TAG
+            tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
+
+            release_commit_msg="$(git log -1 --pretty=%B | grep -E "^:gem: Release $tag\$" || true)"
+            if [ ! -z "$release_commit_msg" ]; then
+              echo "This is a commit with generated content, skipping"
+              circleci step halt
+            fi
       - restore_cache:
           key: gopkg-{{ checksum "Gopkg.lock" }}
           paths:
@@ -56,15 +81,31 @@ jobs:
       - run:
           name: Test
           command: |
+            set -v
+            tag=$CIRCLE_TAG
+            tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
+
+            release_commit_msg="$(git log -1 --pretty=%B | grep -E "^:gem: Release $tag\$" || true)"
+            if [ ! -z "$release_commit_msg" ]; then
+              echo "This is a commit with generated content, skipping"
+              exit 0
+            fi
+
             go test -v ./... -cover -race -coverprofile=/tmp/coverage.out
             $GOPATH/bin/goveralls -coverprofile=/tmp/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
       - run:
           name: Build project
           command: |
             set -v
-            git --no-pager log --pretty=format:"%h %s" --graph
             tag=$CIRCLE_TAG
             tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
+
+            release_commit_msg="$(git log -1 --pretty=%B | grep -E "^:gem: Release $tag\$" || true)"
+            if [ ! -z "$release_commit_msg" ]; then
+              echo "This is a commit with generated content, skipping"
+              exit 0
+            fi
+
             echo "Building Tag '$tag'"
             echo "CIRCLE_TAG is $CIRCLE_TAG"
             export tag
@@ -83,12 +124,27 @@ jobs:
     working_directory: /go/src/github.com/MeneDev/dockmoor
     steps:
       - checkout
+      - run:
+          name: Check commit of generated content
+          command: |
+            set -v
+            tag=$CIRCLE_TAG
+            tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
+
+            release_commit_msg="$(git log -1 --pretty=%B | grep -E "^:gem: Release $tag\$" || true)"
+            if [ ! -z "$release_commit_msg" ]; then
+              echo "This is a commit with generated content, skipping"
+              circleci step halt
+            fi
       - attach_workspace:
           at: /tmp/workspace
       - run:
           name: Update README.md
           command: |
             set -v
+            tag=$CIRCLE_TAG
+            tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
+
             git --no-pager log --pretty=format:"%h %s" --graph
             echo "CIRCLE_SHA1: $CIRCLE_SHA1"
             echo "CIRCLE_TAG: $CIRCLE_TAG"
@@ -129,7 +185,7 @@ jobs:
             /tmp/workspace/release/dockmoor-linux_amd64 --version
             release_commit_msg="$(git log -1 --pretty=%B | grep -E "^:gem: Release $tag\$")"
             if [ ! -z "$release_commit_msg" ]; then
-              echo "not releasing, commit is already released"
+              echo "This is a commit with generated content, skipping"
               exit 0
             fi
             if [ ! -z "$tag" ]; then
@@ -159,8 +215,6 @@ workflows:
           requires:
               - build
           filters:
-            tags:
-              only: /^v.*/
             branches:
               ignore:
               - master

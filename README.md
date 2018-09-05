@@ -1,5 +1,5 @@
 # dockmoor [![CircleCI](https://circleci.com/gh/MeneDev/dockmoor.svg?style=shield)](https://circleci.com/gh/MeneDev/dockmoor) [![Coverage Status](https://coveralls.io/repos/github/MeneDev/dockmoor/badge.svg)](https://coveralls.io/github/MeneDev/dockmoor)
-dockmoor Version v0.4
+dockmoor Version v0.8
 
 Manage docker image references.
 

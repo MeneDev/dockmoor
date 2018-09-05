@@ -127,6 +127,11 @@ jobs:
             tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
             echo "git tag is $(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"
             /tmp/workspace/release/dockmoor-linux_amd64 --version
+            release_commit_msg="$(git log -1 --pretty=%B | grep -E "^:gem: Release $tag\$")"
+            if [ ! -z "$release_commit_msg" ]; then
+              echo "not releasing, commit is already released"
+              exit 0
+            fi
             if [ ! -z "$tag" ]; then
               ghr -t "$GITHUB_TOKEN" -u "$CIRCLE_PROJECT_USERNAME" -r "$CIRCLE_PROJECT_REPONAME" --replace "$tag" /tmp/workspace/release/
             else

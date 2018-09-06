@@ -120,6 +120,23 @@ jobs:
               echo "Missing Changelog entry for $tag, refusing to release"
               exit 1
             fi
+      - restore_cache:
+          key: gopkg-{{ checksum "Gopkg.lock" }}
+          paths:
+          - /go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/vendor
+          - /tmp/go/cache
+      - run:
+          name: Download and build libraries
+          command: |
+            if [ ! -d ./vendor ]; then
+                /go/bin/dep ensure
+                find vendor/ -maxdepth 3 -mindepth 3 -exec bash -c 'cd $0 && go build  ./...' {} \;
+            fi
+      - save_cache:
+          key: gopkg-{{ checksum "Gopkg.lock" }}
+          paths:
+          - ./vendor
+          - /tmp/go/cache
 
       - run:
           name: End-to-End Test

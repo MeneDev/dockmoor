@@ -1,0 +1,121 @@
+
+:branch: develop
+
+== dockmoor
+image:https://img.shields.io/circleci/project/github/MeneDev/dockmoor/{branch}.svg[Build Status (Circle CI), link=https://circleci.com/gh/MeneDev/dockmoor]
+image:https://img.shields.io/coveralls/github/MeneDev/dockmoor/{branch}.svg[Coveralls statement coverage, link=https://coveralls.io/github/MeneDev/dockmoor]
+image:https://img.shields.io/twitter/follow/MeneDev.svg?style=social&label=%40MeneDev[Follow @MeneDev on Twitter, link=https://twitter.com/MeneDev]
+
+Manage docker image references.
+
+[[_examples]]
+Examples
+--------
+
+[[_find_command]]
+find command
+~~~~~~~~~~~~
+
+[[_use_unix_find_to_list_all_supported_files]]
+Use unix find to list all supported files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+[source,bash]
+----
+find some-folder/ -type f -exec dockmoor find --any {} \; -print
+----
+
+stdout:
+
+_____________________________________________
+....
+some-folder/Dockerfile-nginx-latest
+some-folder/subfolder/Dockerfile-nginx-latest
+....
+_____________________________________________
+
+stderr is empty +
+exit code: 0
+
+[[_test_the_format_of_a_file]]
+Test the format of a file
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The `find` command returns with exit code 0 when an image reference was found that matches. Using the `--any` predicate allows to match any file with a supported format that contains at least one image reference.
+
+[source,bash]
+----
+dockmoor find --any some-folder/Dockerfile-nginx-latest
+----
+
+stdout is empty +
+stderr is empty +
+exit code: 0
+
+[source,bash]
+----
+dockmoor find --any some-folder/NotADockerfile
+----
+
+stdout is empty +
+stderr is empty +
+exit code: 4
+
+[[_usage]]
+Usage
+-----
+
+_______________________________________________________________________________________________________________________________
+___go_build_00_main_go_cmd_find_go_exit_codes_go_asciidoc_go_markdown_go [OPTIONS] <link:#find-command[find]> [command-OPTIONS]
+_______________________________________________________________________________________________________________________________
+
+[[_application_options]]
+Application Options
+-------------------
+
+**-l**, *--log-level* Sets the log-level (one of `NONE`, `ERROR`, `WARN`, `INFO`, `DEBUG`)
+
+*--version* Show version and exit
+
+*--manpage* Show man page and exit
+
+*--markdown* Show usage as markdown and exit
+
+*--asciidoc-usage* Show usage as asciidoc and exit
+
+[[_help_options]]
+Help Options
+------------
+
+**-h**, *--help* Show this help message
+
+[[_commands]]
+Commands
+~~~~~~~~
+
+* link:#find-command[find]
+
+[[_find_command_2]]
+find command
+^^^^^^^^^^^^
+
+________________________________________________________________________________________________________________
+___go_build_00_main_go_cmd_find_go_exit_codes_go_asciidoc_go_markdown_go [OPTIONS] find [find-OPTIONS] InputFile
+________________________________________________________________________________________________________________
+
+The find command returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions, non-null otherwise
+
+[[_predicates]]
+Predicates
+~~~~~~~~~~
+
+Specify which kind of image references should be selected. Exactly one must be specified
+
+*--any* Find all images
+
+[[_help_options_2]]
+Help Options
+~~~~~~~~~~~~
+
+**-h**, *--help* Show this help message
+

@@ -113,13 +113,13 @@ jobs:
             fi
       - attach_workspace:
           at: /tmp/workspace
-      - run:
-          name: Verify CHANGELOG contains release tag
-          command: |
-            if ! cat CHANGELOG.md | grep "## $tag" ; then
-              echo "Missing Changelog entry for $tag, refusing to release"
-              exit 1
-            fi
+#      - run:
+#          name: Verify CHANGELOG contains release tag
+#          command: |
+#            if ! cat CHANGELOG.md | grep "## $tag" ; then
+#              echo "Missing Changelog entry for $tag, refusing to release"
+#              exit 1
+#            fi
       - restore_cache:
           key: gopkg-{{ checksum "Gopkg.lock" }}
           paths:
@@ -144,7 +144,7 @@ jobs:
             cd cmd/dockmoor/end-to-end && ./test.sh
 
       - run:
-          name: Update README.md
+          name: Update README.adoc
           command: |
             set -v
             tag=$CIRCLE_TAG
@@ -159,7 +159,22 @@ jobs:
 
             /tmp/workspace/release/dockmoor-linux_amd64 --markdown > cmd/dockmoor/doc/dockmoor.md
 
-            git add README.md
+            asciidoctor -b docbook5 cmd/dockmoor/doc/_readme.adoc
+            pandoc -f docbook -t asciidoc --wrap=none --columns=120 cmd/dockmoor/doc/_readme.xml -o README.adoc
+
+            VARS="$(cat cmd/dockmoor/doc/_vars.adoc)"
+            BODY="$(cat README.adoc)"
+            HEADER="$(cat cmd/dockmoor/doc/_header.adoc)"
+
+            echo "$VARS
+            :branch: $(git symbolic-ref --short HEAD)
+
+            $HEADER
+
+            $BODY
+            " > README.adoc
+
+            git add README.adoc
             git commit -m ":gem: Release $tag"
 
             # Move tag

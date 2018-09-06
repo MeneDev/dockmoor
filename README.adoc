@@ -1,5 +1,5 @@
 
-:branch: develop
+:branch: master
 
 == dockmoor
 image:https://img.shields.io/circleci/project/github/MeneDev/dockmoor/{branch}.svg[Build Status (Circle CI), link=https://circleci.com/gh/MeneDev/dockmoor]

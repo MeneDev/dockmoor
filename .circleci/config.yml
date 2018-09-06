@@ -9,10 +9,8 @@ jobs:
           command: |
             set -v
             tag=$CIRCLE_TAG
-            tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
-
-            release_commit_msg="$(git log -1 --pretty=%B | grep -E "^:gem: Release $tag\$" || true)"
-            if [ ! -z "$release_commit_msg" ]; then
+            release_commit_msg="$(git log -1 --pretty=%B | head -n 1 || true)"
+            if [ "$release_commit_msg" = ":gem: Release $tag" ]; then
               echo "This is a commit with generated content, skipping"
               circleci step halt
             fi
@@ -51,10 +49,8 @@ jobs:
           command: |
             set -v
             tag=$CIRCLE_TAG
-            tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
-
-            release_commit_msg="$(git log -1 --pretty=%B | grep -E "^:gem: Release $tag\$" || true)"
-            if [ ! -z "$release_commit_msg" ]; then
+            release_commit_msg="$(git log -1 --pretty=%B | head -n 1 || true)"
+            if [ "$release_commit_msg" = ":gem: Release $tag" ]; then
               echo "This is a commit with generated content, skipping"
               circleci step halt
             fi
@@ -76,44 +72,25 @@ jobs:
               - ./vendor
               - /tmp/go/cache
 
-      - setup_remote_docker
+#      - setup_remote_docker
 
       - run:
           name: Test
           command: |
-            set -v
-            tag=$CIRCLE_TAG
-            tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
-
-            release_commit_msg="$(git log -1 --pretty=%B | grep -E "^:gem: Release $tag\$" || true)"
-            if [ ! -z "$release_commit_msg" ]; then
-              echo "This is a commit with generated content, skipping"
-              exit 0
-            fi
-
             go test -v ./... -cover -race -coverprofile=/tmp/coverage.out
             $GOPATH/bin/goveralls -coverprofile=/tmp/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
+
       - run:
           name: Build project
           command: |
             set -v
             tag=$CIRCLE_TAG
-            tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
-
-            release_commit_msg="$(git log -1 --pretty=%B | grep -E "^:gem: Release $tag\$" || true)"
-            if [ ! -z "$release_commit_msg" ]; then
-              echo "This is a commit with generated content, skipping"
-              exit 0
-            fi
 
             echo "Building Tag '$tag'"
-            echo "CIRCLE_TAG is $CIRCLE_TAG"
             export tag
             find cmd/ -maxdepth 1 -mindepth 1 -exec bash -c 'cd $0 && gox -ldflags="-s -w -X \"main.Version=${tag}\" -X \"main.BuildDate=$(date --utc)\" -X \"main.BuildNumber=$CIRCLE_BUILD_NUM\" -X \"main.BuildCommit=$CIRCLE_SHA1\"" -os="linux windows darwin" -arch="amd64" -output "../../release/${0##*/}-{{.OS}}_{{.Arch}}"' {} \;
-            ls
-            ls release
             release/dockmoor-linux_amd64 --version
-            
+
       - persist_to_workspace:
           root: .
           paths:
@@ -129,46 +106,51 @@ jobs:
           command: |
             set -v
             tag=$CIRCLE_TAG
-            tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
-
-            release_commit_msg="$(git log -1 --pretty=%B | grep -E "^:gem: Release $tag\$" || true)"
-            if [ ! -z "$release_commit_msg" ]; then
+            release_commit_msg="$(git log -1 --pretty=%B | head -n 1 || true)"
+            if [ "$release_commit_msg" = ":gem: Release $tag" ]; then
               echo "This is a commit with generated content, skipping"
               circleci step halt
             fi
       - attach_workspace:
           at: /tmp/workspace
       - run:
+          name: Verify CHANGELOG contains release tag
+          command: |
+            if ! cat CHANGELOG.md | grep "## $tag" ; then
+              echo "Missing Changelog entry for $tag, refusing to release"
+              exit 1
+            fi
+
+      - run:
+          name: End-to-End Test
+          command: |
+            cd cmd/dockmoor/end-to-end && ./test.sh
+
+      - run:
           name: Update README.md
           command: |
             set -v
             tag=$CIRCLE_TAG
-            tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
 
-            git --no-pager log --pretty=format:"%h %s" --graph
-            echo "CIRCLE_SHA1: $CIRCLE_SHA1"
-            echo "CIRCLE_TAG: $CIRCLE_TAG"
-
-            tag=$CIRCLE_TAG
-            git describe --tags
-            echo "tag: $tag"
-            tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
-            echo $tag
             git config --global user.email "$GIT_EMAIL"
             git config --global user.name "$GIT_USER"
 
+            # Switch to master and reset to current commit
             digest=$(git rev-parse HEAD)
             git checkout -b master 2>/dev/null || git checkout master
             git reset --hard $digest
 
-            /tmp/workspace/release/dockmoor-linux_amd64 --markdown > README.md
+            /tmp/workspace/release/dockmoor-linux_amd64 --markdown > cmd/dockmoor/doc/dockmoor.md
 
             git add README.md
             git commit -m ":gem: Release $tag"
+
+            # Move tag
             git tag -fa "$tag" -m "Release $tag"
             git push --delete origin "$tag" || true
             git push --force-with-lease origin master --tags
 
+            # Forward developer to master
             digest=$(git rev-parse HEAD)
             git checkout -b develop 2>/dev/null || git checkout develop
             git reset --hard $digest
@@ -179,19 +161,8 @@ jobs:
           command: |
             set -v
             tag=$CIRCLE_TAG
-            echo "CIRCLE_TAG is $tag"
-            tag=${tag:-"$(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"}
-            echo "git tag is $(git describe --tags 2>/dev/null | grep -E '^v.*' || true)"
-            /tmp/workspace/release/dockmoor-linux_amd64 --version
 
-            cat CHANGELOG.md | grep "## $tag" || echo "Missing Changelog entry for $tag"
-
-            if [ ! -z "$tag" ]; then
-              ghr -t "$GITHUB_TOKEN" -u "$CIRCLE_PROJECT_USERNAME" -r "$CIRCLE_PROJECT_REPONAME" --replace "$tag" /tmp/workspace/release/
-            else
-              echo "not releasing, no new version"
-            fi
-
+            ghr -t "$GITHUB_TOKEN" -u "$CIRCLE_PROJECT_USERNAME" -r "$CIRCLE_PROJECT_REPONAME" --replace "$tag" /tmp/workspace/release/
 
 workflows:
   version: 2

@@ -45,7 +45,7 @@ func (options *mainOptionsTest) Stdout() *bytes.Buffer {
 	return options.stdout.(*bytes.Buffer)
 }
 
-func testMain(args []string, registerOptions ...func(mainOptions *mainOptions) (*flags.Command, error)) (theCommand flags.Commander, cmdArgs []string, exitCode int, buffer *bytes.Buffer) {
+func testMain(args []string, registerOptions ...func(mainOptions *mainOptions) (*flags.Command, error)) (theCommand flags.Commander, cmdArgs []string, exitCode ExitCode, buffer *bytes.Buffer) {
 	mainOptions := MainOptionsTest()
 
 	for _, reg := range registerOptions {
@@ -68,7 +68,7 @@ func TestNoCommandKnownIsError(t *testing.T) {
 func TestHelpIsNotError(t *testing.T) {
 	_, _, exitCode, stdout := testMain([]string{"--help"})
 	s := stdout.String()
-	assert.Equal(t, 0, exitCode)
+	assert.Equal(t, EXIT_SUCCESS, exitCode)
 	assert.NotContains(t, s, "level=error")
 	assert.Contains(t, s, "Usage")
 	assert.Contains(t, s, "Application Options")
@@ -78,7 +78,7 @@ func TestHelpIsNotError(t *testing.T) {
 func TestManIsNotError(t *testing.T) {
 	_, _, exitCode, stdout := testMain([]string{"--manpage"})
 	s := stdout.String()
-	assert.Equal(t, 0, exitCode)
+	assert.Equal(t, EXIT_SUCCESS, exitCode)
 	assert.NotContains(t, s, "level=error")
 	assert.Contains(t, s, "NAME")
 	assert.Contains(t, s, "SYNOPSIS")
@@ -88,7 +88,7 @@ func TestManIsNotError(t *testing.T) {
 func TestMarkdownIsNotError(t *testing.T) {
 	_, _, exitCode, stdout := testMain([]string{"--markdown"})
 	s := stdout.String()
-	assert.Equal(t, 0, exitCode)
+	assert.Equal(t, EXIT_SUCCESS, exitCode)
 	assert.NotEmpty(t, s)
 }
 

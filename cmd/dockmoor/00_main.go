@@ -11,25 +11,19 @@ import (
 	_ "github.com/MeneDev/dockmoor/dockfmt/dockerfile"
 	"path"
 	"strings"
-	"html"
-)
-
-const (
-	EXIT_SUCCESS int = iota
-	EXIT_INVALID_PARAMS
-	EXIT_UNKNOWN_ERROR
 )
 
 type ExitCodeCommander interface {
 	flags.Commander
-	ExecuteWithExitCode(args []string) (exitCode int, err error)
+	ExecuteWithExitCode(args []string) (exitCode ExitCode, err error)
 }
 
 type mainOptions struct {
-	LogLevel    string `required:"no" short:"l" long:"log-level" description:"Sets the log-level" choice:"NONE" choice:"ERROR" choice:"WARN" choice:"INFO" choice:"DEBUG" default:"ERROR"`
-	ShowVersion bool   `required:"no" long:"version" description:"Show version and exit"`
-	Manpage     bool   `required:"no" long:"manpage" description:"Show man page and exit"`
-	Markdown     bool   `required:"no" long:"markdown" description:"Show usage as markdown and exit"`
+	LogLevel      string `required:"no" short:"l" long:"log-level" description:"Sets the log-level" choice:"NONE" choice:"ERROR" choice:"WARN" choice:"INFO" choice:"DEBUG" default:"ERROR"`
+	ShowVersion   bool   `required:"no" long:"version" description:"Show version and exit"`
+	Manpage       bool   `required:"no" long:"manpage" description:"Show man page and exit"`
+	Markdown      bool   `required:"no" long:"markdown" description:"Show usage as markdown and exit"`
+	AsciiDocUsage bool   `required:"no" long:"asciidoc-usage" description:"Show usage as asciidoc and exit"`
 
 	readableOpener func(string) (io.ReadCloser, error)
 	parser         *flags.Parser
@@ -39,6 +33,9 @@ type mainOptions struct {
 	stdin          io.ReadCloser
 }
 
+var osStdout io.Writer = os.Stdout
+var osStdin io.ReadCloser = os.Stdin
+
 func MainOptionsNew() *mainOptions {
 	mainOptions := &mainOptions{}
 
@@ -47,8 +44,8 @@ func MainOptionsNew() *mainOptions {
 	mainOptions.readableOpener = defaultReadableOpener(mainOptions)
 	mainOptions.log = logrus.New()
 	mainOptions.formatProvider = dockfmt.DefaultFormatProvider()
-	mainOptions.stdout = os.Stdout
-	mainOptions.stdin = os.Stdin
+	mainOptions.stdout = osStdout
+	mainOptions.stdin = osStdin
 
 	return mainOptions
 }
@@ -76,7 +73,7 @@ func defaultReadableOpener(options *mainOptions) func(filename string) (io.ReadC
 	}
 }
 
-func doMain(mainOptions *mainOptions) (exitCode int) {
+func doMain(mainOptions *mainOptions) (exitCode ExitCode) {
 	readableOpener := defaultReadableOpener(mainOptions)
 	mainOptions.readableOpener = readableOpener
 
@@ -90,15 +87,17 @@ func doMain(mainOptions *mainOptions) (exitCode int) {
 	return
 }
 
+var osExit = func(exitCode ExitCode) { os.Exit(int(exitCode)) }
+
 func main() {
 	mainOptions := MainOptionsNew()
 	addFindCommand(mainOptions)
 
 	exitCode := doMain(mainOptions)
-	os.Exit(exitCode)
+	osExit(exitCode)
 }
 
-func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.Commander, cmdArgs []string, exitCode int) {
+func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.Commander, cmdArgs []string, exitCode ExitCode) {
 	parser := mainOptions.parser
 
 	name := path.Base(os.Args[0])
@@ -106,7 +105,6 @@ func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.
 	parser.Name = name
 
 	log := mainOptions.log
-
 
 	parser.ShortDescription = "Manage docker image references."
 	parser.LongDescription = "Manage docker image references."
@@ -127,6 +125,12 @@ func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.
 
 	if mainOptions.Markdown {
 		WriteMarkdown(parser, mainOptions.stdout)
+		exitCode = EXIT_SUCCESS
+		return
+	}
+
+	if mainOptions.AsciiDocUsage {
+		WriteAsciiDoc(parser, mainOptions.stdout)
 		exitCode = EXIT_SUCCESS
 		return
 	}
@@ -169,133 +173,6 @@ func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.
 
 	exitCode = EXIT_SUCCESS
 	return
-}
-
-func mdPrintf(writer io.Writer, format string, a ...interface{}) (n int, err error) {
-	for i, e := range a {
-		if s, ok := e.(string); ok {
-			s = html.EscapeString(s)
-			a[i] = s
-		}
-	}
-
-	return fmt.Fprintf(writer, format, a...)
-}
-
-func WriteMarkdown(parser *flags.Parser, writer io.Writer) {
-	mdPrintf(writer, "# %s [![CircleCI](https://circleci.com/gh/MeneDev/dockmoor.svg?style=shield)](https://circleci.com/gh/MeneDev/dockmoor) [![Coverage Status](https://coveralls.io/repos/github/MeneDev/dockmoor/badge.svg)](https://coveralls.io/github/MeneDev/dockmoor)\n", parser.Name)
-	mdPrintf(writer, "%s Version %s\n\n",  parser.Name, Version)
-	mdPrintf(writer, "%s\n\n", parser.LongDescription)
-	mdPrintf(writer, "## Usage\n")
-	commands := []*flags.Command{parser.Command}
-	WriteUsage(commands, writer)
-
-	WriteGroups(writer, parser.Command.Groups(), 2)
-
-	mdPrintf(writer, "## Commands\n\n")
-
-	for _, cmd := range parser.Commands() {
-		mdPrintf(writer, " * [%s](#%s)\n", cmd.Name, strings.ToLower(cmd.Name) + "-command")
-	}
-	mdPrintf(writer, "\n")
-
-	for _, cmd := range parser.Commands() {
-		mdPrintf(writer, "## %s command\n", cmd.Name)
-		WriteUsage(append(commands, cmd), writer)
-		mdPrintf(writer, "%s\n\n", cmd.LongDescription)
-		WriteOptions(writer, cmd.Options(), 3)
-		WriteGroups(writer, cmd.Groups(), 3)
-	}
-}
-
-func WriteUsage(commands []*flags.Command, writer io.Writer) {
-
-	mdPrintf(writer, "> ",)
-	for idxCommand, command := range commands {
-
-		isFirstCommand := idxCommand == 0
-		isLastCommand := idxCommand+1 == len(commands)
-
-		mdPrintf(writer, "%s", command.Name)
-		if len(command.Options()) > 0 || len(command.Groups()) > 0 {
-			if isFirstCommand {
-				mdPrintf(writer, " \\[OPTIONS\\]")
-			} else {
-				mdPrintf(writer, " \\[%s-OPTIONS\\]", command.Name)
-			}
-		}
-
-		if len(command.Args()) > 0 {
-			for _, v := range command.Args() {
-				var fmt string
-				if v.Required == 0 {
-					fmt = " \\[%s\\]"
-				} else {
-					fmt = " %s"
-				}
-
-				mdPrintf(writer, fmt, v.Name)
-			}
-		}
-
-		if !isLastCommand {
-			mdPrintf(writer, " ")
-		} else {
-			if len(command.Commands()) > 0 {
-				var cmds []string
-				for _, cmd := range command.Commands() {
-					cmds = append(cmds, fmt.Sprintf("[%s](#%s)", cmd.Name, strings.ToLower(cmd.Name) + "-command"))
-				}
-
-				var fmt string
-				if command.SubcommandsOptional {
-					fmt = " \\[%s\\]"
-				} else {
-					fmt = " &lt;%s&gt;"
-				}
-				mdPrintf(writer, fmt, strings.Join(cmds, " | "))
-				mdPrintf(writer, " \\[command-OPTIONS\\]")
-			}
-		}
-	}
-
-	mdPrintf(writer, "\n\n")
-}
-
-func WriteGroups(writer io.Writer, groups []*flags.Group, level int) {
-
-	for _, group := range groups {
-		mdPrintf(writer,  strings.Repeat("#", level) + " %s\n", group.ShortDescription)
-		if group.LongDescription != "" {
-			mdPrintf(writer,  "%s\n\n", group.LongDescription)
-		}
-		WriteOptions(writer, group.Options(), level + 1)
-	}
-}
-
-func WriteOptions(writer io.Writer, options []*flags.Option, level int) {
-	for _, opt := range options {
-		if opt.Hidden { continue }
-
-		if opt.OptionalArgument { continue }
-
-		mdPrintf(writer, "**")
-		var names []string
-		if opt.ShortName != 0 {
-			names = append(names, "-" + string(opt.ShortName))
-		}
-		if opt.LongNameWithNamespace() != "" {
-			names = append(names, "--" + string(opt.LongNameWithNamespace()))
-		}
-
-		mdPrintf(writer, strings.Join(names, "**, **"))
-
-		mdPrintf(writer, "**  \n%s", opt.Description)
-		if opt.Choices != nil {
-			mdPrintf(writer, " (one of `%s`)", strings.Join(opt.Choices, "`, `"))
-		}
-		mdPrintf(writer, "\n\n")
-	}
 }
 
 var Version string = "<unknown Version>"

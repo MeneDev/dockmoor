@@ -88,7 +88,7 @@ func (opts *FindOptions) Execute(args []string) error {
 	return errors.New("Use ExecuteWithExitCode instead")
 }
 
-func (opts *FindOptions) ExecuteWithExitCode(args []string) (exitCode int, err error) {
+func (opts *FindOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err error) {
 	err = verifyFindOptions(opts)
 	if err != nil {
 		opts.Log().Errorf("Invalid options: %s\n", err.Error())
@@ -119,7 +119,7 @@ func (opts *FindOptions) open(readable string) (io.ReadCloser, error) {
 	return opts.mainOptions.readableOpener(readable)
 }
 
-func (opts *FindOptions) find() (exitCode int, err error) {
+func (opts *FindOptions) find() (exitCode ExitCode, err error) {
 	log := opts.Log()
 	formatProvider := opts.MainOptions().FormatProvider()
 
@@ -132,7 +132,7 @@ func (opts *FindOptions) find() (exitCode int, err error) {
 	}()
 	if err != nil {
 		log.Errorf("Could not open file: %s", err.Error())
-		exitCode = 1
+		exitCode = EXIT_COULD_NOT_OPEN_FILE
 		return
 	}
 
@@ -140,7 +140,7 @@ func (opts *FindOptions) find() (exitCode int, err error) {
 
 	fileFormat, formatError := dockfmt.IdentifyFormat(log, formatProvider, fpInput, filePathInput)
 	if fileFormat == nil {
-		return 1, formatError
+		return EXIT_INVALID_FORMAT, formatError
 	}
 
 	formatProcessor := dockfmt.FormatProcessorNew(fileFormat, log, fpInput)
@@ -152,9 +152,9 @@ func (opts *FindOptions) find() (exitCode int, err error) {
 	found := accumulator.Result()
 
 	if found {
-		exitCode = 0
+		exitCode = EXIT_SUCCESS
 	} else {
-		exitCode = 1
+		exitCode = EXIT_NOT_FOUND
 	}
 
 	return

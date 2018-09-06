@@ -73,3 +73,11 @@
 [[constraint]]
   branch = "master"
   name = "github.com/hashicorp/go-multierror"
+
+[[constraint]]
+  name = "mvdan.cc/sh"
+  version = "2.5.1"
+
+[[constraint]]
+  name = "github.com/mattn/go-shellwords"
+  version = "1.0.3"

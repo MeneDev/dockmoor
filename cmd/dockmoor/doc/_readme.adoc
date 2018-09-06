@@ -1,0 +1,4 @@
+== Examples
+include::cmdContains.adoc[]
+
+include::usage.adoc[]

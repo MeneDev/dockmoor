@@ -254,7 +254,7 @@ func TestMainMarkdownWithFind(t *testing.T) {
 
 	assert.Contains(t, buffer.String(), "find command")
 
-	assert.Equal(t, 0, exitCode)
+	assert.Equal(t, EXIT_SUCCESS, exitCode)
 }
 
 func TestFindHelpIsNotAnError(t *testing.T) {
@@ -268,7 +268,7 @@ func TestFindHelpIsNotAnError(t *testing.T) {
 
 	assert.Contains(t, buffer.String(), "find command")
 
-	assert.Equal(t, 0, exitCode)
+	assert.Equal(t, EXIT_SUCCESS, exitCode)
 }
 
 func TestFindHelpContainsAny(t *testing.T) {
@@ -282,7 +282,7 @@ func TestFindHelpContainsAny(t *testing.T) {
 
 	assert.Contains(t, buffer.String(), "--any")
 
-	assert.Equal(t, 0, exitCode)
+	assert.Equal(t, EXIT_SUCCESS, exitCode)
 }
 
 func TestFindHelpHidesUnimplemented(t *testing.T) {
@@ -300,7 +300,7 @@ func TestFindHelpHidesUnimplemented(t *testing.T) {
 	assert.NotContains(t, buffer.String(), "--name")
 	assert.NotContains(t, buffer.String(), "--domain")
 
-	assert.Equal(t, 0, exitCode)
+	assert.Equal(t, EXIT_SUCCESS, exitCode)
 }
 
 func equalsAnyString(needle string, values ...string) bool {

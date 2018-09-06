@@ -12,3 +12,6 @@ RUN cd /go/src/github.com/mitchellh/gox && git reset --hard e05df8dccde397491cd7
 RUN cd /go/src/github.com/mitchellh/gox && dep ensure && go install -v ./...
 
 RUN go get github.com/mattn/goveralls
+
+RUN sudo apt-get install ruby pandoc
+RUN sudo gem install asciidoctor

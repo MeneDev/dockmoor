@@ -157,7 +157,7 @@ jobs:
             git checkout -b master 2>/dev/null || git checkout master
             git reset --hard $digest
 
-            /tmp/workspace/release/dockmoor-linux_amd64 --markdown > cmd/dockmoor/doc/dockmoor.md
+            /tmp/workspace/release/dockmoor-linux_amd64 --asciidoc-usage > cmd/dockmoor/doc/dockmoor.adoc
 
             asciidoctor -b docbook5 cmd/dockmoor/doc/_readme.adoc
             pandoc -f docbook -t asciidoc --wrap=none --columns=120 cmd/dockmoor/doc/_readme.xml -o README.adoc

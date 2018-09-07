@@ -113,13 +113,13 @@ jobs:
             fi
       - attach_workspace:
           at: /tmp/workspace
-#      - run:
-#          name: Verify CHANGELOG contains release tag
-#          command: |
-#            if ! cat CHANGELOG.md | grep "## $tag" ; then
-#              echo "Missing Changelog entry for $tag, refusing to release"
-#              exit 1
-#            fi
+      - run:
+          name: Verify CHANGELOG contains release tag
+          command: |
+            if ! cat CHANGELOG.md | grep "## $tag" ; then
+              echo "Missing Changelog entry for $tag, refusing to release"
+              exit 1
+            fi
       - restore_cache:
           key: gopkg-{{ checksum "Gopkg.lock" }}
           paths:

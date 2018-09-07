@@ -167,7 +167,7 @@ jobs:
             HEADER="$(cat cmd/dockmoor/doc/_header.adoc)"
 
             echo "$VARS
-            :branch: $(git symbolic-ref --short HEAD)
+            :branch: master
 
             $HEADER
 
@@ -203,8 +203,7 @@ workflows:
       - create_builder:
           filters:
             branches:
-              ignore:
-              - master
+              only: /.*/
             tags:
               only: /.*/
       - build:
@@ -212,8 +211,7 @@ workflows:
               - create_builder
           filters:
             branches:
-              ignore:
-              - master
+              only: /.*/
             tags:
               only: /.*/
       - release:

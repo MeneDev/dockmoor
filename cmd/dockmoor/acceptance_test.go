@@ -44,36 +44,36 @@ func MainOptionsTestNew(commandAdders ...func(mainOptions *mainOptions) (*flags.
 	return mainOptions
 }
 
-func TestFindAnyMatches(t *testing.T) {
+func TestContainAnyMatches(t *testing.T) {
 	df1 := dockerfile(`FROM nginx`)
 	defer os.Remove(df1)
 
-	os.Args = []string {"exe", "find", "--any", df1}
-	mainOptions := MainOptionsTestNew(addFindCommand)
+	os.Args = []string {"exe", "contains", "--any", df1}
+	mainOptions := MainOptionsTestNew(addContainsCommand)
 
 	exitCode := doMain(mainOptions)
 
 	assert.Equal(t, EXIT_SUCCESS, exitCode)
 }
 
-func TestFindAnyNoMatch(t *testing.T) {
+func TestContainsAnyNoMatch(t *testing.T) {
 	df1 := dockerfile(`invalid`)
 	defer os.Remove(df1)
 
-	os.Args = []string {"exe", "find", "--any", df1}
-	mainOptions := MainOptionsTestNew(addFindCommand)
+	os.Args = []string {"exe", "contains", "--any", df1}
+	mainOptions := MainOptionsTestNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
 	assert.NotEqual(t, EXIT_SUCCESS, exitCode)
 }
 
-func TestFindInvalidOptions(t *testing.T) {
+func TestContainsInvalidOptions(t *testing.T) {
 	df1 := dockerfile(`FROM nginx`)
 	defer os.Remove(df1)
 
-	os.Args = []string {"exe", "find", "--any", "--latest", df1}
+	os.Args = []string {"exe", "contains", "--any", "--latest", df1}
 
-	mainOptions := MainOptionsTestNew(addFindCommand)
+	mainOptions := MainOptionsTestNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
 	assert.NotEqual(t, EXIT_SUCCESS, exitCode)
@@ -83,7 +83,7 @@ func TestMainVersion(t *testing.T) {
 
 	os.Args = []string {"exe", "--version"}
 
-	mainOptions := MainOptionsTestNew(addFindCommand)
+	mainOptions := MainOptionsTestNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
 	assert.Equal(t, EXIT_SUCCESS, exitCode)
@@ -92,7 +92,7 @@ func TestMainVersion(t *testing.T) {
 func TestMainManpage(t *testing.T) {
 
 	os.Args = []string {"exe", "--manpage"}
-	mainOptions := MainOptionsTestNew(addFindCommand)
+	mainOptions := MainOptionsTestNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
 	assert.Equal(t, EXIT_SUCCESS, exitCode)
@@ -111,9 +111,9 @@ func TestMainMarkdown(t *testing.T) {
 
 func TestMainLoglevelNone(t *testing.T) {
 
-	os.Args = []string {"exe", "--log-level=NONE", "find", "--any", "/notExistingFile"}
+	os.Args = []string {"exe", "--log-level=NONE", "contains", "--any", "/notExistingFile"}
 	buffer := bytes.NewBuffer(nil)
-	mainOptions := MainOptionsTestNew(addFindCommand)
+	mainOptions := MainOptionsTestNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
 	assert.Empty(t, buffer.String())
@@ -132,7 +132,7 @@ func TestExitCodeIsZeroForDockerfile(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	stdout, code := shell(t, `dockmoor find --any {{.Dockerfile}}`, struct {
+	stdout, code := shell(t, `dockmoor contains --any {{.Dockerfile}}`, struct {
 		Dockerfile string
 	}{tmpfn})
 
@@ -152,7 +152,7 @@ func TestExitCodeIsZeroForInvalidDockerfile(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	stdout, code := shell(t, `dockmoor find --any {{.Dockerfile}}`, struct {
+	stdout, code := shell(t, `dockmoor contains --any {{.Dockerfile}}`, struct {
 		Dockerfile string
 	}{tmpfn})
 

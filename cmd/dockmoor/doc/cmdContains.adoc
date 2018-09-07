@@ -1,40 +1,40 @@
 
-=== find command
+=== contains command
 
 ==== Use unix find to list all supported files
 [source,bash]
 ----
-include::../end-to-end/test.sh[tag=findAnyInFolder,indent=0]
+include::../end-to-end/test.sh[tag=containsAnyInFolder,indent=0]
 ----
 stdout:
 __________________________
-include::../end-to-end/results/findAnyInFolder.stdout[indent=1]
+include::../end-to-end/results/containsAnyInFolder.stdout[indent=1]
 __________________________
 stderr is empty +
 exit code:
-include::../end-to-end/results/findAnyInFolder.exitCode[]
+include::../end-to-end/results/containsAnyInFolder.exitCode[]
 
 
 ==== Test the format of a file
-The `find` command returns with exit code
-include::../end-to-end/results/findAnyTestFormatValid.exitCode[]
+The `contains` command returns with exit code
+include::../end-to-end/results/containsAnyTestFormatValid.exitCode[]
 when an image reference was found that matches.
 Using the `--any` predicate allows to match any file with a supported format that contains at least one image reference.
 
 [source,bash]
 ----
-include::../end-to-end/test.sh[tag=findAnyTestFormatValid,indent=0]
+include::../end-to-end/test.sh[tag=containsAnyTestFormatValid,indent=0]
 ----
 stdout is empty +
 stderr is empty +
 exit code:
-include::../end-to-end/results/findAnyTestFormatValid.exitCode[]
+include::../end-to-end/results/containsAnyTestFormatValid.exitCode[]
 
 [source,bash]
 ----
-include::../end-to-end/test.sh[tag=findAnyTestFormatInvalid,indent=0]
+include::../end-to-end/test.sh[tag=containsAnyTestFormatInvalid,indent=0]
 ----
 stdout is empty +
 stderr is empty +
 exit code:
-include::../end-to-end/results/findAnyTestFormatInvalid.exitCode[]
+include::../end-to-end/results/containsAnyTestFormatInvalid.exitCode[]

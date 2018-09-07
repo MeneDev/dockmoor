@@ -4,15 +4,15 @@
 <article xmlns="http://docbook.org/ns/docbook" xmlns:xl="http://www.w3.org/1999/xlink" version="5.0" xml:lang="en">
 <info>
 <title>Examples</title>
-<date>2018-09-06</date>
+<date>2018-09-07</date>
 </info>
 <section xml:id="_examples">
 <title>Examples</title>
-<section xml:id="_find_command">
-<title>find command</title>
+<section xml:id="_contains_command">
+<title>contains command</title>
 <section xml:id="_use_unix_find_to_list_all_supported_files">
 <title>Use unix find to list all supported files</title>
-<programlisting language="bash" linenumbering="unnumbered">find some-folder/ -type f -exec dockmoor find --any {} \; -print</programlisting>
+<programlisting language="bash" linenumbering="unnumbered">find some-folder/ -type f -exec dockmoor contains --any {} \; -print</programlisting>
 <simpara>stdout:</simpara>
 <blockquote>
 <literallayout class="monospaced">some-folder/Dockerfile-nginx-latest
@@ -24,22 +24,30 @@ exit code:
 </section>
 <section xml:id="_test_the_format_of_a_file">
 <title>Test the format of a file</title>
-<simpara>The <literal>find</literal> command returns with exit code
+<simpara>The <literal>contains</literal> command returns with exit code
 0
 when an image reference was found that matches.
 Using the <literal>--any</literal> predicate allows to match any file with a supported format that contains at least one image reference.</simpara>
-<programlisting language="bash" linenumbering="unnumbered">dockmoor find --any some-folder/Dockerfile-nginx-latest</programlisting>
+<programlisting language="bash" linenumbering="unnumbered">dockmoor contains --any some-folder/Dockerfile-nginx-latest</programlisting>
 <simpara>stdout is empty<?asciidoc-br?>
 stderr is empty<?asciidoc-br?>
 exit code:
 0</simpara>
-<programlisting language="bash" linenumbering="unnumbered">dockmoor find --any some-folder/NotADockerfile</programlisting>
+<programlisting language="bash" linenumbering="unnumbered">dockmoor contains --any some-folder/NotADockerfile</programlisting>
 <simpara>stdout is empty<?asciidoc-br?>
 stderr is empty<?asciidoc-br?>
 exit code:
 4</simpara>
 </section>
 </section>
+</section>
+<section xml:id="_supported_formats">
+<title>Supported Formats</title>
+<itemizedlist>
+<listitem>
+<simpara>Dockerfile (as used by <literal>docker build</literal>)</simpara>
+</listitem>
+</itemizedlist>
 </section>
 <section xml:id="_usage">
 <title>Usage</title>
@@ -71,7 +79,7 @@ Show this help message</simpara>
 <simpara><link linkend="find-command">find</link></simpara>
 </listitem>
 </itemizedlist>
-<section xml:id="_find_command_2">
+<section xml:id="_find_command">
 <title>find command</title>
 <blockquote>
 <simpara>___go_build_00_main_go_cmd_find_go_exit_codes_go_asciidoc_go_markdown_go [OPTIONS] find [find-OPTIONS] InputFile</simpara>

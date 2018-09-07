@@ -4,7 +4,7 @@ The Roadmap is subject to change. It's purpose is to give a rough idea of the vi
 
 ## v0.0.x
 
-* find command, including filters for tags, image names and domains.
+* contains command, including filters for tags, image names and domains.
 * list command to list all used image references.
 * Support Dockerfile format
 
@@ -16,7 +16,7 @@ The Roadmap is subject to change. It's purpose is to give a rough idea of the vi
 
 ## v0.2.x
 
-* outdated filter for find command
+* outdated filter for contains command
   * SemVer support against tags
 
 ## v0.3.x

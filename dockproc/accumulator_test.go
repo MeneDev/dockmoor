@@ -68,13 +68,13 @@ func formatMockProcessing(images []string) *delegatingFormatMock {
 	return mockFormat
 }
 
-func TestFindAccumulator_ReturnsErrorWhenParameterIsNil(t *testing.T) {
-	acc, err := FindAccumulatorNew(nil)
+func TestContainsAccumulator_ReturnsErrorWhenParameterIsNil(t *testing.T) {
+	acc, err := ContainsAccumulatorNew(nil)
 	assert.Nil(t, acc)
 	assert.Error(t, err)
 }
 
-func TestFindAccumulator(t *testing.T) {
+func TestContainsAccumulator(t *testing.T) {
 	for _, num := range []int{0, 1, 2, 10} {
 		imgs := []string{}
 		for i := 0; i < num; i++ {
@@ -88,21 +88,21 @@ func TestFindAccumulator(t *testing.T) {
 				if num == 0 {
 					continue
 				}
-				desc = "Finds when predicate matches " + strconv.Itoa(num) + " times"
+				desc = "Matches when predicate matches " + strconv.Itoa(num) + " times"
 			} else {
-				desc = "Doesn't find when predicate doesn't match " + strconv.Itoa(num) + " times"
+				desc = "Doesn't match when predicate doesn't match " + strconv.Itoa(num) + " times"
 			}
 
 			t.Run(desc, func(t *testing.T) {
 				p := new(PredicateMock)
 				p.On("Matches", mock.Anything).Return(matches)
 
-				findAccumulator, _ := FindAccumulatorNew(p)
+				containsAccumulator, _ := ContainsAccumulatorNew(p)
 
 				formatProcessor := dockfmt.FormatProcessorNew(mockFormat, nil, nil)
 
-				findAccumulator.Accumulate(formatProcessor)
-				result := findAccumulator.result
+				containsAccumulator.Accumulate(formatProcessor)
+				result := containsAccumulator.result
 				assert.Equal(t, matches, result)
 				p.AssertNumberOfCalls(t, "Matches", num)
 			})
@@ -126,7 +126,7 @@ func TestFindAccumulator(t *testing.T) {
 
 		mockFormat := formatMockProcessing(names)
 
-		desc := "Finds when alternating matches and non matches " + strconv.Itoa(num) + " times"
+		desc := "Matches when alternating matches and non matches " + strconv.Itoa(num) + " times"
 
 		t.Run(desc, func(t *testing.T) {
 			p := new(PredicateMock)
@@ -134,11 +134,11 @@ func TestFindAccumulator(t *testing.T) {
 				p.On("Matches", mock.Anything).Return(mi.matches).Once()
 			}
 
-			findAccumulator, _ := FindAccumulatorNew(p)
+			containsAccumulator, _ := ContainsAccumulatorNew(p)
 
 			formatProcessor := dockfmt.FormatProcessorNew(mockFormat, nil, nil)
-			findAccumulator.Accumulate(formatProcessor)
-			result := findAccumulator.Result()
+			containsAccumulator.Accumulate(formatProcessor)
+			result := containsAccumulator.Result()
 			assert.True(t, result)
 		})
 	}

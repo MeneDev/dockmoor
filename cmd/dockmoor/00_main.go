@@ -91,7 +91,7 @@ var osExit = func(exitCode ExitCode) { os.Exit(int(exitCode)) }
 
 func main() {
 	mainOptions := MainOptionsNew()
-	addFindCommand(mainOptions)
+	addContainsCommand(mainOptions)
 
 	exitCode := doMain(mainOptions)
 	osExit(exitCode)

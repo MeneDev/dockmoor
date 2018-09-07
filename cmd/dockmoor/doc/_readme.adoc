@@ -1,4 +1,8 @@
 == Examples
 include::cmdContains.adoc[]
 
+== Supported Formats
+
+* Dockerfile (as used by `docker build`)
+
 include::dockmoor.adoc[]

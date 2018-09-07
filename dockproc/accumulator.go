@@ -10,14 +10,14 @@ type Accumulator interface {
 	Accumulate(format dockfmt.FormatProcessor)
 }
 
-var _ Accumulator = (*findAccumulator)(nil)
+var _ Accumulator = (*containsAccumulator)(nil)
 
-type findAccumulator struct {
+type containsAccumulator struct {
 	result    bool
 	predicate Predicate
 }
 
-func (accumulator *findAccumulator) Accumulate(format dockfmt.FormatProcessor) {
+func (accumulator *containsAccumulator) Accumulate(format dockfmt.FormatProcessor) {
 
 	found := false
 	var processor dockfmt.ImageNameProcessor = func(r dockref.Reference) (string, error) {
@@ -32,17 +32,17 @@ func (accumulator *findAccumulator) Accumulate(format dockfmt.FormatProcessor) {
 	accumulator.result = found
 }
 
-func FindAccumulatorNew(predicate Predicate) (*findAccumulator, error) {
+func ContainsAccumulatorNew(predicate Predicate) (*containsAccumulator, error) {
 
 	if predicate == nil {
 		return nil, errors.New("Parameter predicate must not be null")
 	}
 
-	return &findAccumulator{
+	return &containsAccumulator{
 		predicate: predicate,
 	}, nil
 }
 
-func (accumulator *findAccumulator) Result() bool {
+func (accumulator *containsAccumulator) Result() bool {
 	return accumulator.result
 }

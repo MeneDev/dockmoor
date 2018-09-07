@@ -202,6 +202,17 @@ jobs:
     working_directory: /go/src/github.com/MeneDev/dockmoor
     steps:
       - checkout
+      - run:
+          name: Check commit of generated content
+          command: |
+            set -v
+            tag=$CIRCLE_TAG
+            release_commit_msg="$(git log -1 --pretty=%B | head -n 1 || true)"
+            if [ "$release_commit_msg" = ":gem: Release $tag" ]; then
+              echo "This is a commit with generated content, skipping"
+              circleci step halt
+            fi
+
       - attach_workspace:
           at: /tmp/workspace
       - restore_cache:

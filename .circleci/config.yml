@@ -196,6 +196,87 @@ jobs:
 
             ghr -t "$GITHUB_TOKEN" -u "$CIRCLE_PROJECT_USERNAME" -r "$CIRCLE_PROJECT_REPONAME" --replace "$tag" /tmp/workspace/release/
 
+  simulate_release:
+    docker:
+      - image: "$CI_PROJECT_PATH-builder:latest"
+    working_directory: /go/src/github.com/MeneDev/dockmoor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - restore_cache:
+          key: gopkg-{{ checksum "Gopkg.lock" }}
+          paths:
+          - /go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/vendor
+          - /tmp/go/cache
+      - run:
+          name: Download and build libraries
+          command: |
+            if [ ! -d ./vendor ]; then
+                /go/bin/dep ensure
+                find vendor/ -maxdepth 3 -mindepth 3 -exec bash -c 'cd $0 && go build  ./...' {} \;
+            fi
+      - save_cache:
+          key: gopkg-{{ checksum "Gopkg.lock" }}
+          paths:
+          - ./vendor
+          - /tmp/go/cache
+
+      - run:
+          name: End-to-End Test
+          command: |
+            cd cmd/dockmoor/end-to-end && ./test.sh
+
+      - run:
+          name: Update README.adoc
+          command: |
+            set -v
+            tag=$CIRCLE_TAG
+
+            git config --global user.email "$GIT_EMAIL"
+            git config --global user.name "$GIT_USER"
+
+            # Switch to master and reset to current commit
+            digest=$(git rev-parse HEAD)
+            git checkout -b master 2>/dev/null || git checkout master
+            git reset --hard $digest
+
+            /tmp/workspace/release/dockmoor-linux_amd64 --asciidoc-usage > cmd/dockmoor/doc/dockmoor.adoc
+
+            asciidoctor -b docbook5 cmd/dockmoor/doc/_readme.adoc
+            pandoc -f docbook -t asciidoc --wrap=none --columns=120 cmd/dockmoor/doc/_readme.xml -o README.adoc
+
+            VARS="$(cat cmd/dockmoor/doc/_vars.adoc)"
+            BODY="$(cat README.adoc)"
+            HEADER="$(cat cmd/dockmoor/doc/_header.adoc)"
+
+            echo "$VARS
+            :branch: master
+
+            $HEADER
+
+            $BODY
+            " > README.adoc
+
+            set +v
+            echo "START README.adoc"
+            cat README.adoc
+            echo "END README.adoc"
+
+            set -v
+
+            git add README.adoc
+            git commit -m ":gem: Simulate Release"
+
+            git push --force-with-lease --dry-run origin master --tags
+
+            # Forward developer to master
+            digest=$(git rev-parse HEAD)
+            git checkout -b develop 2>/dev/null || git checkout develop
+            git reset --hard $digest
+            git push --dry-run origin develop
+
+
 workflows:
   version: 2
   create_builder_and_release:
@@ -213,6 +294,14 @@ workflows:
             branches:
               only: /.*/
             tags:
+              only: /.*/
+      - simulate_release:
+          requires:
+          - build
+          filters:
+            tags:
+              ignore: /^v.*/
+            branches:
               only: /.*/
       - release:
           requires:

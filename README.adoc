@@ -71,15 +71,15 @@ Supported Formats
 Usage
 -----
 
-_______________________________________________________________________________________________________________________________
-___go_build_00_main_go_cmd_find_go_exit_codes_go_asciidoc_go_markdown_go [OPTIONS] <link:#find-command[find]> [command-OPTIONS]
-_______________________________________________________________________________________________________________________________
+_______________________________________________________________________
+dockmoor [OPTIONS] <link:#contains-command[contains]> [command-OPTIONS]
+_______________________________________________________________________
 
 [[_application_options]]
 Application Options
 -------------------
 
-*-l*, *--log-level* Sets the log-level (one of `NONE`, `ERROR`, `WARN`, `INFO`, `DEBUG`)
+**-l**, *--log-level* Sets the log-level (one of `NONE`, `ERROR`, `WARN`, `INFO`, `DEBUG`)
 
 *--version* Show version and exit
 
@@ -93,23 +93,23 @@ Application Options
 Help Options
 ------------
 
-*-h*, *--help* Show this help message
+**-h**, *--help* Show this help message
 
 [[_commands]]
 Commands
 ~~~~~~~~
 
-* link:#find-command[find]
+* link:#contains-command[contains]
 
-[[_find_command]]
-find command
-^^^^^^^^^^^^
+[[_contains_command_2]]
+contains command
+^^^^^^^^^^^^^^^^
 
-________________________________________________________________________________________________________________
-___go_build_00_main_go_cmd_find_go_exit_codes_go_asciidoc_go_markdown_go [OPTIONS] find [find-OPTIONS] InputFile
-________________________________________________________________________________________________________________
+________________________________________________________
+dockmoor [OPTIONS] contains [contains-OPTIONS] InputFile
+________________________________________________________
 
-The find command returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions, non-null otherwise
+Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions, non-null otherwise
 
 [[_predicates]]
 Predicates
@@ -117,11 +117,11 @@ Predicates
 
 Specify which kind of image references should be selected. Exactly one must be specified
 
-*--any* Find all images
+*--any* Matches all images
 
 [[_help_options_2]]
 Help Options
 ~~~~~~~~~~~~
 
-*-h*, *--help* Show this help message
+**-h**, *--help* Show this help message
 

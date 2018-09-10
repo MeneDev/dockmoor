@@ -13,7 +13,7 @@ import (
 type ContainsOptions struct {
 	Predicates struct{
 		Any      bool     `required:"no" long:"any" description:"Matches all images"`
-		Latest   bool     `required:"no" long:"latest" description:"Using latest tag" hidden:"true"`
+		Latest   bool     `required:"no" long:"latest" description:"Using latest tag"`
 		Unpinned bool     `required:"no" long:"unpinned" description:"Using unpinned images" hidden:"true"`
 		Outdated bool     `required:"no" long:"outdated" description:"Matches all images with newer versions available" hidden:"true"`
 	} `group:"Predicates" description:"Specify which kind of image references should be selected. Exactly one must be specified"`
@@ -110,6 +110,9 @@ func (opts *ContainsOptions) getPredicate() dockproc.Predicate {
 	predicates := opts.Predicates
 	if predicates.Any {
 		return dockproc.AnyPredicateNew()
+	}
+	if predicates.Latest {
+		return dockproc.LatestPredicateNew()
 	}
 
 	return nil

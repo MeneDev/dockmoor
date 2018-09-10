@@ -19,8 +19,31 @@ find some-folder/ -type f -exec dockmoor contains --any {} \; -print
 #end::containsAnyInFolder[]
 ) >$RESULTS/containsAnyInFolder.stdout 2>$RESULTS/containsAnyInFolder.stderr
 exitCode=$?
-echo $exitCode >$RESULTS/containsAnyInFolder.exitCode
 [ $exitCode -eq 0 ] || fail 3 "Unexpected exit code $exitCode"
+stdout="$(cat $RESULTS/containsAnyInFolder.stdout)"
+stderr="$(cat $RESULTS/containsAnyInFolder.stderr)"
+[[ $stdout = *"some-folder/Dockerfile-nginx-latest"* ]] || fail 3 "Unexpected stdout"
+[[ $stdout = *"some-folder/Dockerfile-nginx-untagged"* ]] || fail 3 "Unexpected stdout"
+[[ $stdout = *"some-folder/Dockerfile-nginx-1.15.3"* ]] || fail 3 "Unexpected stdout"
+[[ $stdout = *"some-folder/subfolder/Dockerfile-nginx-latest"* ]] || fail 3 "Unexpected stdout"
+[[ -z $stderr ]] || fail 3 "Expected empty stderr"
+echo $exitCode >$RESULTS/containsAnyInFolder.exitCode
+
+
+( # find any file with latest/no tag
+#tag::containsLatestInFolder[]
+find some-folder/ -type f -exec dockmoor contains --latest {} \; -print
+#end::containsLatestInFolder[]
+) >$RESULTS/containsLatestInFolder.stdout 2>$RESULTS/containsLatestInFolder.stderr
+exitCode=$?
+[ $exitCode -eq 0 ] || fail 7 "Unexpected exit code $exitCode"
+stdout="$(cat $RESULTS/containsAnyInFolder.stdout)"
+stderr="$(cat $RESULTS/containsAnyInFolder.stderr)"
+[[ $stdout = *"some-folder/Dockerfile-nginx-latest"* ]] || fail 7 "Unexpected stdout"
+[[ $stdout = *"some-folder/Dockerfile-nginx-untagged"* ]] || fail 7 "Unexpected stdout"
+[[ $stdout = *"some-folder/subfolder/Dockerfile-nginx-latest"* ]] || fail 7 "Unexpected stdout"
+[[ -z $stderr ]] || fail 7 "Expected empty stderr"
+echo $exitCode >$RESULTS/containsLatestInFolder.exitCode
 
 ( # test if file is of supported format
 #tag::containsAnyTestFormatInvalid[]

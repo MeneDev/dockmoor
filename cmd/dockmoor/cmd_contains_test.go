@@ -197,13 +197,12 @@ func TestAnyPredicateWhenAnyFlag(t *testing.T) {
 }
 
 func TestLatestPredicateWhenLatestFlag(t *testing.T) {
-	t.Skip()
 	fo := &ContainsOptions{}
 	fo.Predicates.Latest = true
 
 	predicate := fo.getPredicate()
 
-	expected := reflect.TypeOf(dockproc.AnyPredicateNew())
+	expected := reflect.TypeOf(dockproc.LatestPredicateNew())
 	actual := reflect.TypeOf(predicate)
 	assert.Equal(t, expected, actual)
 }
@@ -256,6 +255,19 @@ func TestMainMarkdownWithContains(t *testing.T) {
 
 	assert.Equal(t, EXIT_SUCCESS, exitCode)
 }
+func TestMainAsciiDocWithContains(t *testing.T) {
+
+	os.Args = []string {"exe", "--asciidoc-usage"}
+
+	mainOptions := MainOptionsTestNew(addContainsCommand)
+	buffer := bytes.NewBuffer(nil)
+	mainOptions.SetStdout(buffer)
+	exitCode := doMain(mainOptions)
+
+	assert.Contains(t, buffer.String(), "contains command")
+
+	assert.Equal(t, EXIT_SUCCESS, exitCode)
+}
 
 func TestContainsHelpIsNotAnError(t *testing.T) {
 
@@ -271,7 +283,7 @@ func TestContainsHelpIsNotAnError(t *testing.T) {
 	assert.Equal(t, EXIT_SUCCESS, exitCode)
 }
 
-func TestContainsHelpContainsAny(t *testing.T) {
+func TestContainsHelpContainsImplementedPredicates(t *testing.T) {
 
 	os.Args = []string {"exe", "contains", "--help"}
 
@@ -281,11 +293,12 @@ func TestContainsHelpContainsAny(t *testing.T) {
 	exitCode := doMain(mainOptions)
 
 	assert.Contains(t, buffer.String(), "--any")
+	assert.Contains(t, buffer.String(), "--latest")
 
 	assert.Equal(t, EXIT_SUCCESS, exitCode)
 }
 
-func TestFindHelpHidesUnimplemented(t *testing.T) {
+func TestFindHelpHidesUnimplementedPredicates(t *testing.T) {
 
 	os.Args = []string {"exe", "contains", "--help"}
 
@@ -294,7 +307,6 @@ func TestFindHelpHidesUnimplemented(t *testing.T) {
 	mainOptions.SetStdout(buffer)
 	exitCode := doMain(mainOptions)
 
-	assert.NotContains(t, buffer.String(), "--latest")
 	assert.NotContains(t, buffer.String(), "--unpinned")
 	assert.NotContains(t, buffer.String(), "--outdated")
 	assert.NotContains(t, buffer.String(), "--name")

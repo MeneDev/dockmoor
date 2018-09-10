@@ -140,7 +140,27 @@ func TestExitCodeIsZeroForDockerfile(t *testing.T) {
 	assert.Equal(t, EXIT_SUCCESS, code, "Exits with code 0")
 }
 
-func TestExitCodeIsZeroForInvalidDockerfile(t *testing.T) {
+func TestExitCodeIsZeroForContainsLatestAndDockerfile(t *testing.T) {
+	dir, _ := ioutil.TempDir("", "dockmoor")
+	defer os.RemoveAll(dir)
+
+	tmpfn := filepath.Join(dir, "Dockerfile")
+	dockerfile :=
+		`FROM nginx`
+
+	if err := ioutil.WriteFile(tmpfn, []byte(dockerfile), 0666); err != nil {
+		log.Fatal(err)
+	}
+
+	stdout, code := shell(t, `dockmoor contains --latest {{.Dockerfile}}`, struct {
+		Dockerfile string
+	}{tmpfn})
+
+	assert.Empty(t, stdout)
+	assert.Equal(t, EXIT_SUCCESS, code, "Exits with code 0")
+}
+
+func TestExitCodeIsNotZeroForInvalidDockerfile(t *testing.T) {
 	dir, _ := ioutil.TempDir("", "dockmoor")
 	defer os.RemoveAll(dir)
 
@@ -157,7 +177,7 @@ func TestExitCodeIsZeroForInvalidDockerfile(t *testing.T) {
 	}{tmpfn})
 
 	assert.Empty(t, stdout)
-	assert.Equal(t, EXIT_INVALID_FORMAT, code, "Exits with code 1")
+	assert.Equal(t, EXIT_INVALID_FORMAT, code, "Exits with code 4")
 }
 
 func shell(t *testing.T, argsLine string, values interface{}) (stdout string, exitCode ExitCode) {

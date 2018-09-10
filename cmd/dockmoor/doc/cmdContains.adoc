@@ -1,6 +1,20 @@
 
 === contains command
 
+==== Use unix find to list all files containing latest/no tags
+[source,bash]
+----
+include::../end-to-end/test.sh[tag=containsLatestInFolder,indent=0]
+----
+stdout:
+__________________________
+include::../end-to-end/results/containsLatestInFolder.stdout[indent=1]
+__________________________
+stderr is empty +
+exit code:
+include::../end-to-end/results/containsLatestInFolder.exitCode[]
+
+
 ==== Use unix find to list all supported files
 [source,bash]
 ----

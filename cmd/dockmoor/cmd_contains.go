@@ -13,7 +13,7 @@ import (
 type ContainsOptions struct {
 	Predicates struct{
 		Any      bool     `required:"no" long:"any" description:"Matches all images"`
-		Latest   bool     `required:"no" long:"latest" description:"Using latest tag"`
+		Latest   bool     `required:"no" long:"latest" description:"Matches images with latest or no tag"`
 		Unpinned bool     `required:"no" long:"unpinned" description:"Using unpinned images" hidden:"true"`
 		Outdated bool     `required:"no" long:"outdated" description:"Matches all images with newer versions available" hidden:"true"`
 	} `group:"Predicates" description:"Specify which kind of image references should be selected. Exactly one must be specified"`

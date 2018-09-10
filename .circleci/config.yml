@@ -175,7 +175,8 @@ jobs:
             " > README.adoc
 
             git add README.adoc
-            git commit -m ":gem: Release $tag"
+            # --allow-empty for rebuilds without release
+            git commit --allow-empty -m ":gem: Release $tag"
 
             # Move tag
             git tag -fa "$tag" -m "Release $tag"
@@ -277,7 +278,8 @@ jobs:
             set -v
 
             git add README.adoc
-            git commit -m ":gem: Simulate Release"
+            # --allow-empty for rebuilds without release
+            git commit --allow-empty -m ":gem: Simulate Release"
 
             git push --force-with-lease --dry-run origin master --tags
 

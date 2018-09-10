@@ -2,3 +2,7 @@
 /vendor
 /coverage.out
 /run-circleci.sh
+
+cmd/dockmoor/end-to-end/results/
+
+cmd/dockmoor/end-to-end/dockmoor

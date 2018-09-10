@@ -66,3 +66,35 @@ func TestDigestOnly(t *testing.T) {
 		})
 	}
 }
+
+
+func TestNameAndDigest(t *testing.T) {
+	originals := []string{"nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240"}
+	for _, original := range originals {
+		t.Run("Parses " + original, func(t *testing.T) {
+			ref, e := FromOriginal(original)
+			assert.Nil(t, e)
+			assert.Equal(t, "docker.io/library/nginx", ref.Name())
+			assert.Empty(t, ref.Tag())
+
+			assert.Equal(t, "sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", ref.DigestString())
+			assert.Equal(t, "sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", string(ref.Digest()))
+		})
+	}
+}
+
+
+func TestNameAndTagAndDigest(t *testing.T) {
+	originals := []string{"nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240"}
+	for _, original := range originals {
+		t.Run("Parses " + original, func(t *testing.T) {
+			ref, e := FromOriginal(original)
+			assert.Nil(t, e)
+			assert.Equal(t, "docker.io/library/nginx", ref.Name())
+			assert.Equal(t, "1.2", ref.Tag())
+
+			assert.Equal(t, "sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", ref.DigestString())
+			assert.Equal(t, "sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", string(ref.Digest()))
+		})
+	}
+}

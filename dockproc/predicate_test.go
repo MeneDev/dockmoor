@@ -8,7 +8,7 @@ import (
 
 func TestAnyPredicate(t *testing.T) {
 
-	predicateNew := AnyPredicateNew()
+	predicate := AnyPredicateNew()
 
 	originals := []string{"nginx", "nginx:latest", "nginx:1.15.2-alpine-perl",
 		"mongo:3.4.16-windowsservercore-ltsc2016", "d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240"}
@@ -17,7 +17,7 @@ func TestAnyPredicate(t *testing.T) {
 			ref, e := dockref.FromOriginal(original)
 
 			assert.Nil(t, e)
-			assert.True(t, predicateNew.Matches(ref))
+			assert.True(t, predicate.Matches(ref))
 		})
 	}
 }

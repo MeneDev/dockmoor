@@ -6,16 +6,40 @@ type Predicate interface {
 	Matches(ref dockref.Reference) bool
 }
 
-var _ Predicate = (*anyAccumulator)(nil)
+var _ Predicate = (*anyPredicate)(nil)
 
-type anyAccumulator struct {
+type anyPredicate struct {
 
 }
 
-func (anyAccumulator) Matches(ref dockref.Reference) bool {
+func (anyPredicate) Matches(ref dockref.Reference) bool {
 	return true
 }
 
 func AnyPredicateNew() Predicate {
-	return anyAccumulator{}
+	return anyPredicate{}
+}
+
+
+var _ Predicate = (*latestPredicate)(nil)
+
+type latestPredicate struct {
+
+}
+
+func (latestPredicate) Matches(ref dockref.Reference) bool {
+	if ref.Tag() == "latest" {
+		return true
+	}
+
+	if ref.DigestString() != "" {
+		return false
+	}
+
+	// Note the edge-case: given only a digest, tag *and* name is empty.
+	return ref.Tag() == ""
+}
+
+func LatestPredicateNew() Predicate {
+	return latestPredicate{}
 }

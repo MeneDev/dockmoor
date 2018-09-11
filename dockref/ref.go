@@ -3,6 +3,7 @@ package dockref
 import (
 	"github.com/docker/distribution/reference"
 	"github.com/opencontainers/go-digest"
+	_ "crypto/sha256"
 )
 
 func FromOriginal(original string) (ref Reference, e error) {

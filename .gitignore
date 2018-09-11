@@ -6,3 +6,9 @@
 cmd/dockmoor/end-to-end/results/
 
 cmd/dockmoor/end-to-end/dockmoor
+
+cmd/dockmoor/doc/_readme\.xml
+
+update-time\.sh
+
+README\.adoc

@@ -16,6 +16,28 @@ Examples
 contains command
 ~~~~~~~~~~~~~~~~
 
+[[_use_unix_find_to_list_all_files_containing_latestno_tags]]
+Use unix find to list all files containing latest/no tags
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+[source,bash]
+----
+find some-folder/ -type f -exec dockmoor contains --latest {} \; -print
+----
+
+stdout:
+
+_____________________________________________
+....
+some-folder/Dockerfile-nginx-untagged
+some-folder/subfolder/Dockerfile-nginx-latest
+some-folder/Dockerfile-nginx-latest
+....
+_____________________________________________
+
+stderr is empty +
+exit code: 0
+
 [[_use_unix_find_to_list_all_supported_files]]
 Use unix find to list all supported files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -29,8 +51,10 @@ stdout:
 
 _____________________________________________
 ....
-some-folder/Dockerfile-nginx-latest
+some-folder/Dockerfile-nginx-untagged
 some-folder/subfolder/Dockerfile-nginx-latest
+some-folder/Dockerfile-nginx-latest
+some-folder/Dockerfile-nginx-1.15.3
 ....
 _____________________________________________
 
@@ -118,6 +142,8 @@ Predicates
 Specify which kind of image references should be selected. Exactly one must be specified
 
 *--any* Matches all images
+
+*--latest* Matches images with latest or no tag
 
 [[_help_options_2]]
 Help Options

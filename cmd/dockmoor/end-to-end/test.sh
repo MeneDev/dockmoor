@@ -30,15 +30,15 @@ stderr="$(cat $RESULTS/containsAnyInFolder.stderr)"
 echo $exitCode >$RESULTS/containsAnyInFolder.exitCode
 
 
-( # find any file with latest/no tag
+( # find any file with latest/no tag and no digest
 #tag::containsLatestInFolder[]
 find some-folder/ -type f -exec dockmoor contains --latest {} \; -print
 #end::containsLatestInFolder[]
 ) >$RESULTS/containsLatestInFolder.stdout 2>$RESULTS/containsLatestInFolder.stderr
 exitCode=$?
 [ $exitCode -eq 0 ] || fail 7 "Unexpected exit code $exitCode"
-stdout="$(cat $RESULTS/containsAnyInFolder.stdout)"
-stderr="$(cat $RESULTS/containsAnyInFolder.stderr)"
+stdout="$(cat $RESULTS/containsLatestInFolder.stdout)"
+stderr="$(cat $RESULTS/containsLatestInFolder.stderr)"
 [[ $stdout = *"some-folder/Dockerfile-nginx-latest"* ]] || fail 7 "Unexpected stdout"
 [[ $stdout = *"some-folder/Dockerfile-nginx-untagged"* ]] || fail 7 "Unexpected stdout"
 [[ $stdout = *"some-folder/subfolder/Dockerfile-nginx-latest"* ]] || fail 7 "Unexpected stdout"

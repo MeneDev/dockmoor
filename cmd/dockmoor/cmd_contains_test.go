@@ -177,6 +177,43 @@ func TestInvalidDockerfile(t *testing.T) {
 	assert.True(t, ok)
 }
 
+func TestReportInvalidPredicate(t *testing.T) {
+	// given
+	mainOptions := MainOptionsTest()
+	stdout := bytes.NewBuffer(nil)
+	mainOptions.SetStdout(stdout)
+
+	formatProvider := mainOptions.FormatProvider()
+
+	format := new(FormatMock)
+	format.OnName().Return("mock")
+	format.OnValidateInput(mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	expected := errors.New("Process Error")
+	format.OnProcess(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(expected)
+
+	formatProvider.OnFormats().Return([]dockfmt.Format{format})
+
+	mainOptions.formatProvider = formatProvider
+
+	fo := &ContainsOptions{
+		mainOptions: mainOptions.mainOptions,
+	}
+
+	fo.Predicates.Any = true
+	fo.Positional.InputFile = flags.Filename(NotADockerfile)
+
+	// when
+	_, err := fo.find()
+
+	s := stdout.String()
+
+	// then
+	assert.Contains(t, s, `level=error`)
+	assert.Contains(t, s, expected.Error())
+	// and: no error is returned
+	assert.Nil(t, err)
+}
+
 func TestNoPredicateForNoFlags(t *testing.T) {
 	fo := &ContainsOptions{}
 

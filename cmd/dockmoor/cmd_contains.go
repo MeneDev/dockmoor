@@ -150,7 +150,10 @@ func (opts *ContainsOptions) find() (exitCode ExitCode, err error) {
 
 	accumulator, err := dockproc.ContainsAccumulatorNew(predicate)
 
-	accumulator.Accumulate(formatProcessor)
+	errAcc := accumulator.Accumulate(formatProcessor)
+	if errAcc != nil {
+		log.Errorf("Error during accumulation: %s", errAcc.Error())
+	}
 
 	found := accumulator.Result()
 

@@ -7,7 +7,7 @@ import (
 )
 
 type Accumulator interface {
-	Accumulate(format dockfmt.FormatProcessor)
+	Accumulate(format dockfmt.FormatProcessor) error
 }
 
 var _ Accumulator = (*containsAccumulator)(nil)
@@ -17,7 +17,7 @@ type containsAccumulator struct {
 	predicate Predicate
 }
 
-func (accumulator *containsAccumulator) Accumulate(format dockfmt.FormatProcessor) {
+func (accumulator *containsAccumulator) Accumulate(format dockfmt.FormatProcessor) (err error) {
 
 	found := false
 	var processor dockfmt.ImageNameProcessor = func(r dockref.Reference) (string, error) {
@@ -27,9 +27,11 @@ func (accumulator *containsAccumulator) Accumulate(format dockfmt.FormatProcesso
 		return "", nil
 	}
 
-	format.Process(processor)
+	err = format.Process(processor)
 
 	accumulator.result = found
+
+	return
 }
 
 func ContainsAccumulatorNew(predicate Predicate) (*containsAccumulator, error) {

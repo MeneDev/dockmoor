@@ -26,6 +26,8 @@ stderr="$(cat $RESULTS/containsAnyInFolder.stderr)"
 [[ $stdout = *"some-folder/Dockerfile-nginx-untagged"* ]] || fail 3 "Unexpected stdout"
 [[ $stdout = *"some-folder/Dockerfile-nginx-1.15.3"* ]] || fail 3 "Unexpected stdout"
 [[ $stdout = *"some-folder/subfolder/Dockerfile-nginx-latest"* ]] || fail 3 "Unexpected stdout"
+[[ $stdout = *"some-folder/Dockerfile-nginx-digest"* ]] || fail 3 "Unexpected stdout"
+[[ $stdout = *"some-folder/Dockerfile-nginx-tagged-digest"* ]] || fail 3 "Unexpected stdout"
 [[ -z $stderr ]] || fail 3 "Expected empty stderr"
 echo $exitCode >$RESULTS/containsAnyInFolder.exitCode
 
@@ -42,6 +44,9 @@ stderr="$(cat $RESULTS/containsLatestInFolder.stderr)"
 [[ $stdout = *"some-folder/Dockerfile-nginx-latest"* ]] || fail 7 "Unexpected stdout"
 [[ $stdout = *"some-folder/Dockerfile-nginx-untagged"* ]] || fail 7 "Unexpected stdout"
 [[ $stdout = *"some-folder/subfolder/Dockerfile-nginx-latest"* ]] || fail 7 "Unexpected stdout"
+[[ ! $stdout = *"some-folder/subfolder/Dockerfile-nginx-digest"* ]] || fail 7 "Unexpected stdout"
+[[ ! $stdout = *"some-folder/Dockerfile-nginx-tagged-digest"* ]] || fail 7 "Unexpected stdout"
+[[ ! $stdout = *"some-folder/Dockerfile-nginx-1.15.3"* ]] || fail 7 "Unexpected stdout: $stdout"
 [[ -z $stderr ]] || fail 7 "Expected empty stderr"
 echo $exitCode >$RESULTS/containsLatestInFolder.exitCode
 

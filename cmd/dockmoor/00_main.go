@@ -87,7 +87,9 @@ func doMain(mainOptions *mainOptions) (exitCode ExitCode) {
 	return
 }
 
-var osExit = func(exitCode ExitCode) { os.Exit(int(exitCode)) }
+var osExitInternal = os.Exit
+
+func osExit(exitCode ExitCode) { osExitInternal(int(exitCode)) }
 
 func main() {
 	mainOptions := MainOptionsNew()

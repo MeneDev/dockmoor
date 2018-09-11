@@ -67,6 +67,29 @@ func TestContainsAnyNoMatch(t *testing.T) {
 	assert.NotEqual(t, EXIT_SUCCESS, exitCode)
 }
 
+func TestContainLatestMatches(t *testing.T) {
+	df1 := dockerfile(`FROM nginx`)
+	defer os.Remove(df1)
+
+	os.Args = []string {"exe", "contains", "--latest", df1}
+	mainOptions := MainOptionsTestNew(addContainsCommand)
+
+	exitCode := doMain(mainOptions)
+
+	assert.Equal(t, EXIT_SUCCESS, exitCode)
+}
+
+func TestContainsLatestNoMatch(t *testing.T) {
+	df1 := dockerfile(`FROM nginx:1`)
+	defer os.Remove(df1)
+
+	os.Args = []string {"exe", "contains", "--latest", df1}
+	mainOptions := MainOptionsTestNew(addContainsCommand)
+	exitCode := doMain(mainOptions)
+
+	assert.Equal(t, EXIT_NOT_FOUND, exitCode)
+}
+
 func TestContainsInvalidOptions(t *testing.T) {
 	df1 := dockerfile(`FROM nginx`)
 	defer os.Remove(df1)
@@ -76,7 +99,7 @@ func TestContainsInvalidOptions(t *testing.T) {
 	mainOptions := MainOptionsTestNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
-	assert.NotEqual(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, EXIT_INVALID_PARAMS, exitCode)
 }
 
 func TestMainVersion(t *testing.T) {
@@ -188,9 +211,9 @@ func shell(t *testing.T, argsLine string, values interface{}) (stdout string, ex
 	argsLine = shellBuf.String()
 	args, _ := shellwords.Parse(argsLine)
 	exitCodeSet := false
-	oldOsExit := osExit
-	osExit = func(code ExitCode) {
-		exitCode = code
+	oldOsExit := osExitInternal
+	osExitInternal = func(code int) {
+		exitCode = ExitCode(code)
 		exitCodeSet = true
 	}
 
@@ -205,7 +228,7 @@ func shell(t *testing.T, argsLine string, values interface{}) (stdout string, ex
 	defer func() {
 		osStdout = oldStdout
 		osStdin = oldStdin
-		osExit = oldOsExit
+		osExitInternal = oldOsExit
 		os.Args = oldArgs
 	}()
 

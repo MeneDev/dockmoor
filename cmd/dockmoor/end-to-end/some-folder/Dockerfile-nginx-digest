@@ -1,0 +1,3 @@
+FROM nginx@sha256:db5acc22920799fe387a903437eb89387607e5b3f63cf0f4472ac182d7bad644
+
+RUN something

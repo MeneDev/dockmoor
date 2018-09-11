@@ -90,6 +90,29 @@ func TestContainsLatestNoMatch(t *testing.T) {
 	assert.Equal(t, EXIT_NOT_FOUND, exitCode)
 }
 
+func TestContainUnpinnedMatches(t *testing.T) {
+	df1 := dockerfile(`FROM nginx:1`)
+	defer os.Remove(df1)
+
+	os.Args = []string {"exe", "contains", "--unpinned", df1}
+	mainOptions := MainOptionsTestNew(addContainsCommand)
+
+	exitCode := doMain(mainOptions)
+
+	assert.Equal(t, EXIT_SUCCESS, exitCode)
+}
+
+func TestContainsUnpinnedNoMatch(t *testing.T) {
+	df1 := dockerfile(`FROM nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240`)
+	defer os.Remove(df1)
+
+	os.Args = []string {"exe", "contains", "--latest", df1}
+	mainOptions := MainOptionsTestNew(addContainsCommand)
+	exitCode := doMain(mainOptions)
+
+	assert.Equal(t, EXIT_NOT_FOUND, exitCode)
+}
+
 func TestContainsInvalidOptions(t *testing.T) {
 	df1 := dockerfile(`FROM nginx`)
 	defer os.Remove(df1)

@@ -50,6 +50,24 @@ stderr="$(cat $RESULTS/containsLatestInFolder.stderr)"
 [[ -z $stderr ]] || fail 7 "Expected empty stderr"
 echo $exitCode >$RESULTS/containsLatestInFolder.exitCode
 
+( # find any file with latest/no tag
+#tag::containsUnpinnedInFolder[]
+find some-folder/ -type f -exec dockmoor contains --unpinned {} \; -print
+#end::containsUnpinnedInFolder[]
+) >$RESULTS/containsUnpinnedInFolder.stdout 2>$RESULTS/containsUnpinnedInFolder.stderr
+exitCode=$?
+[ $exitCode -eq 0 ] || fail 8 "Unexpected exit code $exitCode"
+stdout="$(cat $RESULTS/containsUnpinnedInFolder.stdout)"
+stderr="$(cat $RESULTS/containsUnpinnedInFolder.stderr)"
+[[ $stdout = *"some-folder/Dockerfile-nginx-latest"* ]] || fail 8 "Unexpected stdout"
+[[ $stdout = *"some-folder/Dockerfile-nginx-untagged"* ]] || fail 8 "Unexpected stdout"
+[[ $stdout = *"some-folder/subfolder/Dockerfile-nginx-latest"* ]] || fail 8 "Unexpected stdout"
+[[ ! $stdout = *"some-folder/subfolder/Dockerfile-nginx-digest"* ]] || fail 8 "Unexpected stdout"
+[[ ! $stdout = *"some-folder/Dockerfile-nginx-tagged-digest"* ]] || fail 8 "Unexpected stdout"
+[[ $stdout = *"some-folder/Dockerfile-nginx-1.15.3"* ]] || fail 8 "Unexpected stdout"
+[[ -z $stderr ]] || fail 8 "Expected empty stderr"
+echo $exitCode >$RESULTS/containsUnpinnedInFolder.exitCode
+
 ( # test if file is of supported format
 #tag::containsAnyTestFormatInvalid[]
 dockmoor contains --any some-folder/NotADockerfile

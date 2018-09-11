@@ -244,6 +244,17 @@ func TestLatestPredicateWhenLatestFlag(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
+func TestUnpinnedPredicateWhenLatestFlag(t *testing.T) {
+	fo := &ContainsOptions{}
+	fo.Predicates.Unpinned = true
+
+	predicate := fo.getPredicate()
+
+	expected := reflect.TypeOf(dockproc.UnpinnedPredicateNew())
+	actual := reflect.TypeOf(predicate)
+	assert.Equal(t, expected, actual)
+}
+
 func TestFilenameRequired(t *testing.T) {
 	_, _, exitCode, stdout := testMain([]string{"contains"}, addContainsCommand)
 	assert.NotEqual(t, 0, exitCode)

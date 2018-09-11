@@ -43,3 +43,18 @@ func (latestPredicate) Matches(ref dockref.Reference) bool {
 func LatestPredicateNew() Predicate {
 	return latestPredicate{}
 }
+
+
+var _ Predicate = (*unpinnedPredicate)(nil)
+
+type unpinnedPredicate struct {
+
+}
+
+func (unpinnedPredicate) Matches(ref dockref.Reference) bool {
+	return ref.DigestString() == ""
+}
+
+func UnpinnedPredicateNew() Predicate {
+	return unpinnedPredicate{}
+}

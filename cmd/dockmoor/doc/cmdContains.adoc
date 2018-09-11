@@ -1,6 +1,19 @@
 [#contains-command-examples]
-
 === contains command
+
+==== Use unix find to list all files containing unpinned references
+[source,bash]
+----
+include::../end-to-end/test.sh[tag=containsUnpinnedInFolder,indent=0]
+----
+stdout:
+__________________________
+include::../end-to-end/results/containsUnpinnedInFolder.stdout[indent=1]
+__________________________
+stderr is empty +
+exit code:
+include::../end-to-end/results/containsUnpinnedInFolder.exitCode[]
+
 
 ==== Use unix find to list all files containing latest/no tags
 [source,bash]

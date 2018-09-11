@@ -1,4 +1,19 @@
 # Changelog
+
+## v0.0.3
+
+### contains command
+#### New predicate for contains command
+
+**unpinned**: Match image references that are not pinned
+
+## v0.0.2
+
+### contains command
+#### New predicate for contains command
+
+**latest**: Match image references that are not pinned and untagged or tagged with "latest"
+
 ## v0.0.1
 
 Initial release.

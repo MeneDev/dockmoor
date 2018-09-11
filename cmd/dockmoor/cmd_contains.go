@@ -108,11 +108,14 @@ func (opts *ContainsOptions) ExecuteWithExitCode(args []string) (exitCode ExitCo
 
 func (opts *ContainsOptions) getPredicate() dockproc.Predicate {
 	predicates := opts.Predicates
-	if predicates.Any {
+
+	switch {
+	case predicates.Any:
 		return dockproc.AnyPredicateNew()
-	}
-	if predicates.Latest {
+	case predicates.Latest:
 		return dockproc.LatestPredicateNew()
+	case predicates.Unpinned:
+		return dockproc.UnpinnedPredicateNew()
 	}
 
 	return nil

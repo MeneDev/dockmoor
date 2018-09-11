@@ -159,7 +159,9 @@ func (format *dockerfileFormat) processNode(log logrus.FieldLogger, node *parser
 			return false, err
 		}
 
-		log.Infof("Pinning %s as %s", from, canonicalString)
+		if canonicalString != "" {
+			log.Infof("Pinning '%s' as '%s'", from, canonicalString)
+		}
 
 		//writer.WriteString(`FROM `)
 		//writer.WriteString(canonicalString)

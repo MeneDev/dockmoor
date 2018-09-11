@@ -181,3 +181,40 @@ func TestParserErrorsAreReported(t *testing.T) {
 	assert.Equal(t, expected, err)
 }
 
+
+func TestParserSha256(t *testing.T) {
+	file := `FROM nginx@sha256:db5acc22920799fe387a903437eb89387607e5b3f63cf0f4472ac182d7bad644`
+	format := DockerfileFormatNew()
+
+	err := format.ValidateInput(log, strings.NewReader(file), "anything")
+
+	processErr := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (string, error) {
+		return "", nil
+	})
+
+	assert.Nil(t, err)
+	assert.Nil(t, processErr)
+}
+
+
+func TestProcessLogsReplacingReferences(t *testing.T) {
+
+	var log = logrus.New()
+	buffer := bytes.NewBuffer(nil)
+	log.SetOutput(buffer)
+	log.SetLevel(logrus.InfoLevel)
+	
+	file := `FROM nginx`
+	format := DockerfileFormatNew()
+
+	err := format.ValidateInput(log, strings.NewReader(file), "anything")
+
+	processErr := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (string, error) {
+		return "nginx@pinned", nil
+	})
+
+	assert.Contains(t, buffer.String(), `nginx@pinned`)
+	assert.Nil(t, err)
+	assert.Nil(t, processErr)
+}
+

@@ -1,5 +1,5 @@
 
-:branch: develop
+:branch: master
 
 == dockmoor
 image:https://img.shields.io/circleci/project/github/MeneDev/dockmoor/{branch}.svg[Build Status (Circle CI), link=https://circleci.com/gh/MeneDev/dockmoor]
@@ -29,10 +29,10 @@ stdout:
 
 _____________________________________________
 ....
-some-folder/Dockerfile-nginx-latest
-some-folder/subfolder/Dockerfile-nginx-latest
 some-folder/Dockerfile-nginx-untagged
+some-folder/subfolder/Dockerfile-nginx-latest
 some-folder/Dockerfile-nginx-1.15.3
+some-folder/Dockerfile-nginx-latest
 ....
 _____________________________________________
 
@@ -52,9 +52,9 @@ stdout:
 
 _____________________________________________
 ....
-some-folder/Dockerfile-nginx-latest
-some-folder/subfolder/Dockerfile-nginx-latest
 some-folder/Dockerfile-nginx-untagged
+some-folder/subfolder/Dockerfile-nginx-latest
+some-folder/Dockerfile-nginx-latest
 ....
 _____________________________________________
 
@@ -74,12 +74,12 @@ stdout:
 
 _____________________________________________
 ....
-some-folder/Dockerfile-nginx-digest
 some-folder/Dockerfile-nginx-tagged-digest
-some-folder/Dockerfile-nginx-latest
-some-folder/subfolder/Dockerfile-nginx-latest
 some-folder/Dockerfile-nginx-untagged
+some-folder/subfolder/Dockerfile-nginx-latest
 some-folder/Dockerfile-nginx-1.15.3
+some-folder/Dockerfile-nginx-digest
+some-folder/Dockerfile-nginx-latest
 ....
 _____________________________________________
 
@@ -116,5 +116,63 @@ Supported Formats
 
 * Dockerfile (as used by `docker build`)
 
-Unresolved directive in _readme.adoc - include::dockmoor.adoc[]
+[[_usage]]
+Usage
+-----
+
+_______________________________________________________________________
+dockmoor [OPTIONS] <link:#contains-command[contains]> [command-OPTIONS]
+_______________________________________________________________________
+
+[[_application_options]]
+Application Options
+-------------------
+
+**-l**, *--log-level* Sets the log-level (one of `NONE`, `ERROR`, `WARN`, `INFO`, `DEBUG`)
+
+*--version* Show version and exit
+
+*--manpage* Show man page and exit
+
+*--markdown* Show usage as markdown and exit
+
+*--asciidoc-usage* Show usage as asciidoc and exit
+
+[[_help_options]]
+Help Options
+------------
+
+**-h**, *--help* Show this help message
+
+[[_commands]]
+Commands
+~~~~~~~~
+
+* link:#contains-command[contains]
+
+[[_contains_command]]
+contains command
+^^^^^^^^^^^^^^^^
+
+________________________________________________________
+dockmoor [OPTIONS] contains [contains-OPTIONS] InputFile
+________________________________________________________
+
+Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions, non-null otherwise
+
+[[_predicates]]
+Predicates
+~~~~~~~~~~
+
+Specify which kind of image references should be selected. Exactly one must be specified
+
+*--any* Matches all images
+
+*--latest* Matches images with latest or no tag
+
+[[_help_options_2]]
+Help Options
+~~~~~~~~~~~~
+
+**-h**, *--help* Show this help message
 

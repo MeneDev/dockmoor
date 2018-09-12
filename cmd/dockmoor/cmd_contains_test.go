@@ -342,6 +342,7 @@ func TestContainsHelpContainsImplementedPredicates(t *testing.T) {
 
 	assert.Contains(t, buffer.String(), "--any")
 	assert.Contains(t, buffer.String(), "--latest")
+	assert.Contains(t, buffer.String(), "--unpinned")
 
 	assert.Equal(t, EXIT_SUCCESS, exitCode)
 }
@@ -355,7 +356,6 @@ func TestFindHelpHidesUnimplementedPredicates(t *testing.T) {
 	mainOptions.SetStdout(buffer)
 	exitCode := doMain(mainOptions)
 
-	assert.NotContains(t, buffer.String(), "--unpinned")
 	assert.NotContains(t, buffer.String(), "--outdated")
 	assert.NotContains(t, buffer.String(), "--name")
 	assert.NotContains(t, buffer.String(), "--domain")

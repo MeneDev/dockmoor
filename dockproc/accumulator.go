@@ -4,47 +4,55 @@ import (
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockref"
 	"errors"
+	"github.com/sirupsen/logrus"
+	"io"
 )
 
 type Accumulator interface {
 	Accumulate(format dockfmt.FormatProcessor) error
 }
 
-var _ Accumulator = (*containsAccumulator)(nil)
 
-type containsAccumulator struct {
-	result    bool
+var _ Accumulator = (*matchesAccumulator)(nil)
+
+type matchesAccumulator struct {
+	matches   []dockref.Reference
 	predicate Predicate
+	log       *logrus.Logger
+	stdout    io.Writer
 }
 
-func (accumulator *containsAccumulator) Accumulate(format dockfmt.FormatProcessor) (err error) {
+func MatchesAccumulatorNew(predicate Predicate, log *logrus.Logger, stdout io.Writer) (*matchesAccumulator, error) {
 
-	found := false
+	if predicate == nil {
+		return nil, errors.New("Parameter predicate must not be null")
+	}
+
+	return &matchesAccumulator{
+		predicate: predicate,
+		log: log,
+		stdout: stdout,
+	}, nil
+}
+
+func (accumulator *matchesAccumulator) Accumulate(format dockfmt.FormatProcessor) (err error) {
+
+	matches := make([]dockref.Reference, 0)
+
 	var processor dockfmt.ImageNameProcessor = func(r dockref.Reference) (string, error) {
 		if accumulator.predicate.Matches(r) {
-			found = true
+			matches = append(matches, r)
 		}
 		return "", nil
 	}
 
 	err = format.Process(processor)
 
-	accumulator.result = found
+	accumulator.matches = matches
 
 	return
 }
 
-func ContainsAccumulatorNew(predicate Predicate) (*containsAccumulator, error) {
-
-	if predicate == nil {
-		return nil, errors.New("Parameter predicate must not be null")
-	}
-
-	return &containsAccumulator{
-		predicate: predicate,
-	}, nil
-}
-
-func (accumulator *containsAccumulator) Result() bool {
-	return accumulator.result
+func (accumulator *matchesAccumulator) Matches() []dockref.Reference {
+	return accumulator.matches
 }

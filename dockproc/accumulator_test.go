@@ -9,6 +9,7 @@ import (
 	"io"
 	"github.com/sirupsen/logrus"
 	"github.com/MeneDev/dockmoor/dockref"
+	"bytes"
 )
 
 var _ dockfmt.Format = (*delegatingFormatMock)(nil)
@@ -69,7 +70,9 @@ func formatMockProcessing(images []string) *delegatingFormatMock {
 }
 
 func TestContainsAccumulator_ReturnsErrorWhenParameterIsNil(t *testing.T) {
-	acc, err := ContainsAccumulatorNew(nil)
+	logger := logrus.New()
+	logger.SetOutput(bytes.NewBuffer(nil))
+	acc, err := MatchesAccumulatorNew(nil, logger, bytes.NewBuffer(nil))
 	assert.Nil(t, acc)
 	assert.Error(t, err)
 }
@@ -84,7 +87,7 @@ func TestContainsAccumulator(t *testing.T) {
 		mockFormat := formatMockProcessing(imgs)
 		for _, matches := range []bool{true, false} {
 			var desc string
-			if (matches) {
+			if matches {
 				if num == 0 {
 					continue
 				}
@@ -97,13 +100,21 @@ func TestContainsAccumulator(t *testing.T) {
 				p := new(PredicateMock)
 				p.On("Matches", mock.Anything).Return(matches)
 
-				containsAccumulator, _ := ContainsAccumulatorNew(p)
+				logger := logrus.New()
+				logger.SetOutput(bytes.NewBuffer(nil))
+				containsAccumulator, _ := MatchesAccumulatorNew(p, logger, bytes.NewBuffer(nil))
 
 				formatProcessor := dockfmt.FormatProcessorNew(mockFormat, nil, nil)
 
 				containsAccumulator.Accumulate(formatProcessor)
-				result := containsAccumulator.result
-				assert.Equal(t, matches, result)
+				result := containsAccumulator.matches
+
+				if matches {
+					assert.NotEmpty(t, result)
+				} else {
+					assert.Empty(t, result)
+				}
+
 				p.AssertNumberOfCalls(t, "Matches", num)
 			})
 		}
@@ -134,12 +145,14 @@ func TestContainsAccumulator(t *testing.T) {
 				p.On("Matches", mock.Anything).Return(mi.matches).Once()
 			}
 
-			containsAccumulator, _ := ContainsAccumulatorNew(p)
+			logger := logrus.New()
+			logger.SetOutput(bytes.NewBuffer(nil))
+			containsAccumulator, _ := MatchesAccumulatorNew(p, logger, bytes.NewBuffer(nil))
 
 			formatProcessor := dockfmt.FormatProcessorNew(mockFormat, nil, nil)
 			containsAccumulator.Accumulate(formatProcessor)
-			result := containsAccumulator.Result()
-			assert.True(t, result)
+			result := containsAccumulator.Matches()
+			assert.NotEmpty(t, result)
 		})
 	}
 }

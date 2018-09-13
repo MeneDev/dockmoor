@@ -14,10 +14,11 @@ import (
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
+	"github.com/MeneDev/dockmoor/dockref"
 )
 
 type containsOptionsTest struct {
-	*ContainsOptions
+	*MatchingOptions
 
 	mainOptionsTest *mainOptionsTest
 }
@@ -29,17 +30,18 @@ func (fo *containsOptionsTest) MainOptions() *mainOptionsTest {
 func ContainsOptionsTest() *containsOptionsTest {
 	mainOptions := MainOptionsTest()
 	containsOptions := containsOptionsTest{
-		ContainsOptions: &ContainsOptions{},
+		MatchingOptions: &MatchingOptions{},
 		mainOptionsTest: mainOptions,
 	}
 
 	containsOptions.mainOptions = mainOptions.mainOptions
+	containsOptions.mode = MATCH_ONLY
 
 	return &containsOptions
 }
 
 func TestEmptyPredicates(t *testing.T) {
-	fo := &ContainsOptions{}
+	fo := &MatchingOptions{}
 	err := verifyContainsOptions(fo)
 	assert.Equal(t, ERR_AT_LEAST_ONE_PREDICATE, err)
 }
@@ -48,7 +50,7 @@ func TestSingleExclusivePredicatesFail(t *testing.T) {
 	strings := []string{"any", "latest", "unpinned", "outdated"}
 	for _, a := range strings {
 		t.Run(a, func(t *testing.T) {
-			fo := &ContainsOptions{}
+			fo := &MatchingOptions{}
 			fo.Predicates.Any = equalsAnyString("any", a)
 			fo.Predicates.Outdated = equalsAnyString("outdated", a)
 			fo.Predicates.Unpinned = equalsAnyString("unpinned", a)
@@ -69,7 +71,7 @@ func TestMultipleExclusivePredicatesFail(t *testing.T) {
 			}
 
 			t.Run(a+" and "+b, func(t *testing.T) {
-				fo := &ContainsOptions{}
+				fo := &MatchingOptions{}
 				fo.Predicates.Any = equalsAnyString("any", a, b)
 				fo.Predicates.Outdated = equalsAnyString("outdated", a, b)
 				fo.Predicates.Unpinned = equalsAnyString("unpinned", a, b)
@@ -96,7 +98,7 @@ func TestMultipleExclusivePredicatesFail(t *testing.T) {
 				}
 
 				t.Run(a+" and "+b+" and "+c, func(t *testing.T) {
-					fo := &ContainsOptions{}
+					fo := &MatchingOptions{}
 					fo.Predicates.Any = equalsAnyString("any", a, b, c)
 					fo.Predicates.Outdated = equalsAnyString("outdated", a, b, c)
 					fo.Predicates.Unpinned = equalsAnyString("unpinned", a, b, c)
@@ -111,7 +113,7 @@ func TestMultipleExclusivePredicatesFail(t *testing.T) {
 }
 
 func TestAllExclusivePredicatesAtOnceFail(t *testing.T) {
-	fo := &ContainsOptions{}
+	fo := &MatchingOptions{}
 	fo.Predicates.Any = true
 	fo.Predicates.Outdated = true
 	fo.Predicates.Unpinned = true
@@ -146,7 +148,7 @@ func makeReadCloser(str string) io.ReadCloser {
 	return ioutil.NopCloser(bytes.NewBufferString(str))
 }
 
-func TestInvalidDockerfile(t *testing.T) {
+func TestInvalidDockerfileWithContains(t *testing.T) {
 	// given
 	mainOptions := MainOptionsTest()
 
@@ -160,7 +162,7 @@ func TestInvalidDockerfile(t *testing.T) {
 
 	mainOptions.formatProvider = formatProvider
 
-	fo := &ContainsOptions{
+	fo := &MatchingOptions{
 		mainOptions: mainOptions.mainOptions,
 	}
 
@@ -168,7 +170,7 @@ func TestInvalidDockerfile(t *testing.T) {
 	fo.Positional.InputFile = flags.Filename(NotADockerfile)
 
 	// when
-	_, err := fo.find()
+	_, err := fo.match()
 
 	// then
 	assert.NotNil(t, err)
@@ -177,7 +179,7 @@ func TestInvalidDockerfile(t *testing.T) {
 	assert.True(t, ok)
 }
 
-func TestReportInvalidPredicate(t *testing.T) {
+func TestReportInvalidPredicateWithContains(t *testing.T) {
 	// given
 	mainOptions := MainOptionsTest()
 	stdout := bytes.NewBuffer(nil)
@@ -195,7 +197,7 @@ func TestReportInvalidPredicate(t *testing.T) {
 
 	mainOptions.formatProvider = formatProvider
 
-	fo := &ContainsOptions{
+	fo := &MatchingOptions{
 		mainOptions: mainOptions.mainOptions,
 	}
 
@@ -203,7 +205,7 @@ func TestReportInvalidPredicate(t *testing.T) {
 	fo.Positional.InputFile = flags.Filename(NotADockerfile)
 
 	// when
-	_, err := fo.find()
+	_, err := fo.match()
 
 	s := stdout.String()
 
@@ -214,16 +216,16 @@ func TestReportInvalidPredicate(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestNoPredicateForNoFlags(t *testing.T) {
-	fo := &ContainsOptions{}
+func TestNoPredicateForNoFlagsWithContains(t *testing.T) {
+	fo := &MatchingOptions{}
 
 	predicate := fo.getPredicate()
 
 	assert.Nil(t, predicate)
 }
 
-func TestAnyPredicateWhenAnyFlag(t *testing.T) {
-	fo := &ContainsOptions{}
+func TestAnyPredicateWhenAnyFlagWithContains(t *testing.T) {
+	fo := &MatchingOptions{}
 	fo.Predicates.Any = true
 
 	predicate := fo.getPredicate()
@@ -233,8 +235,8 @@ func TestAnyPredicateWhenAnyFlag(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func TestLatestPredicateWhenLatestFlag(t *testing.T) {
-	fo := &ContainsOptions{}
+func TestLatestPredicateWhenLatestFlagWithContains(t *testing.T) {
+	fo := &MatchingOptions{}
 	fo.Predicates.Latest = true
 
 	predicate := fo.getPredicate()
@@ -244,8 +246,8 @@ func TestLatestPredicateWhenLatestFlag(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func TestUnpinnedPredicateWhenLatestFlag(t *testing.T) {
-	fo := &ContainsOptions{}
+func TestUnpinnedPredicateWhenLatestFlagWithContains(t *testing.T) {
+	fo := &MatchingOptions{}
 	fo.Predicates.Unpinned = true
 
 	predicate := fo.getPredicate()
@@ -255,7 +257,7 @@ func TestUnpinnedPredicateWhenLatestFlag(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func TestFilenameRequired(t *testing.T) {
+func TestFilenameRequiredWithContains(t *testing.T) {
 	_, _, exitCode, stdout := testMain([]string{"contains"}, addContainsCommand)
 	assert.NotEqual(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "level=error")
@@ -263,26 +265,26 @@ func TestFilenameRequired(t *testing.T) {
 }
 
 
-func TestContainsCallsFindExecute(t *testing.T) {
+func TestContainsCallsFindExecuteWithContains(t *testing.T) {
 	cmd, _, _, _ := testMain([]string{"contains", "fileName"}, addContainsCommand)
 
-	_, ok := cmd.(*ContainsOptions)
+	_, ok := cmd.(*MatchingOptions)
 	assert.True(t, ok)
 }
 
-func TestOpenErrorsArePropagated(t *testing.T) {
+func TestOpenErrorsArePropagatedWithContains(t *testing.T) {
 	fo := ContainsOptionsTest()
 	fo.Predicates.Latest = true
 	expectedError := errors.New("Could not open")
 	fo.MainOptions().openerMock.On("Open", mock.Anything).Return(nil, expectedError)
 
-	exitCode, err := fo.find()
+	exitCode, err := fo.match()
 
 	assert.NotEqual(t, 0, exitCode)
 	assert.Equal(t, expectedError, err)
 }
 
-func TestExecuteReturnsError(t *testing.T) {
+func TestExecuteReturnsErrorWithContains(t *testing.T) {
 	fo := ContainsOptionsTest()
 	expected := "Use ExecuteWithExitCode instead"
 	err := fo.Execute(nil)
@@ -361,6 +363,29 @@ func TestFindHelpHidesUnimplementedPredicates(t *testing.T) {
 	assert.NotContains(t, buffer.String(), "--domain")
 
 	assert.Equal(t, EXIT_SUCCESS, exitCode)
+}
+
+func TestContainsCommandDoesntPrint(t *testing.T) {
+	test := ContainsOptionsTest()
+	stdout := test.MainOptions().Stdout()
+
+	test.Predicates.Any = true
+
+	processorMock := &FormatProcessorMock{}
+	processorMock.process = func(imageNameProcessor dockfmt.ImageNameProcessor) error {
+		r, _ := dockref.FromOriginal("nginx")
+		imageNameProcessor(r)
+		r, _ = dockref.FromOriginal("nginx:latest")
+		imageNameProcessor(r)
+		r, _ = dockref.FromOriginal("nginx:1.2")
+		imageNameProcessor(r)
+		return nil
+	}
+
+	test.matchFormatProcessor(processorMock)
+
+	s := stdout.String()
+	assert.Empty(t, s)
 }
 
 func equalsAnyString(needle string, values ...string) bool {

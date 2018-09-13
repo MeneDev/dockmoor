@@ -7,10 +7,17 @@ import (
 	"io"
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/sirupsen/logrus"
+	"fmt"
 )
 
+type MatchingMode int
 
-type ContainsOptions struct {
+const (
+	MATCH_ONLY MatchingMode = iota
+	MATCH_AND_PRINT MatchingMode = iota
+)
+
+type MatchingOptions struct {
 	Predicates struct{
 		Any      bool     `required:"no" long:"any" description:"Matches all images"`
 		Latest   bool     `required:"no" long:"latest" description:"Matches images with latest or no tag"`
@@ -28,19 +35,21 @@ type ContainsOptions struct {
 	} `positional-args:"yes"`
 
 	mainOptions *mainOptions
+	mode MatchingMode
 }
 
-func (fo *ContainsOptions) MainOptions() *mainOptions {
+func (fo *MatchingOptions) MainOptions() *mainOptions {
 	return fo.mainOptions
 }
 
 func addContainsCommand(mainOptions *mainOptions) (*flags.Command, error) {
 	parser := mainOptions.Parser()
-	var containsOptions ContainsOptions
+	var containsOptions MatchingOptions
 	containsOptions.mainOptions = mainOptions
+	containsOptions.mode = MATCH_ONLY
 
 	return parser.AddCommand("contains",
-		"Test if a file contains image references with certain predicates.",
+		"Test if a file contains image references with matching predicates.",
 		"Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions, non-null otherwise",
 		&containsOptions)
 }
@@ -50,7 +59,7 @@ var (
 	ERR_AT_MOST_ONE_PREDICATE  = errors.Errorf("Provide at most one of --any, --latest, --unpinned, --outdated")
 )
 
-func verifyContainsOptions(fo *ContainsOptions) error {
+func verifyContainsOptions(fo *MatchingOptions) error {
 
 	p := fo.Predicates
 	f := fo.Filters
@@ -84,11 +93,11 @@ func verifyContainsOptions(fo *ContainsOptions) error {
 	return nil
 }
 
-func (opts *ContainsOptions) Execute(args []string) error {
+func (opts *MatchingOptions) Execute(args []string) error {
 	return errors.New("Use ExecuteWithExitCode instead")
 }
 
-func (opts *ContainsOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err error) {
+func (opts *MatchingOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err error) {
 	err = verifyContainsOptions(opts)
 	if err != nil {
 		opts.Log().Errorf("Invalid options: %s\n", err.Error())
@@ -102,11 +111,11 @@ func (opts *ContainsOptions) ExecuteWithExitCode(args []string) (exitCode ExitCo
 		return
 	}
 
-	exitCode, err = opts.find()
+	exitCode, err = opts.match()
 	return
 }
 
-func (opts *ContainsOptions) getPredicate() dockproc.Predicate {
+func (opts *MatchingOptions) getPredicate() dockproc.Predicate {
 	predicates := opts.Predicates
 
 	switch {
@@ -121,53 +130,72 @@ func (opts *ContainsOptions) getPredicate() dockproc.Predicate {
 	return nil
 }
 
-func (opts *ContainsOptions) open(readable string) (io.ReadCloser, error) {
+func (opts *MatchingOptions) open(readable string) (io.ReadCloser, error) {
 	return opts.mainOptions.readableOpener(readable)
 }
 
-func (opts *ContainsOptions) find() (exitCode ExitCode, err error) {
+func saveClose(readCloser io.ReadCloser) {
+	if readCloser != nil {
+		readCloser.Close()
+	}
+}
+
+func (opts *MatchingOptions) match() (exitCode ExitCode, err error) {
 	log := opts.Log()
-	formatProvider := opts.MainOptions().FormatProvider()
 
 	filePathInput := string(opts.Positional.InputFile)
+
 	fpInput, err := opts.open(filePathInput)
-	defer func() {
-		if fpInput != nil {
-			fpInput.Close()
-		}
-	}()
+	defer saveClose(fpInput)
+
 	if err != nil {
 		log.Errorf("Could not open file: %s", err.Error())
 		exitCode = EXIT_COULD_NOT_OPEN_FILE
 		return
 	}
 
-	predicate := opts.getPredicate()
-
+	formatProvider := opts.MainOptions().FormatProvider()
 	fileFormat, formatError := dockfmt.IdentifyFormat(log, formatProvider, fpInput, filePathInput)
 	if fileFormat == nil {
 		return EXIT_INVALID_FORMAT, formatError
 	}
 
 	formatProcessor := dockfmt.FormatProcessorNew(fileFormat, log, fpInput)
+	exitCode, err = opts.matchFormatProcessor(formatProcessor)
+	return
+}
 
-	accumulator, err := dockproc.ContainsAccumulatorNew(predicate)
+func (opts *MatchingOptions) matchFormatProcessor(formatProcessor dockfmt.FormatProcessor) (exitCode ExitCode, err error) {
+	log := opts.Log()
+
+	predicate := opts.getPredicate()
+	accumulator, err := dockproc.MatchesAccumulatorNew(predicate, log, opts.Stdout())
 
 	errAcc := accumulator.Accumulate(formatProcessor)
 	if errAcc != nil {
 		log.Errorf("Error during accumulation: %s", errAcc.Error())
 	}
 
-	found := accumulator.Result()
+	matches := accumulator.Matches()
 
-	if found {
+	if len(matches) > 0 {
 		exitCode = EXIT_SUCCESS
 	} else {
 		exitCode = EXIT_NOT_FOUND
 	}
 
+	if opts.mode == MATCH_AND_PRINT {
+		for _, r := range matches {
+			fmt.Fprintf(opts.Stdout(), "%s\n", r.Original())
+		}
+	}
 	return
 }
-func (opts *ContainsOptions) Log() *logrus.Logger {
+
+func (opts *MatchingOptions) Log() *logrus.Logger {
 	return opts.mainOptions.Log()
+}
+
+func (fo *MatchingOptions) Stdout() io.Writer {
+	return fo.MainOptions().stdout
 }

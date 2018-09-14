@@ -21,6 +21,7 @@ jobs:
       - run:
           name: Build and push image if builder/Dockerfile has changed
           command:  |
+            echo "hi"
             ls -l /tmp  || true
             ls -l /tmp/builder_pushed || true
             echo "start /tmp/builder_pushed"

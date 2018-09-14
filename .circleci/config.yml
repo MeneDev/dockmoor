@@ -15,7 +15,7 @@ jobs:
               circleci step halt
             fi
       - restore_cache:
-          key: builder-{{ checksum ".builder/Dockerfile" }}
+          key: builder2-{{ checksum ".builder/Dockerfile" }}
           paths:
               - /tmp/builder_pushed
       - run:
@@ -39,7 +39,7 @@ jobs:
               echo 1 > /tmp/builder_pushed/builder_pushed
             fi
       - save_cache:
-          key: builder-{{ checksum ".builder/Dockerfile" }}
+          key: builder2-{{ checksum ".builder/Dockerfile" }}
           paths:
               - /tmp/builder_pushed
 

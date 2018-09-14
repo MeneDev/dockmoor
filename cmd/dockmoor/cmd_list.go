@@ -12,6 +12,6 @@ func addListCommand(mainOptions *mainOptions) (*flags.Command, error) {
 
 	return parser.AddCommand("list",
 		"List image references with matching predicates.",
-		"Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions, non-null otherwise",
+		"List image references with matching predicates. Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions and is of valid format, non-null otherwise",
 		&containsOptions)
 }

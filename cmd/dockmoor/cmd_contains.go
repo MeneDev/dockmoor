@@ -50,7 +50,7 @@ func addContainsCommand(mainOptions *mainOptions) (*flags.Command, error) {
 
 	return parser.AddCommand("contains",
 		"Test if a file contains image references with matching predicates.",
-		"Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions, non-null otherwise",
+		"Test if a file contains image references with matching predicates. Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions and is of valid format, non-null otherwise",
 		&containsOptions)
 }
 

@@ -209,7 +209,7 @@ echo $exitCode >$RESULTS/containsAnyTestFormatInvalid.exitCode
 
 ( # test if file is of supported format
 #tag::containsAnyTestFormatValid[]
-dockmoor contains --any some-folder/Dockerfile-nginx-latest
+dockmoor contains --any Dockerfile
 #end::containsAnyTestFormatValid[]
 ) >$RESULTS/containsAnyTestFormatValid.stdout 2>$RESULTS/containsAnyTestFormatValid.stderr
 exitCode=$?

@@ -12,3 +12,5 @@ cmd/dockmoor/doc/_readme\.xml
 update-time\.sh
 
 README\.adoc
+
+cmd/dockmoor/doc/dockmoor\.adoc

@@ -17,18 +17,20 @@ Examples
 list command
 ~~~~~~~~~~~~
 
+The single file examples all refer to https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[a multi-stage build Dockerfile]
+
 [[_list_all_image_references_in_file]]
 List all image references in file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-[source,bash]
-----
-dockmoor list --any Dockerfile
-----
+[subs=+macros]
+....
+dockmoor list --any https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[Dockerfile]
+....
 
 stdout:
 
-_____________________________________________________________________________________________________
+[subs=+macros]
 ....
 image-name
 image-name:latest
@@ -43,7 +45,6 @@ example.com/image-name:1.12
 example.com/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
 example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
 ....
-_____________________________________________________________________________________________________
 
 stderr is empty +
 exit code: 0
@@ -52,14 +53,14 @@ exit code: 0
 List all image references with latest or no tag in file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-[source,bash]
-----
-dockmoor list --latest Dockerfile
-----
+[subs=+macros]
+....
+dockmoor list --latest https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[Dockerfile]
+....
 
 stdout:
 
-_____________________________________________________________________________________________________
+[subs=+macros]
 ....
 image-name
 image-name:latest
@@ -68,7 +69,6 @@ example.com/image-name
 example.com/image-name:latest
 example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
 ....
-_____________________________________________________________________________________________________
 
 stderr is empty +
 exit code: 0
@@ -77,14 +77,14 @@ exit code: 0
 List all unpinned image references
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-[source,bash]
-----
-dockmoor list --unpinned Dockerfile
-----
+[subs=+macros]
+....
+dockmoor list --unpinned https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[Dockerfile]
+....
 
 stdout:
 
-_____________________________
+[subs=+macros]
 ....
 image-name
 image-name:latest
@@ -93,7 +93,6 @@ example.com/image-name
 example.com/image-name:latest
 example.com/image-name:1.12
 ....
-_____________________________
 
 stderr is empty +
 exit code: 0
@@ -102,20 +101,19 @@ exit code: 0
 Use unix find to list all unpinned image references
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-[source,bash]
-----
-find some-folder/ -type f -exec dockmoor list --unpinned {} \; | sort | uniq
-----
+[subs=+macros]
+....
+find https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/[some-folder/] -type f -exec dockmoor list --unpinned {} \; | sort | uniq
+....
 
 stdout:
 
-____________
+[subs=+macros]
 ....
 nginx
 nginx:1.15.3
 nginx:latest
 ....
-____________
 
 stderr is empty +
 exit code: 0
@@ -124,19 +122,18 @@ exit code: 0
 Use unix find to list all image references with latest/no tags
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-[source,bash]
-----
-find some-folder/ -type f -exec dockmoor list --latest {} \; | sort | uniq
-----
+[subs=+macros]
+....
+find https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/[some-folder/] -type f -exec dockmoor list --latest {} \; | sort | uniq
+....
 
 stdout:
 
-____________
+[subs=+macros]
 ....
 nginx
 nginx:latest
 ....
-____________
 
 stderr is empty +
 exit code: 0
@@ -145,14 +142,14 @@ exit code: 0
 Use unix find to list all image references
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-[source,bash]
-----
-find some-folder/ -type f -exec dockmoor list --any {} \; | sort | uniq
-----
+[subs=+macros]
+....
+find https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/[some-folder/] -type f -exec dockmoor list --any {} \; | sort | uniq
+....
 
 stdout:
 
-___________________________________________________________________________________________
+[subs=+macros]
 ....
 nginx
 nginx:1.15.3
@@ -160,7 +157,6 @@ nginx:1.15.3-alpine@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e84841
 nginx:latest
 nginx@sha256:db5acc22920799fe387a903437eb89387607e5b3f63cf0f4472ac182d7bad644
 ....
-___________________________________________________________________________________________
 
 stderr is empty +
 exit code: 0
@@ -173,21 +169,20 @@ contains command
 Use unix find to list all files containing unpinned references
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-[source,bash]
-----
-find some-folder/ -type f -exec dockmoor contains --unpinned {} \; -print
-----
+[subs=+macros]
+....
+find https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/[some-folder/] -type f -exec dockmoor contains --unpinned {} \; -print
+....
 
 stdout:
 
-_____________________________________________
+[subs=+macros]
 ....
-some-folder/Dockerfile-nginx-latest
-some-folder/Dockerfile-nginx-untagged
-some-folder/subfolder/Dockerfile-nginx-latest
-some-folder/Dockerfile-nginx-1.15.3
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
 ....
-_____________________________________________
 
 stderr is empty +
 exit code: 0
@@ -196,20 +191,19 @@ exit code: 0
 Use unix find to list all files containing latest/no tags
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-[source,bash]
-----
-find some-folder/ -type f -exec dockmoor contains --latest {} \; -print
-----
+[subs=+macros]
+....
+find https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/[some-folder/] -type f -exec dockmoor contains --latest {} \; -print
+....
 
 stdout:
 
-_____________________________________________
+[subs=+macros]
 ....
-some-folder/Dockerfile-nginx-latest
-some-folder/Dockerfile-nginx-untagged
-some-folder/subfolder/Dockerfile-nginx-latest
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
 ....
-_____________________________________________
 
 stderr is empty +
 exit code: 0
@@ -218,23 +212,22 @@ exit code: 0
 Use unix find to list all supported files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-[source,bash]
-----
-find some-folder/ -type f -exec dockmoor contains --any {} \; -print
-----
+[subs=+macros]
+....
+find https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/[some-folder/] -type f -exec dockmoor contains --any {} \; -print
+....
 
 stdout:
 
-_____________________________________________
+[subs=+macros]
 ....
-some-folder/Dockerfile-nginx-digest
-some-folder/Dockerfile-nginx-latest
-some-folder/Dockerfile-nginx-tagged-digest
-some-folder/Dockerfile-nginx-untagged
-some-folder/subfolder/Dockerfile-nginx-latest
-some-folder/Dockerfile-nginx-1.15.3
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-digest[some-folder/Dockerfile-nginx-digest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-tagged-digest[some-folder/Dockerfile-nginx-tagged-digest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
 ....
-_____________________________________________
 
 stderr is empty +
 exit code: 0
@@ -245,19 +238,19 @@ Test the format of a file
 
 The `contains` command returns with exit code 0 when an image reference was found that matches. Using the `--any` predicate allows to match any file with a supported format that contains at least one image reference.
 
-[source,bash]
-----
-dockmoor contains --any some-folder/Dockerfile-nginx-latest
-----
+[subs=+macros]
+....
+dockmoor contains --any https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[Dockerfile]
+....
 
 stdout is empty +
 stderr is empty +
 exit code: 0
 
-[source,bash]
-----
-dockmoor contains --any some-folder/NotADockerfile
-----
+[subs=+macros]
+....
+dockmoor contains --any https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/NotADockerfile[some-folder/NotADockerfile]
+....
 
 stdout is empty +
 stderr is empty +
@@ -267,7 +260,7 @@ exit code: 4
 Supported Formats
 -----------------
 
-* Dockerfile (as used by `docker build`)
+* https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[Dockerfile] (as used by `docker build`)
 
 [[_usage]]
 Usage
@@ -281,7 +274,7 @@ ________________________________________________________________________________
 Application Options
 -------------------
 
-**-l**, *--log-level* Sets the log-level (one of `NONE`, `ERROR`, `WARN`, `INFO`, `DEBUG`)
+*-l*, *--log-level* Sets the log-level (one of `NONE`, `ERROR`, `WARN`, `INFO`, `DEBUG`)
 
 *--version* Show version and exit
 
@@ -295,7 +288,7 @@ Application Options
 Help Options
 ------------
 
-**-h**, *--help* Show this help message
+*-h*, *--help* Show this help message
 
 [[_commands]]
 Commands
@@ -312,7 +305,7 @@ ________________________________________________________
 dockmoor [OPTIONS] contains [contains-OPTIONS] InputFile
 ________________________________________________________
 
-Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions, non-null otherwise
+Test if a file contains image references with matching predicates. Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions and is of valid format, non-null otherwise
 
 [[_predicates]]
 Predicates
@@ -330,7 +323,7 @@ Specify which kind of image references should be selected. Exactly one must be s
 Help Options
 ~~~~~~~~~~~~
 
-**-h**, *--help* Show this help message
+*-h*, *--help* Show this help message
 
 [[_list_command]]
 list command
@@ -340,7 +333,7 @@ ________________________________________________
 dockmoor [OPTIONS] list [list-OPTIONS] InputFile
 ________________________________________________
 
-Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions, non-null otherwise
+List image references with matching predicates. Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions and is of valid format, non-null otherwise
 
 [[_predicates_2]]
 Predicates
@@ -358,5 +351,5 @@ Specify which kind of image references should be selected. Exactly one must be s
 Help Options
 ~~~~~~~~~~~~
 
-**-h**, *--help* Show this help message
+*-h*, *--help* Show this help message
 

@@ -21,6 +21,11 @@ jobs:
       - run:
           name: Build and push image if builder/Dockerfile has changed
           command:  |
+            ls -l /tmp  || true
+            ls -l /tmp/builder_pushed || true
+            echo "start /tmp/builder_pushed"
+            cat /tmp/builder_pushed/builder_pushed || true
+            echo "end /tmp/builder_pushed"
 
             if [ ! -f /tmp/builder_pushed ]; then
               docker login -u $DOCKER_USER -p $DOCKER_PASS
@@ -29,12 +34,14 @@ jobs:
               docker build -f .builder/Dockerfile -t "$CI_PROJECT_PATH-builder:latest" -t "$CI_PROJECT_PATH-builder:$CIRCLE_SHA1" .
               docker push "$CI_PROJECT_PATH-builder:latest"
               docker push "$CI_PROJECT_PATH-builder:$CIRCLE_SHA1"
-              echo 1 > /tmp/builder_pushed
+              mkdir -p /tmp/builder_pushed
+              echo 1 > /tmp/builder_pushed/builder_pushed
             fi
       - save_cache:
           key: builder-{{ checksum ".builder/Dockerfile" }}
           paths:
               - /tmp/builder_pushed
+
   build:
     docker:
       - image: "$CI_PROJECT_PATH-builder:latest"

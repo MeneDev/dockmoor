@@ -116,6 +116,7 @@ jobs:
       - run:
           name: Verify CHANGELOG contains release tag
           command: |
+            tag=$CIRCLE_TAG
             if ! cat CHANGELOG.md | grep "## $tag" ; then
               echo "Missing Changelog entry for $tag, refusing to release"
               exit 1

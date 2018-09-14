@@ -21,14 +21,13 @@ jobs:
       - run:
           name: Build and push image if builder/Dockerfile has changed
           command:  |
-            echo "hi"
             ls -l /tmp  || true
             ls -l /tmp/builder_pushed || true
             echo "start /tmp/builder_pushed"
             cat /tmp/builder_pushed/builder_pushed || true
             echo "end /tmp/builder_pushed"
 
-            if [ ! -f /tmp/builder_pushed ]; then
+            if [ ! -f /tmp/builder_pushed/builder_pushed ]; then
               docker login -u $DOCKER_USER -p $DOCKER_PASS
               echo "Building $CI_PROJECT_PATH-builder:latest"
               docker pull "$CI_PROJECT_PATH-builder:latest" || true

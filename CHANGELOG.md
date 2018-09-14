@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.4
+
+### New Commands
+
+**list**: The list command behaves like the contains command but also prints matching image refernces.
+
 ## v0.0.3
 
 ### contains command

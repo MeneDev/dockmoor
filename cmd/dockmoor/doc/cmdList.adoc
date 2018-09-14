@@ -1,4 +1,4 @@
-[#contains-command-examples]
+[#list-command-examples]
 === list command
 
 ==== List all image references in file

@@ -1,9 +1,10 @@
 
-:branch: master
+:branch: develop
 
 == dockmoor
 image:https://img.shields.io/circleci/project/github/MeneDev/dockmoor/{branch}.svg[Build Status (Circle CI), link=https://circleci.com/gh/MeneDev/dockmoor]
 image:https://img.shields.io/coveralls/github/MeneDev/dockmoor/{branch}.svg[Coveralls statement coverage, link=https://coveralls.io/github/MeneDev/dockmoor]
+image:https://img.shields.io/github/release/MeneDev/dockmoor.svg["GitHub release",link="https://github.com/MeneDev/dockmoor/releases"]
 image:https://img.shields.io/twitter/follow/MeneDev.svg?style=social&label=%40MeneDev[Follow @MeneDev on Twitter, link=https://twitter.com/MeneDev]
 
 Manage docker image references.
@@ -11,6 +12,158 @@ Manage docker image references.
 [[_examples]]
 Examples
 --------
+
+[[contains-command-examples]]
+list command
+~~~~~~~~~~~~
+
+[[_list_all_image_references_in_file]]
+List all image references in file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+[source,bash]
+----
+dockmoor list --any Dockerfile
+----
+
+stdout:
+
+_____________________________________________________________________________________________________
+....
+image-name
+image-name:latest
+image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+image-name:1.12
+image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+example.com/image-name
+example.com/image-name:latest
+example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+example.com/image-name:1.12
+example.com/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+....
+_____________________________________________________________________________________________________
+
+stderr is empty +
+exit code: 0
+
+[[_list_all_image_references_with_latest_or_no_tag_in_file]]
+List all image references with latest or no tag in file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+[source,bash]
+----
+dockmoor list --latest Dockerfile
+----
+
+stdout:
+
+_____________________________________________________________________________________________________
+....
+image-name
+image-name:latest
+image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+example.com/image-name
+example.com/image-name:latest
+example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+....
+_____________________________________________________________________________________________________
+
+stderr is empty +
+exit code: 0
+
+[[_list_all_unpinned_image_references]]
+List all unpinned image references
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+[source,bash]
+----
+dockmoor list --unpinned Dockerfile
+----
+
+stdout:
+
+_____________________________
+....
+image-name
+image-name:latest
+image-name:1.12
+example.com/image-name
+example.com/image-name:latest
+example.com/image-name:1.12
+....
+_____________________________
+
+stderr is empty +
+exit code: 0
+
+[[_use_unix_find_to_list_all_unpinned_image_references]]
+Use unix find to list all unpinned image references
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+[source,bash]
+----
+find some-folder/ -type f -exec dockmoor list --unpinned {} \; | sort | uniq
+----
+
+stdout:
+
+____________
+....
+nginx
+nginx:1.15.3
+nginx:latest
+....
+____________
+
+stderr is empty +
+exit code: 0
+
+[[_use_unix_find_to_list_all_image_references_with_latestno_tags]]
+Use unix find to list all image references with latest/no tags
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+[source,bash]
+----
+find some-folder/ -type f -exec dockmoor list --latest {} \; | sort | uniq
+----
+
+stdout:
+
+____________
+....
+nginx
+nginx:latest
+....
+____________
+
+stderr is empty +
+exit code: 0
+
+[[_use_unix_find_to_list_all_image_references]]
+Use unix find to list all image references
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+[source,bash]
+----
+find some-folder/ -type f -exec dockmoor list --any {} \; | sort | uniq
+----
+
+stdout:
+
+___________________________________________________________________________________________
+....
+nginx
+nginx:1.15.3
+nginx:1.15.3-alpine@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+nginx:latest
+nginx@sha256:db5acc22920799fe387a903437eb89387607e5b3f63cf0f4472ac182d7bad644
+....
+___________________________________________________________________________________________
+
+stderr is empty +
+exit code: 0
 
 [[contains-command-examples]]
 contains command
@@ -29,10 +182,10 @@ stdout:
 
 _____________________________________________
 ....
-some-folder/Dockerfile-nginx-untagged
-some-folder/subfolder/Dockerfile-nginx-latest
-some-folder/Dockerfile-nginx-1.15.3
 some-folder/Dockerfile-nginx-latest
+some-folder/subfolder/Dockerfile-nginx-latest
+some-folder/Dockerfile-nginx-untagged
+some-folder/Dockerfile-nginx-1.15.3
 ....
 _____________________________________________
 
@@ -52,9 +205,9 @@ stdout:
 
 _____________________________________________
 ....
-some-folder/Dockerfile-nginx-untagged
-some-folder/subfolder/Dockerfile-nginx-latest
 some-folder/Dockerfile-nginx-latest
+some-folder/subfolder/Dockerfile-nginx-latest
+some-folder/Dockerfile-nginx-untagged
 ....
 _____________________________________________
 
@@ -74,12 +227,12 @@ stdout:
 
 _____________________________________________
 ....
-some-folder/Dockerfile-nginx-tagged-digest
-some-folder/Dockerfile-nginx-untagged
-some-folder/subfolder/Dockerfile-nginx-latest
-some-folder/Dockerfile-nginx-1.15.3
 some-folder/Dockerfile-nginx-digest
+some-folder/Dockerfile-nginx-tagged-digest
 some-folder/Dockerfile-nginx-latest
+some-folder/subfolder/Dockerfile-nginx-latest
+some-folder/Dockerfile-nginx-untagged
+some-folder/Dockerfile-nginx-1.15.3
 ....
 _____________________________________________
 
@@ -116,63 +269,5 @@ Supported Formats
 
 * Dockerfile (as used by `docker build`)
 
-[[_usage]]
-Usage
------
-
-_______________________________________________________________________
-dockmoor [OPTIONS] <link:#contains-command[contains]> [command-OPTIONS]
-_______________________________________________________________________
-
-[[_application_options]]
-Application Options
--------------------
-
-**-l**, *--log-level* Sets the log-level (one of `NONE`, `ERROR`, `WARN`, `INFO`, `DEBUG`)
-
-*--version* Show version and exit
-
-*--manpage* Show man page and exit
-
-*--markdown* Show usage as markdown and exit
-
-*--asciidoc-usage* Show usage as asciidoc and exit
-
-[[_help_options]]
-Help Options
-------------
-
-**-h**, *--help* Show this help message
-
-[[_commands]]
-Commands
-~~~~~~~~
-
-* link:#contains-command[contains]
-
-[[_contains_command]]
-contains command
-^^^^^^^^^^^^^^^^
-
-________________________________________________________
-dockmoor [OPTIONS] contains [contains-OPTIONS] InputFile
-________________________________________________________
-
-Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions, non-null otherwise
-
-[[_predicates]]
-Predicates
-~~~~~~~~~~
-
-Specify which kind of image references should be selected. Exactly one must be specified
-
-*--any* Matches all images
-
-*--latest* Matches images with latest or no tag
-
-[[_help_options_2]]
-Help Options
-~~~~~~~~~~~~
-
-**-h**, *--help* Show this help message
+Unresolved directive in _readme.adoc - include::dockmoor.adoc[]
 

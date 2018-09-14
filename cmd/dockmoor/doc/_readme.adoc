@@ -1,4 +1,5 @@
 == Examples
+include::cmdList.adoc[]
 include::cmdContains.adoc[]
 
 == Supported Formats

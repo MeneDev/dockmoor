@@ -94,6 +94,7 @@ func osExit(exitCode ExitCode) { osExitInternal(int(exitCode)) }
 func main() {
 	mainOptions := MainOptionsNew()
 	addContainsCommand(mainOptions)
+	addListCommand(mainOptions)
 
 	exitCode := doMain(mainOptions)
 	osExit(exitCode)

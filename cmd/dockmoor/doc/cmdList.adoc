@@ -1,0 +1,86 @@
+[#contains-command-examples]
+=== list command
+
+==== List all image references in file
+[source,bash]
+----
+include::../end-to-end/test.sh[tag=listAnyInFile,indent=0]
+----
+stdout:
+__________________________
+include::../end-to-end/results/listAnyInFile.stdout[indent=1]
+__________________________
+stderr is empty +
+exit code:
+include::../end-to-end/results/listAnyInFile.exitCode[]
+
+
+==== List all image references with latest or no tag in file
+[source,bash]
+----
+include::../end-to-end/test.sh[tag=listLatestInFile,indent=0]
+----
+stdout:
+__________________________
+include::../end-to-end/results/listLatestInFile.stdout[indent=1]
+__________________________
+stderr is empty +
+exit code:
+include::../end-to-end/results/listLatestInFile.exitCode[]
+
+
+==== List all unpinned image references
+[source,bash]
+----
+include::../end-to-end/test.sh[tag=listUnpinnedInFile,indent=0]
+----
+stdout:
+__________________________
+include::../end-to-end/results/listUnpinnedInFile.stdout[indent=1]
+__________________________
+stderr is empty +
+exit code:
+include::../end-to-end/results/listUnpinnedInFile.exitCode[]
+
+
+==== Use unix find to list all unpinned image references
+[source,bash]
+----
+include::../end-to-end/test.sh[tag=listUnpinnedInFolder,indent=0]
+----
+stdout:
+__________________________
+include::../end-to-end/results/listUnpinnedInFolder.stdout[indent=1]
+__________________________
+stderr is empty +
+exit code:
+include::../end-to-end/results/listUnpinnedInFolder.exitCode[]
+
+
+==== Use unix find to list all image references with latest/no tags
+[source,bash]
+----
+include::../end-to-end/test.sh[tag=listLatestInFolder,indent=0]
+----
+stdout:
+__________________________
+include::../end-to-end/results/listLatestInFolder.stdout[indent=1]
+__________________________
+stderr is empty +
+exit code:
+include::../end-to-end/results/listLatestInFolder.exitCode[]
+
+
+==== Use unix find to list all image references
+[source,bash]
+----
+include::../end-to-end/test.sh[tag=listAnyInFolder,indent=0]
+----
+stdout:
+__________________________
+include::../end-to-end/results/listAnyInFolder.stdout[indent=1]
+__________________________
+stderr is empty +
+exit code:
+include::../end-to-end/results/listAnyInFolder.exitCode[]
+

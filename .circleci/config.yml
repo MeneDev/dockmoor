@@ -159,22 +159,7 @@ jobs:
             git checkout -b master 2>/dev/null || git checkout master
             git reset --hard $digest
 
-            /tmp/workspace/release/dockmoor-linux_amd64 --asciidoc-usage > cmd/dockmoor/doc/dockmoor.adoc
-
-            asciidoctor -b docbook5 cmd/dockmoor/doc/_readme.adoc
-            pandoc -f docbook -t asciidoc --wrap=none --columns=120 cmd/dockmoor/doc/_readme.xml -o README.adoc
-
-            VARS="$(cat cmd/dockmoor/doc/_vars.adoc)"
-            BODY="$(cat README.adoc)"
-            HEADER="$(cat cmd/dockmoor/doc/_header.adoc)"
-
-            echo "$VARS
-            :branch: master
-
-            $HEADER
-
-            $BODY
-            " > README.adoc
+            (cd cmd/dockmoor/doc && ./generate.sh)
 
             git add README.adoc
             # --allow-empty for rebuilds without release
@@ -255,22 +240,7 @@ jobs:
             git checkout -b master 2>/dev/null || git checkout master
             git reset --hard $digest
 
-            /tmp/workspace/release/dockmoor-linux_amd64 --asciidoc-usage > cmd/dockmoor/doc/dockmoor.adoc
-
-            asciidoctor -b docbook5 cmd/dockmoor/doc/_readme.adoc
-            pandoc -f docbook -t asciidoc --wrap=none --columns=120 cmd/dockmoor/doc/_readme.xml -o README.adoc
-
-            VARS="$(cat cmd/dockmoor/doc/_vars.adoc)"
-            BODY="$(cat README.adoc)"
-            HEADER="$(cat cmd/dockmoor/doc/_header.adoc)"
-
-            echo "$VARS
-            :branch: master
-
-            $HEADER
-
-            $BODY
-            " > README.adoc
+            (cd cmd/dockmoor/doc && ./generate.sh)
 
             set +v
             echo "START README.adoc"
@@ -290,7 +260,6 @@ jobs:
             git checkout -b develop 2>/dev/null || git checkout develop
             git reset --hard $digest
             git push --dry-run origin develop
-
 
 workflows:
   version: 2

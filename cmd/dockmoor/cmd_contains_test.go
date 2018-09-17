@@ -1,20 +1,20 @@
 package main
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
-	"io"
-	"github.com/stretchr/testify/mock"
-	"fmt"
 	"bytes"
+	"fmt"
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockproc"
-	"reflect"
+	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"io"
 	"io/ioutil"
 	"os"
-	"github.com/MeneDev/dockmoor/dockref"
+	"reflect"
+	"testing"
 )
 
 type containsOptionsTest struct {
@@ -264,7 +264,6 @@ func TestFilenameRequiredWithContains(t *testing.T) {
 	assert.Contains(t, stdout.String(), "the required argument `InputFile` was not provided")
 }
 
-
 func TestContainsCallsFindExecuteWithContains(t *testing.T) {
 	cmd, _, _, _ := testMain([]string{"contains", "fileName"}, addContainsCommand)
 
@@ -294,7 +293,7 @@ func TestExecuteReturnsErrorWithContains(t *testing.T) {
 
 func TestMainMarkdownWithContains(t *testing.T) {
 
-	os.Args = []string {"exe", "--markdown"}
+	os.Args = []string{"exe", "--markdown"}
 
 	mainOptions := MainOptionsTestNew(addContainsCommand)
 	buffer := bytes.NewBuffer(nil)
@@ -307,7 +306,7 @@ func TestMainMarkdownWithContains(t *testing.T) {
 }
 func TestMainAsciiDocWithContains(t *testing.T) {
 
-	os.Args = []string {"exe", "--asciidoc-usage"}
+	os.Args = []string{"exe", "--asciidoc-usage"}
 
 	mainOptions := MainOptionsTestNew(addContainsCommand)
 	buffer := bytes.NewBuffer(nil)
@@ -321,7 +320,7 @@ func TestMainAsciiDocWithContains(t *testing.T) {
 
 func TestContainsHelpIsNotAnError(t *testing.T) {
 
-	os.Args = []string {"exe", "contains", "--help"}
+	os.Args = []string{"exe", "contains", "--help"}
 
 	mainOptions := MainOptionsTestNew(addContainsCommand)
 	buffer := bytes.NewBuffer(nil)
@@ -335,7 +334,7 @@ func TestContainsHelpIsNotAnError(t *testing.T) {
 
 func TestContainsHelpContainsImplementedPredicates(t *testing.T) {
 
-	os.Args = []string {"exe", "contains", "--help"}
+	os.Args = []string{"exe", "contains", "--help"}
 
 	mainOptions := MainOptionsTestNew(addContainsCommand)
 	buffer := bytes.NewBuffer(nil)
@@ -351,7 +350,7 @@ func TestContainsHelpContainsImplementedPredicates(t *testing.T) {
 
 func TestFindHelpHidesUnimplementedPredicates(t *testing.T) {
 
-	os.Args = []string {"exe", "contains", "--help"}
+	os.Args = []string{"exe", "contains", "--help"}
 
 	mainOptions := MainOptionsTestNew(addContainsCommand)
 	buffer := bytes.NewBuffer(nil)

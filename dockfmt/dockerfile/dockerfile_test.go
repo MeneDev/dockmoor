@@ -1,20 +1,20 @@
 package dockerfile
 
 import (
-	"testing"
-	"github.com/sirupsen/logrus"
 	"bytes"
-	"strings"
-	"github.com/stretchr/testify/assert"
 	"github.com/MeneDev/dockmoor/dockref"
-	"github.com/pkg/errors"
-	"io"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"io"
+	"strings"
+	"testing"
 )
 
 var log = logrus.New()
 
-func init()  {
+func init() {
 	log.SetOutput(bytes.NewBuffer(nil))
 }
 
@@ -181,7 +181,6 @@ func TestParserErrorsAreReported(t *testing.T) {
 	assert.Equal(t, expected, err)
 }
 
-
 func TestParserSha256(t *testing.T) {
 	file := `FROM nginx@sha256:db5acc22920799fe387a903437eb89387607e5b3f63cf0f4472ac182d7bad644`
 	format := DockerfileFormatNew()
@@ -196,14 +195,13 @@ func TestParserSha256(t *testing.T) {
 	assert.Nil(t, processErr)
 }
 
-
 func TestProcessLogsReplacingReferences(t *testing.T) {
 
 	var log = logrus.New()
 	buffer := bytes.NewBuffer(nil)
 	log.SetOutput(buffer)
 	log.SetLevel(logrus.InfoLevel)
-	
+
 	file := `FROM nginx`
 	format := DockerfileFormatNew()
 
@@ -217,4 +215,3 @@ func TestProcessLogsReplacingReferences(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Nil(t, processErr)
 }
-

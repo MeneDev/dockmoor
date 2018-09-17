@@ -1,15 +1,14 @@
 package dockfmt
 
 import (
-	"github.com/stretchr/testify/assert"
-	"testing"
 	"bytes"
-	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/mock"
-	"github.com/pkg/errors"
 	"github.com/hashicorp/go-multierror"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"testing"
 )
-
 
 func TestIdentifyFormatWithEmptyFormatProvider(t *testing.T) {
 
@@ -141,4 +140,3 @@ func TestDefaultFormatProviderProvidesRegisteredFormat(t *testing.T) {
 
 	assert.Contains(t, formats, formatMock)
 }
-

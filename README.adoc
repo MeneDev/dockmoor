@@ -4,6 +4,7 @@
 == dockmoor
 image:https://img.shields.io/circleci/project/github/MeneDev/dockmoor/{branch}.svg[Build Status (Circle CI), link=https://circleci.com/gh/MeneDev/dockmoor]
 image:https://img.shields.io/coveralls/github/MeneDev/dockmoor/{branch}.svg[Coveralls statement coverage, link=https://coveralls.io/github/MeneDev/dockmoor]
+image:https://goreportcard.com/badge/github.com/MeneDev/dockmoor[Go Report Card, https://goreportcard.com/report/github.com/MeneDev/dockmoor]
 image:https://img.shields.io/github/release/MeneDev/dockmoor.svg["GitHub release",link="https://github.com/MeneDev/dockmoor/releases"]
 image:https://img.shields.io/twitter/follow/MeneDev.svg?style=social&label=%40MeneDev[Follow @MeneDev on Twitter, link=https://twitter.com/MeneDev]
 

@@ -1,12 +1,12 @@
 package dockfmt
 
 import (
-	"testing"
-	"github.com/sirupsen/logrus"
-	"strings"
-	"github.com/MeneDev/dockmoor/dockref"
-	"github.com/stretchr/testify/mock"
 	"bytes"
+	"github.com/MeneDev/dockmoor/dockref"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/mock"
+	"strings"
+	"testing"
 )
 
 func TestFormatProcessor_ProcessPassesLogAndReaderAndImageProcessor(t *testing.T) {
@@ -20,7 +20,6 @@ func TestFormatProcessor_ProcessPassesLogAndReaderAndImageProcessor(t *testing.T
 	formatMock.On("Process", log, reader, bytes.NewBuffer(nil), mock.Anything).Return(nil)
 
 	processor := FormatProcessorNew(formatMock, log, reader)
-
 
 	processor.Process(processorFx)
 
@@ -39,7 +38,6 @@ func TestFormatProcessor_ProcessPassesLogAndReaderAndImageProcessorAndWriter(t *
 	formatMock.On("Process", log, reader, writer, mock.Anything).Return(nil)
 
 	processor := FormatProcessorNew(formatMock, log, reader).WithWriter(writer)
-
 
 	processor.Process(processorFx)
 

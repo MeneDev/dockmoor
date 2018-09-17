@@ -1,9 +1,9 @@
 package dockfmt
 
 import (
-	"github.com/stretchr/testify/mock"
 	"fmt"
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/mock"
 	"io"
 )
 

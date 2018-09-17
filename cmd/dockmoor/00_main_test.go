@@ -1,12 +1,12 @@
 package main
 
 import (
-	"testing"
-	"io"
 	"bytes"
-	"github.com/stretchr/testify/assert"
-	"github.com/sirupsen/logrus"
 	"github.com/jessevdk/go-flags"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"io"
+	"testing"
 )
 
 var NotADockerfile = "notDocker"

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"io"
-	"html"
 	"fmt"
 	"github.com/jessevdk/go-flags"
+	"html"
+	"io"
 	"strings"
 )
 
@@ -47,7 +47,7 @@ func WriteMarkdown(parser *flags.Parser, writer io.Writer) {
 
 func WriteMarkDownUsage(commands []*flags.Command, writer io.Writer) {
 
-	mdPrintf(writer, "> ",)
+	mdPrintf(writer, "> ")
 	for idxCommand, command := range commands {
 
 		isFirstCommand := idxCommand == 0
@@ -81,7 +81,7 @@ func WriteMarkDownUsage(commands []*flags.Command, writer io.Writer) {
 			if len(command.Commands()) > 0 {
 				var cmds []string
 				for _, cmd := range command.Commands() {
-					cmds = append(cmds, fmt.Sprintf("[%s](#%s)", cmd.Name, strings.ToLower(cmd.Name) + "-command"))
+					cmds = append(cmds, fmt.Sprintf("[%s](#%s)", cmd.Name, strings.ToLower(cmd.Name)+"-command"))
 				}
 
 				var fmt string
@@ -141,4 +141,3 @@ func WriteMarkdownOptions(writer io.Writer, options []*flags.Option, level int) 
 		mdPrintf(writer, "\n\n")
 	}
 }
-

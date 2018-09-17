@@ -1,10 +1,10 @@
 package main
 
 import (
-	"io"
-	"github.com/jessevdk/go-flags"
-	"strings"
 	"fmt"
+	"github.com/jessevdk/go-flags"
+	"io"
+	"strings"
 )
 
 func WriteAsciiDoc(parser *flags.Parser, writer io.Writer) {
@@ -32,7 +32,7 @@ func WriteAsciiDoc(parser *flags.Parser, writer io.Writer) {
 
 func WriteAsciiDocUsage(commands []*flags.Command, writer io.Writer) {
 
-	mdPrintf(writer, "> ", )
+	mdPrintf(writer, "> ")
 	for idxCommand, command := range commands {
 
 		isFirstCommand := idxCommand == 0

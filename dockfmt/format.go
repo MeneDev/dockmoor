@@ -1,10 +1,10 @@
 package dockfmt
 
 import (
-	"io"
-	"github.com/sirupsen/logrus"
-	"github.com/MeneDev/dockmoor/dockref"
 	"bytes"
+	"github.com/MeneDev/dockmoor/dockref"
+	"github.com/sirupsen/logrus"
+	"io"
 )
 
 type Format interface {
@@ -19,11 +19,12 @@ type FormatProcessor interface {
 }
 
 var _ FormatProcessor = (*formatProcessor)(nil)
+
 type formatProcessor struct {
-	format             Format
-	log                logrus.FieldLogger
-	reader             io.Reader
-	writer             io.Writer
+	format Format
+	log    logrus.FieldLogger
+	reader io.Reader
+	writer io.Writer
 }
 
 func (fp *formatProcessor) Process(imageNameProcessor ImageNameProcessor) error {
@@ -39,9 +40,9 @@ func FormatProcessorNew(format Format,
 	log logrus.FieldLogger,
 	reader io.Reader) *formatProcessor {
 	return &formatProcessor{
-		format:             format,
-		log:                log,
-		reader:             reader,
-		writer:             bytes.NewBuffer(nil),
+		format: format,
+		log:    log,
+		reader: reader,
+		writer: bytes.NewBuffer(nil),
 	}
 }

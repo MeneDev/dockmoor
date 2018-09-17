@@ -1,13 +1,13 @@
 package main
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"bytes"
-	"os"
-	"github.com/stretchr/testify/mock"
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockref"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"os"
+	"testing"
 )
 
 func ListOptionsTest() *containsOptionsTest {
@@ -22,7 +22,6 @@ func ListOptionsTest() *containsOptionsTest {
 
 	return &containsOptions
 }
-
 
 func TestFilenameRequiredWithList(t *testing.T) {
 	_, _, exitCode, stdout := testMain([]string{"list"}, addListCommand)
@@ -40,7 +39,7 @@ func TestListCallsFindExecute(t *testing.T) {
 
 func TestMainMarkdownWithList(t *testing.T) {
 
-	os.Args = []string {"exe", "--markdown"}
+	os.Args = []string{"exe", "--markdown"}
 
 	mainOptions := MainOptionsTestNew(addListCommand)
 	buffer := bytes.NewBuffer(nil)
@@ -54,7 +53,7 @@ func TestMainMarkdownWithList(t *testing.T) {
 
 func TestMainAsciiDocWithList(t *testing.T) {
 
-	os.Args = []string {"exe", "--asciidoc-usage"}
+	os.Args = []string{"exe", "--asciidoc-usage"}
 
 	mainOptions := MainOptionsTestNew(addListCommand)
 	buffer := bytes.NewBuffer(nil)
@@ -68,7 +67,7 @@ func TestMainAsciiDocWithList(t *testing.T) {
 
 func TestListHelpIsNotAnError(t *testing.T) {
 
-	os.Args = []string {"exe", "list", "--help"}
+	os.Args = []string{"exe", "list", "--help"}
 
 	mainOptions := MainOptionsTestNew(addListCommand)
 	buffer := bytes.NewBuffer(nil)
@@ -82,7 +81,7 @@ func TestListHelpIsNotAnError(t *testing.T) {
 
 func TestListHelpContainsImplementedPredicates(t *testing.T) {
 
-	os.Args = []string {"exe", "list", "--help"}
+	os.Args = []string{"exe", "list", "--help"}
 
 	mainOptions := MainOptionsTestNew(addListCommand)
 	buffer := bytes.NewBuffer(nil)
@@ -98,7 +97,7 @@ func TestListHelpContainsImplementedPredicates(t *testing.T) {
 
 func TestListHelpHidesUnimplementedPredicates(t *testing.T) {
 
-	os.Args = []string {"exe", "list", "--help"}
+	os.Args = []string{"exe", "list", "--help"}
 
 	mainOptions := MainOptionsTestNew(addListCommand)
 	buffer := bytes.NewBuffer(nil)
@@ -113,6 +112,7 @@ func TestListHelpHidesUnimplementedPredicates(t *testing.T) {
 }
 
 var _ dockfmt.FormatProcessor = (*FormatProcessorMock)(nil)
+
 type FormatProcessorMock struct {
 	*mock.Mock
 

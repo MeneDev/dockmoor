@@ -1,17 +1,17 @@
 package main
 
 import (
-	"testing"
-	"os"
-	"io/ioutil"
-	"log"
-	"github.com/stretchr/testify/assert"
 	"bytes"
 	"github.com/jessevdk/go-flags"
-	"strings"
 	"github.com/mattn/go-shellwords"
-	"path/filepath"
+	"github.com/stretchr/testify/assert"
 	"html/template"
+	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
 )
 
 func dockerfile(content string) (fileName string) {
@@ -20,7 +20,6 @@ func dockerfile(content string) (fileName string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 
 	if _, err := tmpfile.Write(contentBytes); err != nil {
 		log.Fatal(err)
@@ -48,7 +47,7 @@ func TestContainAnyMatches(t *testing.T) {
 	df1 := dockerfile(`FROM nginx`)
 	defer os.Remove(df1)
 
-	os.Args = []string {"exe", "contains", "--any", df1}
+	os.Args = []string{"exe", "contains", "--any", df1}
 	mainOptions := MainOptionsTestNew(addContainsCommand)
 
 	exitCode := doMain(mainOptions)
@@ -60,7 +59,7 @@ func TestContainsAnyNoMatch(t *testing.T) {
 	df1 := dockerfile(`invalid`)
 	defer os.Remove(df1)
 
-	os.Args = []string {"exe", "contains", "--any", df1}
+	os.Args = []string{"exe", "contains", "--any", df1}
 	mainOptions := MainOptionsTestNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
@@ -71,7 +70,7 @@ func TestContainLatestMatches(t *testing.T) {
 	df1 := dockerfile(`FROM nginx`)
 	defer os.Remove(df1)
 
-	os.Args = []string {"exe", "contains", "--latest", df1}
+	os.Args = []string{"exe", "contains", "--latest", df1}
 	mainOptions := MainOptionsTestNew(addContainsCommand)
 
 	exitCode := doMain(mainOptions)
@@ -83,7 +82,7 @@ func TestContainsLatestNoMatch(t *testing.T) {
 	df1 := dockerfile(`FROM nginx:1`)
 	defer os.Remove(df1)
 
-	os.Args = []string {"exe", "contains", "--latest", df1}
+	os.Args = []string{"exe", "contains", "--latest", df1}
 	mainOptions := MainOptionsTestNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
@@ -94,7 +93,7 @@ func TestContainUnpinnedMatches(t *testing.T) {
 	df1 := dockerfile(`FROM nginx:1`)
 	defer os.Remove(df1)
 
-	os.Args = []string {"exe", "contains", "--unpinned", df1}
+	os.Args = []string{"exe", "contains", "--unpinned", df1}
 	mainOptions := MainOptionsTestNew(addContainsCommand)
 
 	exitCode := doMain(mainOptions)
@@ -106,7 +105,7 @@ func TestContainsUnpinnedNoMatch(t *testing.T) {
 	df1 := dockerfile(`FROM nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240`)
 	defer os.Remove(df1)
 
-	os.Args = []string {"exe", "contains", "--latest", df1}
+	os.Args = []string{"exe", "contains", "--latest", df1}
 	mainOptions := MainOptionsTestNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
@@ -117,7 +116,7 @@ func TestContainsInvalidOptions(t *testing.T) {
 	df1 := dockerfile(`FROM nginx`)
 	defer os.Remove(df1)
 
-	os.Args = []string {"exe", "contains", "--any", "--latest", df1}
+	os.Args = []string{"exe", "contains", "--any", "--latest", df1}
 
 	mainOptions := MainOptionsTestNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
@@ -127,7 +126,7 @@ func TestContainsInvalidOptions(t *testing.T) {
 
 func TestMainVersion(t *testing.T) {
 
-	os.Args = []string {"exe", "--version"}
+	os.Args = []string{"exe", "--version"}
 
 	mainOptions := MainOptionsTestNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
@@ -137,7 +136,7 @@ func TestMainVersion(t *testing.T) {
 
 func TestMainManpage(t *testing.T) {
 
-	os.Args = []string {"exe", "--manpage"}
+	os.Args = []string{"exe", "--manpage"}
 	mainOptions := MainOptionsTestNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
@@ -146,18 +145,17 @@ func TestMainManpage(t *testing.T) {
 
 func TestMainMarkdown(t *testing.T) {
 
-	os.Args = []string {"exe", "--markdown"}
+	os.Args = []string{"exe", "--markdown"}
 
 	mainOptions := MainOptionsTestNew()
 	exitCode := doMain(mainOptions)
-
 
 	assert.Equal(t, EXIT_SUCCESS, exitCode)
 }
 
 func TestMainLoglevelNone(t *testing.T) {
 
-	os.Args = []string {"exe", "--log-level=NONE", "contains", "--any", "/notExistingFile"}
+	os.Args = []string{"exe", "--log-level=NONE", "contains", "--any", "/notExistingFile"}
 	buffer := bytes.NewBuffer(nil)
 	mainOptions := MainOptionsTestNew(addContainsCommand)
 	exitCode := doMain(mainOptions)

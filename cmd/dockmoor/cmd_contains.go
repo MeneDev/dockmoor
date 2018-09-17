@@ -1,41 +1,41 @@
 package main
 
 import (
+	"fmt"
+	"github.com/MeneDev/dockmoor/dockfmt"
+	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
-	"github.com/MeneDev/dockmoor/dockproc"
-	"io"
-	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/sirupsen/logrus"
-	"fmt"
+	"io"
 )
 
 type MatchingMode int
 
 const (
-	MATCH_ONLY MatchingMode = iota
+	MATCH_ONLY      MatchingMode = iota
 	MATCH_AND_PRINT MatchingMode = iota
 )
 
 type MatchingOptions struct {
-	Predicates struct{
-		Any      bool     `required:"no" long:"any" description:"Matches all images"`
-		Latest   bool     `required:"no" long:"latest" description:"Matches images with latest or no tag"`
-		Unpinned bool     `required:"no" long:"unpinned" description:"Matches unpinned images"`
-		Outdated bool     `required:"no" long:"outdated" description:"Matches all images with newer versions available" hidden:"true"`
+	Predicates struct {
+		Any      bool `required:"no" long:"any" description:"Matches all images"`
+		Latest   bool `required:"no" long:"latest" description:"Matches images with latest or no tag"`
+		Unpinned bool `required:"no" long:"unpinned" description:"Matches unpinned images"`
+		Outdated bool `required:"no" long:"outdated" description:"Matches all images with newer versions available" hidden:"true"`
 	} `group:"Predicates" description:"Specify which kind of image references should be selected. Exactly one must be specified"`
 
 	Filters struct {
 		Name   []string `required:"no" long:"name" description:"Matches all images matching one of the specified names" hidden:"true"`
 		Domain []string `required:"no" long:"domain" description:"Matches all images matching one of the specified domains" hidden:"true"`
 	} `group:"Filters" description:"Optional additional filters. Specifying each kind of filter must be matched at least once" hidden:"true"`
-	
+
 	Positional struct {
 		InputFile flags.Filename `required:"yes"`
 	} `positional-args:"yes"`
 
 	mainOptions *mainOptions
-	mode MatchingMode
+	mode        MatchingMode
 }
 
 func (fo *MatchingOptions) MainOptions() *mainOptions {

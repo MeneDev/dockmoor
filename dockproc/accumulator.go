@@ -1,9 +1,9 @@
 package dockproc
 
 import (
+	"errors"
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockref"
-	"errors"
 	"github.com/sirupsen/logrus"
 	"io"
 )
@@ -11,7 +11,6 @@ import (
 type Accumulator interface {
 	Accumulate(format dockfmt.FormatProcessor) error
 }
-
 
 var _ Accumulator = (*matchesAccumulator)(nil)
 
@@ -30,8 +29,8 @@ func MatchesAccumulatorNew(predicate Predicate, log *logrus.Logger, stdout io.Wr
 
 	return &matchesAccumulator{
 		predicate: predicate,
-		log: log,
-		stdout: stdout,
+		log:       log,
+		stdout:    stdout,
 	}, nil
 }
 

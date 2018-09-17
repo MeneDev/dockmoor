@@ -1,15 +1,15 @@
 package dockproc
 
 import (
+	"bytes"
+	"github.com/MeneDev/dockmoor/dockfmt"
+	"github.com/MeneDev/dockmoor/dockref"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"io"
 	"strconv"
 	"testing"
-	"github.com/stretchr/testify/mock"
-	"github.com/MeneDev/dockmoor/dockfmt"
-	"github.com/stretchr/testify/assert"
-	"io"
-	"github.com/sirupsen/logrus"
-	"github.com/MeneDev/dockmoor/dockref"
-	"bytes"
 )
 
 var _ dockfmt.Format = (*delegatingFormatMock)(nil)

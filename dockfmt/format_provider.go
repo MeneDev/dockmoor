@@ -1,9 +1,9 @@
 package dockfmt
 
 import (
+	"github.com/hashicorp/go-multierror"
 	"github.com/sirupsen/logrus"
 	"io"
-	"github.com/hashicorp/go-multierror"
 )
 
 type FormatProvider interface {
@@ -17,6 +17,7 @@ func DefaultFormatProvider() *defaultFormatProvider {
 }
 
 var _ FormatProvider = (*defaultFormatProvider)(nil)
+
 type defaultFormatProvider struct {
 }
 
@@ -44,7 +45,7 @@ func IdentifyFormat(log logrus.FieldLogger, formatProvider FormatProvider, reade
 	formats := formatProvider.Formats()
 
 	log = log.WithFields(logrus.Fields{
-		"filename": filename,
+		"filename":     filename,
 		"knownFormats": formats,
 	})
 

@@ -1,28 +1,29 @@
 package dockerfile
 
 import (
-	"io"
-	"github.com/sirupsen/logrus"
 	"bufio"
 	"bytes"
-	"github.com/moby/buildkit/frontend/dockerfile/parser"
-	"github.com/moby/buildkit/frontend/dockerfile/command"
-	"strings"
-	"reflect"
-	"github.com/pkg/errors"
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockref"
+	"github.com/moby/buildkit/frontend/dockerfile/command"
+	"github.com/moby/buildkit/frontend/dockerfile/parser"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"io"
+	"reflect"
+	"strings"
 )
 
-func init()  {
+func init() {
 	dockfmt.RegisterFormat(DockerfileFormatNew())
 }
 
 // ensure Format is implemented
 var _ dockfmt.Format = (*dockerfileFormat)(nil)
+
 type dockerfileFormat struct {
-	lines []string
-	result *parser.Result
+	lines         []string
+	result        *parser.Result
 	parseFunction func(rwc io.Reader) (*parser.Result, error)
 }
 
@@ -44,7 +45,7 @@ func (format *dockerfileFormat) ValidateInput(log logrus.FieldLogger, reader io.
 		}
 		if i := bytes.IndexByte(data, '\n'); i >= 0 {
 			// We have a full newline-terminated line.
-			return i + 1, data[0:i + 1], nil
+			return i + 1, data[0 : i+1], nil
 		}
 		// If we're at EOF, we have a final, non-terminated line. Return it.
 		if atEOF {
@@ -108,7 +109,7 @@ func (format *dockerfileFormat) Process(log logrus.FieldLogger, reader io.Reader
 	for _, cmd := range root.Children {
 		curLineNum++
 		for i := curLineNum; i < cmd.StartLine; i++ {
-			writer.WriteString(lines[i - 1])
+			writer.WriteString(lines[i-1])
 			curLineNum++
 		}
 
@@ -179,7 +180,7 @@ func (format *dockerfileFormat) processNode(log logrus.FieldLogger, node *parser
 		start := node.StartLine
 
 		for i := start; i <= end; i++ {
-			writer.WriteString(strings.Replace(format.lines[i - 1], from, canonicalString, 1))
+			writer.WriteString(strings.Replace(format.lines[i-1], from, canonicalString, 1))
 		}
 		return true, nil
 	} else {

@@ -1,14 +1,14 @@
 package main
 
 import (
-	"github.com/sirupsen/logrus"
-	"os"
-	"fmt"
-	"github.com/jessevdk/go-flags"
-	"io"
 	"bytes"
+	"fmt"
 	"github.com/MeneDev/dockmoor/dockfmt"
 	_ "github.com/MeneDev/dockmoor/dockfmt/dockerfile"
+	"github.com/jessevdk/go-flags"
+	"github.com/sirupsen/logrus"
+	"io"
+	"os"
 	"path"
 	"strings"
 )

@@ -9,7 +9,6 @@ type Predicate interface {
 var _ Predicate = (*anyPredicate)(nil)
 
 type anyPredicate struct {
-
 }
 
 func (anyPredicate) Matches(ref dockref.Reference) bool {
@@ -20,11 +19,9 @@ func AnyPredicateNew() Predicate {
 	return anyPredicate{}
 }
 
-
 var _ Predicate = (*latestPredicate)(nil)
 
 type latestPredicate struct {
-
 }
 
 func (latestPredicate) Matches(ref dockref.Reference) bool {
@@ -44,11 +41,9 @@ func LatestPredicateNew() Predicate {
 	return latestPredicate{}
 }
 
-
 var _ Predicate = (*unpinnedPredicate)(nil)
 
 type unpinnedPredicate struct {
-
 }
 
 func (unpinnedPredicate) Matches(ref dockref.Reference) bool {

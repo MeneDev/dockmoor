@@ -7,12 +7,12 @@ import (
 	"strings"
 )
 
-func WriteAsciiDoc(parser *flags.Parser, writer io.Writer) {
+func WriteASCIIDoc(parser *flags.Parser, writer io.Writer) {
 	mdPrintf(writer, "== Usage\n")
 	commands := []*flags.Command{parser.Command}
-	WriteAsciiDocUsage(commands, writer)
+	WriteASCIIDocUsage(commands, writer)
 
-	WriteAsciiDocGroups(writer, parser.Command.Groups(), 2)
+	WriteASCIIDocGroups(writer, parser.Command.Groups(), 2)
 
 	mdPrintf(writer, "=== Commands\n\n")
 
@@ -23,14 +23,14 @@ func WriteAsciiDoc(parser *flags.Parser, writer io.Writer) {
 
 	for _, cmd := range parser.Commands() {
 		mdPrintf(writer, "==== %s command\n", cmd.Name)
-		WriteAsciiDocUsage(append(commands, cmd), writer)
+		WriteASCIIDocUsage(append(commands, cmd), writer)
 		mdPrintf(writer, "%s\n\n", cmd.LongDescription)
-		WriteAsciiDocOptions(writer, cmd.Options(), 3)
-		WriteAsciiDocGroups(writer, cmd.Groups(), 3)
+		WriteASCIIDocOptions(writer, cmd.Options(), 3)
+		WriteASCIIDocGroups(writer, cmd.Groups(), 3)
 	}
 }
 
-func WriteAsciiDocUsage(commands []*flags.Command, writer io.Writer) {
+func WriteASCIIDocUsage(commands []*flags.Command, writer io.Writer) {
 
 	mdPrintf(writer, "> ")
 	for idxCommand, command := range commands {
@@ -84,7 +84,7 @@ func WriteAsciiDocUsage(commands []*flags.Command, writer io.Writer) {
 	mdPrintf(writer, "\n\n")
 }
 
-func WriteAsciiDocGroups(writer io.Writer, groups []*flags.Group, level int) {
+func WriteASCIIDocGroups(writer io.Writer, groups []*flags.Group, level int) {
 
 	for _, group := range groups {
 		if group.Hidden {
@@ -94,11 +94,11 @@ func WriteAsciiDocGroups(writer io.Writer, groups []*flags.Group, level int) {
 		if group.LongDescription != "" {
 			mdPrintf(writer, "%s\n\n", group.LongDescription)
 		}
-		WriteAsciiDocOptions(writer, group.Options(), level+1)
+		WriteASCIIDocOptions(writer, group.Options(), level+1)
 	}
 }
 
-func WriteAsciiDocOptions(writer io.Writer, options []*flags.Option, level int) {
+func WriteASCIIDocOptions(writer io.Writer, options []*flags.Option, level int) {
 	for _, opt := range options {
 		if opt.Hidden {
 			continue
@@ -114,7 +114,7 @@ func WriteAsciiDocOptions(writer io.Writer, options []*flags.Option, level int) 
 			names = append(names, "-"+string(opt.ShortName))
 		}
 		if opt.LongNameWithNamespace() != "" {
-			names = append(names, "--"+string(opt.LongNameWithNamespace()))
+			names = append(names, "--"+opt.LongNameWithNamespace())
 		}
 
 		mdPrintf(writer, strings.Join(names, "**, **"))

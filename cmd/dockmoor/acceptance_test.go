@@ -31,8 +31,8 @@ func dockerfile(content string) (fileName string) {
 	return tmpfile.Name()
 }
 
-func MainOptionsTestNew(commandAdders ...func(mainOptions *mainOptions) (*flags.Command, error)) *mainOptions {
-	mainOptions := MainOptionsNew()
+func mainOptionsACNew(commandAdders ...func(mainOptions *mainOptions) (*flags.Command, error)) *mainOptions {
+	mainOptions := mainOptionsNew()
 
 	mainOptions.SetStdout(bytes.NewBuffer(nil))
 
@@ -48,11 +48,11 @@ func TestContainAnyMatches(t *testing.T) {
 	defer os.Remove(df1)
 
 	os.Args = []string{"exe", "contains", "--any", df1}
-	mainOptions := MainOptionsTestNew(addContainsCommand)
+	mainOptions := mainOptionsACNew(addContainsCommand)
 
 	exitCode := doMain(mainOptions)
 
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 }
 
 func TestContainsAnyNoMatch(t *testing.T) {
@@ -60,10 +60,10 @@ func TestContainsAnyNoMatch(t *testing.T) {
 	defer os.Remove(df1)
 
 	os.Args = []string{"exe", "contains", "--any", df1}
-	mainOptions := MainOptionsTestNew(addContainsCommand)
+	mainOptions := mainOptionsACNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
-	assert.NotEqual(t, EXIT_SUCCESS, exitCode)
+	assert.NotEqual(t, ExitSuccess, exitCode)
 }
 
 func TestContainLatestMatches(t *testing.T) {
@@ -71,11 +71,11 @@ func TestContainLatestMatches(t *testing.T) {
 	defer os.Remove(df1)
 
 	os.Args = []string{"exe", "contains", "--latest", df1}
-	mainOptions := MainOptionsTestNew(addContainsCommand)
+	mainOptions := mainOptionsACNew(addContainsCommand)
 
 	exitCode := doMain(mainOptions)
 
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 }
 
 func TestContainsLatestNoMatch(t *testing.T) {
@@ -83,10 +83,10 @@ func TestContainsLatestNoMatch(t *testing.T) {
 	defer os.Remove(df1)
 
 	os.Args = []string{"exe", "contains", "--latest", df1}
-	mainOptions := MainOptionsTestNew(addContainsCommand)
+	mainOptions := mainOptionsACNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
-	assert.Equal(t, EXIT_NOT_FOUND, exitCode)
+	assert.Equal(t, ExitNotFound, exitCode)
 }
 
 func TestContainUnpinnedMatches(t *testing.T) {
@@ -94,11 +94,11 @@ func TestContainUnpinnedMatches(t *testing.T) {
 	defer os.Remove(df1)
 
 	os.Args = []string{"exe", "contains", "--unpinned", df1}
-	mainOptions := MainOptionsTestNew(addContainsCommand)
+	mainOptions := mainOptionsACNew(addContainsCommand)
 
 	exitCode := doMain(mainOptions)
 
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 }
 
 func TestContainsUnpinnedNoMatch(t *testing.T) {
@@ -106,10 +106,10 @@ func TestContainsUnpinnedNoMatch(t *testing.T) {
 	defer os.Remove(df1)
 
 	os.Args = []string{"exe", "contains", "--latest", df1}
-	mainOptions := MainOptionsTestNew(addContainsCommand)
+	mainOptions := mainOptionsACNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
-	assert.Equal(t, EXIT_NOT_FOUND, exitCode)
+	assert.Equal(t, ExitNotFound, exitCode)
 }
 
 func TestContainsInvalidOptions(t *testing.T) {
@@ -118,50 +118,50 @@ func TestContainsInvalidOptions(t *testing.T) {
 
 	os.Args = []string{"exe", "contains", "--any", "--latest", df1}
 
-	mainOptions := MainOptionsTestNew(addContainsCommand)
+	mainOptions := mainOptionsACNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
-	assert.Equal(t, EXIT_INVALID_PARAMS, exitCode)
+	assert.Equal(t, ExitInvalidParams, exitCode)
 }
 
 func TestMainVersion(t *testing.T) {
 
 	os.Args = []string{"exe", "--version"}
 
-	mainOptions := MainOptionsTestNew(addContainsCommand)
+	mainOptions := mainOptionsACNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 }
 
 func TestMainManpage(t *testing.T) {
 
 	os.Args = []string{"exe", "--manpage"}
-	mainOptions := MainOptionsTestNew(addContainsCommand)
+	mainOptions := mainOptionsACNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 }
 
 func TestMainMarkdown(t *testing.T) {
 
 	os.Args = []string{"exe", "--markdown"}
 
-	mainOptions := MainOptionsTestNew()
+	mainOptions := mainOptionsACNew()
 	exitCode := doMain(mainOptions)
 
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 }
 
 func TestMainLoglevelNone(t *testing.T) {
 
 	os.Args = []string{"exe", "--log-level=NONE", "contains", "--any", "/notExistingFile"}
 	buffer := bytes.NewBuffer(nil)
-	mainOptions := MainOptionsTestNew(addContainsCommand)
+	mainOptions := mainOptionsACNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
 	assert.Empty(t, buffer.String())
-	assert.NotEqual(t, EXIT_SUCCESS, exitCode)
+	assert.NotEqual(t, ExitSuccess, exitCode)
 }
 
 func TestExitCodeIsZeroForDockerfile(t *testing.T) {
@@ -181,7 +181,7 @@ func TestExitCodeIsZeroForDockerfile(t *testing.T) {
 	}{tmpfn})
 
 	assert.Empty(t, stdout)
-	assert.Equal(t, EXIT_SUCCESS, code, "Exits with code 0")
+	assert.Equal(t, ExitSuccess, code, "Exits with code 0")
 }
 
 func TestExitCodeIsZeroForContainsLatestAndDockerfile(t *testing.T) {
@@ -201,7 +201,7 @@ func TestExitCodeIsZeroForContainsLatestAndDockerfile(t *testing.T) {
 	}{tmpfn})
 
 	assert.Empty(t, stdout)
-	assert.Equal(t, EXIT_SUCCESS, code, "Exits with code 0")
+	assert.Equal(t, ExitSuccess, code, "Exits with code 0")
 }
 
 func TestExitCodeIsZeroForListLatestAndDockerfile(t *testing.T) {
@@ -221,7 +221,7 @@ func TestExitCodeIsZeroForListLatestAndDockerfile(t *testing.T) {
 	}{tmpfn})
 
 	assert.Equal(t, "nginx\n", stdout)
-	assert.Equal(t, EXIT_SUCCESS, code, "Exits with code 0")
+	assert.Equal(t, ExitSuccess, code, "Exits with code 0")
 }
 
 func TestExitCodeIsNotZeroForInvalidDockerfile(t *testing.T) {
@@ -241,7 +241,7 @@ func TestExitCodeIsNotZeroForInvalidDockerfile(t *testing.T) {
 	}{tmpfn})
 
 	assert.Empty(t, stdout)
-	assert.Equal(t, EXIT_INVALID_FORMAT, code, "Exits with code 4")
+	assert.Equal(t, ExitInvalidFormat, code, "Exits with code 4")
 }
 
 func shell(t *testing.T, argsLine string, values interface{}) (stdout string, exitCode ExitCode) {

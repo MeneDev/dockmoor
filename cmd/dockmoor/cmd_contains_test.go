@@ -27,15 +27,15 @@ func (fo *containsOptionsTest) MainOptions() *mainOptionsTest {
 	return fo.mainOptionsTest
 }
 
-func ContainsOptionsTest() *containsOptionsTest {
-	mainOptions := MainOptionsTest()
+func containsOptionsTestNew() *containsOptionsTest {
+	mainOptions := mainOptionsTestNew()
 	containsOptions := containsOptionsTest{
 		MatchingOptions: &MatchingOptions{},
 		mainOptionsTest: mainOptions,
 	}
 
-	containsOptions.mainOptions = mainOptions.mainOptions
-	containsOptions.mode = MATCH_ONLY
+	containsOptions.mainOpts = mainOptions.mainOptions
+	containsOptions.mode = matchOnly
 
 	return &containsOptions
 }
@@ -43,7 +43,7 @@ func ContainsOptionsTest() *containsOptionsTest {
 func TestEmptyPredicates(t *testing.T) {
 	fo := &MatchingOptions{}
 	err := verifyContainsOptions(fo)
-	assert.Equal(t, ERR_AT_LEAST_ONE_PREDICATE, err)
+	assert.Equal(t, ErrAtLeastOnePredicate, err)
 }
 
 func TestSingleExclusivePredicatesFail(t *testing.T) {
@@ -77,7 +77,7 @@ func TestMultipleExclusivePredicatesFail(t *testing.T) {
 				fo.Predicates.Unpinned = equalsAnyString("unpinned", a, b)
 				fo.Predicates.Latest = equalsAnyString("latest", a, b)
 				err := verifyContainsOptions(fo)
-				assert.Equal(t, ERR_AT_MOST_ONE_PREDICATE, err)
+				assert.Equal(t, ErrAtMostOnePredicate, err)
 			})
 		}
 	}
@@ -104,7 +104,7 @@ func TestMultipleExclusivePredicatesFail(t *testing.T) {
 					fo.Predicates.Unpinned = equalsAnyString("unpinned", a, b, c)
 					fo.Predicates.Latest = equalsAnyString("latest", a, b, c)
 					err := verifyContainsOptions(fo)
-					assert.Equal(t, ERR_AT_MOST_ONE_PREDICATE, err)
+					assert.Equal(t, ErrAtMostOnePredicate, err)
 				})
 			}
 		}
@@ -119,7 +119,7 @@ func TestAllExclusivePredicatesAtOnceFail(t *testing.T) {
 	fo.Predicates.Unpinned = true
 	fo.Predicates.Latest = true
 	err := verifyContainsOptions(fo)
-	assert.Equal(t, ERR_AT_MOST_ONE_PREDICATE, err)
+	assert.Equal(t, ErrAtMostOnePredicate, err)
 }
 
 type ReadableOpenerMock struct {
@@ -150,7 +150,7 @@ func makeReadCloser(str string) io.ReadCloser {
 
 func TestInvalidDockerfileWithContains(t *testing.T) {
 	// given
-	mainOptions := MainOptionsTest()
+	mainOptions := mainOptionsTestNew()
 
 	formatProvider := mainOptions.FormatProvider()
 
@@ -163,7 +163,7 @@ func TestInvalidDockerfileWithContains(t *testing.T) {
 	mainOptions.formatProvider = formatProvider
 
 	fo := &MatchingOptions{
-		mainOptions: mainOptions.mainOptions,
+		mainOpts: mainOptions.mainOptions,
 	}
 
 	fo.Predicates.Any = true
@@ -181,7 +181,7 @@ func TestInvalidDockerfileWithContains(t *testing.T) {
 
 func TestReportInvalidPredicateWithContains(t *testing.T) {
 	// given
-	mainOptions := MainOptionsTest()
+	mainOptions := mainOptionsTestNew()
 	stdout := bytes.NewBuffer(nil)
 	mainOptions.SetStdout(stdout)
 
@@ -198,7 +198,7 @@ func TestReportInvalidPredicateWithContains(t *testing.T) {
 	mainOptions.formatProvider = formatProvider
 
 	fo := &MatchingOptions{
-		mainOptions: mainOptions.mainOptions,
+		mainOpts: mainOptions.mainOptions,
 	}
 
 	fo.Predicates.Any = true
@@ -272,7 +272,7 @@ func TestContainsCallsFindExecuteWithContains(t *testing.T) {
 }
 
 func TestOpenErrorsArePropagatedWithContains(t *testing.T) {
-	fo := ContainsOptionsTest()
+	fo := containsOptionsTestNew()
 	fo.Predicates.Latest = true
 	expectedError := errors.New("Could not open")
 	fo.MainOptions().openerMock.On("Open", mock.Anything).Return(nil, expectedError)
@@ -284,7 +284,7 @@ func TestOpenErrorsArePropagatedWithContains(t *testing.T) {
 }
 
 func TestExecuteReturnsErrorWithContains(t *testing.T) {
-	fo := ContainsOptionsTest()
+	fo := containsOptionsTestNew()
 	expected := "Use ExecuteWithExitCode instead"
 	err := fo.Execute(nil)
 
@@ -295,48 +295,48 @@ func TestMainMarkdownWithContains(t *testing.T) {
 
 	os.Args = []string{"exe", "--markdown"}
 
-	mainOptions := MainOptionsTestNew(addContainsCommand)
+	mainOptions := mainOptionsACNew(addContainsCommand)
 	buffer := bytes.NewBuffer(nil)
 	mainOptions.SetStdout(buffer)
 	exitCode := doMain(mainOptions)
 
 	assert.Contains(t, buffer.String(), "contains command")
 
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 }
 func TestMainAsciiDocWithContains(t *testing.T) {
 
 	os.Args = []string{"exe", "--asciidoc-usage"}
 
-	mainOptions := MainOptionsTestNew(addContainsCommand)
+	mainOptions := mainOptionsACNew(addContainsCommand)
 	buffer := bytes.NewBuffer(nil)
 	mainOptions.SetStdout(buffer)
 	exitCode := doMain(mainOptions)
 
 	assert.Contains(t, buffer.String(), "contains command")
 
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 }
 
 func TestContainsHelpIsNotAnError(t *testing.T) {
 
 	os.Args = []string{"exe", "contains", "--help"}
 
-	mainOptions := MainOptionsTestNew(addContainsCommand)
+	mainOptions := mainOptionsACNew(addContainsCommand)
 	buffer := bytes.NewBuffer(nil)
 	mainOptions.SetStdout(buffer)
 	exitCode := doMain(mainOptions)
 
 	assert.Contains(t, buffer.String(), "contains command")
 
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 }
 
 func TestContainsHelpContainsImplementedPredicates(t *testing.T) {
 
 	os.Args = []string{"exe", "contains", "--help"}
 
-	mainOptions := MainOptionsTestNew(addContainsCommand)
+	mainOptions := mainOptionsACNew(addContainsCommand)
 	buffer := bytes.NewBuffer(nil)
 	mainOptions.SetStdout(buffer)
 	exitCode := doMain(mainOptions)
@@ -345,14 +345,14 @@ func TestContainsHelpContainsImplementedPredicates(t *testing.T) {
 	assert.Contains(t, buffer.String(), "--latest")
 	assert.Contains(t, buffer.String(), "--unpinned")
 
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 }
 
 func TestFindHelpHidesUnimplementedPredicates(t *testing.T) {
 
 	os.Args = []string{"exe", "contains", "--help"}
 
-	mainOptions := MainOptionsTestNew(addContainsCommand)
+	mainOptions := mainOptionsACNew(addContainsCommand)
 	buffer := bytes.NewBuffer(nil)
 	mainOptions.SetStdout(buffer)
 	exitCode := doMain(mainOptions)
@@ -361,11 +361,11 @@ func TestFindHelpHidesUnimplementedPredicates(t *testing.T) {
 	assert.NotContains(t, buffer.String(), "--name")
 	assert.NotContains(t, buffer.String(), "--domain")
 
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 }
 
 func TestContainsCommandDoesntPrint(t *testing.T) {
-	test := ContainsOptionsTest()
+	test := containsOptionsTestNew()
 	stdout := test.MainOptions().Stdout()
 
 	test.Predicates.Any = true

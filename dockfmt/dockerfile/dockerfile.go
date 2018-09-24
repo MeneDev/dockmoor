@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	dockfmt.RegisterFormat(DockerfileFormatNew())
+	dockfmt.RegisterFormat(New())
 }
 
 // ensure Format is implemented
@@ -31,29 +31,35 @@ func (format *dockerfileFormat) Name() string {
 	return "Dockerfile"
 }
 
-func DockerfileFormatNew() *dockerfileFormat {
+func New() dockfmt.Format {
+	return newDockerfileFormat()
+}
+
+func newDockerfileFormat() *dockerfileFormat {
 	format := new(dockerfileFormat)
 	format.parseFunction = parser.Parse
 	return format
 }
 
-func (format *dockerfileFormat) ValidateInput(log logrus.FieldLogger, reader io.Reader, filename string) error {
-	scanner := bufio.NewScanner(reader)
-	var split bufio.SplitFunc = func(data []byte, atEOF bool) (advance int, token []byte, err error) {
-		if atEOF && len(data) == 0 {
-			return 0, nil, nil
-		}
-		if i := bytes.IndexByte(data, '\n'); i >= 0 {
-			// We have a full newline-terminated line.
-			return i + 1, data[0 : i+1], nil
-		}
-		// If we're at EOF, we have a final, non-terminated line. Return it.
-		if atEOF {
-			return len(data), data, nil
-		}
-		// Request more data.
+func dockerfileFormatSplitFunc(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	if atEOF && len(data) == 0 {
 		return 0, nil, nil
 	}
+	if i := bytes.IndexByte(data, '\n'); i >= 0 {
+		// We have a full newline-terminated line.
+		return i + 1, data[0 : i+1], nil
+	}
+	// If we're at EOF, we have a final, non-terminated line. Return it.
+	if atEOF {
+		return len(data), data, nil
+	}
+	// Request more data.
+	return 0, nil, nil
+}
+
+func (format *dockerfileFormat) ValidateInput(log logrus.FieldLogger, reader io.Reader, filename string) error {
+	scanner := bufio.NewScanner(reader)
+	var split bufio.SplitFunc = dockerfileFormatSplitFunc
 
 	full := ""
 	lines := make([]string, 0)
@@ -98,9 +104,16 @@ func (format *dockerfileFormat) ValidateInput(log logrus.FieldLogger, reader io.
 	return nil
 }
 
+func saveFlush(log logrus.FieldLogger, writer *bufio.Writer) {
+	err := writer.Flush()
+	if err != nil {
+		log.Errorf("Error flushing writer %s", err.Error())
+	}
+}
+
 func (format *dockerfileFormat) Process(log logrus.FieldLogger, reader io.Reader, w io.Writer, imageNameProcessor dockfmt.ImageNameProcessor) error {
 	writer := bufio.NewWriter(w)
-	defer writer.Flush()
+	defer saveFlush(log, writer)
 
 	root := format.result.AST
 	lines := format.lines
@@ -109,7 +122,10 @@ func (format *dockerfileFormat) Process(log logrus.FieldLogger, reader io.Reader
 	for _, cmd := range root.Children {
 		curLineNum++
 		for i := curLineNum; i < cmd.StartLine; i++ {
-			writer.WriteString(lines[i-1])
+			_, err := writer.WriteString(lines[i-1])
+			if err != nil {
+				return err
+			}
 			curLineNum++
 		}
 
@@ -122,7 +138,10 @@ func (format *dockerfileFormat) Process(log logrus.FieldLogger, reader io.Reader
 
 		if !handled {
 			for i := cmd.StartLine; i <= endLine; i++ {
-				writer.WriteString(lines[i-1])
+				_, err := writer.WriteString(lines[i-1])
+				if err != nil {
+					return err
+				}
 			}
 		}
 		curLineNum = endLine
@@ -132,7 +151,10 @@ func (format *dockerfileFormat) Process(log logrus.FieldLogger, reader io.Reader
 	endLine := endLineOfNode(lastCommand)
 
 	for i := endLine; i < len(lines); i++ {
-		writer.WriteString(lines[i])
+		_, err := writer.WriteString(lines[i])
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -180,11 +202,13 @@ func (format *dockerfileFormat) processNode(log logrus.FieldLogger, node *parser
 		start := node.StartLine
 
 		for i := start; i <= end; i++ {
-			writer.WriteString(strings.Replace(format.lines[i-1], from, canonicalString, 1))
+			_, err := writer.WriteString(strings.Replace(format.lines[i-1], from, canonicalString, 1))
+			if err != nil {
+				return false, err
+			}
 		}
 		return true, nil
-	} else {
-		// pass-through
-		return false, nil
 	}
+	// pass-through
+	return false, nil
 }

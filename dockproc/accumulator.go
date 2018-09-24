@@ -10,6 +10,7 @@ import (
 
 type Accumulator interface {
 	Accumulate(format dockfmt.FormatProcessor) error
+	Matches() []dockref.Reference
 }
 
 var _ Accumulator = (*matchesAccumulator)(nil)
@@ -21,7 +22,7 @@ type matchesAccumulator struct {
 	stdout    io.Writer
 }
 
-func MatchesAccumulatorNew(predicate Predicate, log *logrus.Logger, stdout io.Writer) (*matchesAccumulator, error) {
+func MatchesAccumulatorNew(predicate Predicate, log *logrus.Logger, stdout io.Writer) (Accumulator, error) {
 
 	if predicate == nil {
 		return nil, errors.New("Parameter predicate must not be null")

@@ -1,7 +1,7 @@
 package dockref
 
 import (
-	_ "crypto/sha256"
+	_ "crypto/sha256" // side effect: register sha256
 	"github.com/docker/distribution/reference"
 	"github.com/opencontainers/go-digest"
 )

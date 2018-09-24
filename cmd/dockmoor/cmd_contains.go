@@ -13,8 +13,8 @@ import (
 type MatchingMode int
 
 const (
-	MATCH_ONLY      MatchingMode = iota
-	MATCH_AND_PRINT MatchingMode = iota
+	matchOnly     MatchingMode = iota
+	matchAndPrint MatchingMode = iota
 )
 
 type MatchingOptions struct {
@@ -25,28 +25,28 @@ type MatchingOptions struct {
 		Outdated bool `required:"no" long:"outdated" description:"Matches all images with newer versions available" hidden:"true"`
 	} `group:"Predicates" description:"Specify which kind of image references should be selected. Exactly one must be specified"`
 
-	Filters struct {
-		Name   []string `required:"no" long:"name" description:"Matches all images matching one of the specified names" hidden:"true"`
-		Domain []string `required:"no" long:"domain" description:"Matches all images matching one of the specified domains" hidden:"true"`
-	} `group:"Filters" description:"Optional additional filters. Specifying each kind of filter must be matched at least once" hidden:"true"`
+	//Filters struct {
+	//	Name   []string `required:"no" long:"name" description:"Matches all images matching one of the specified names" hidden:"true"`
+	//	Domain []string `required:"no" long:"domain" description:"Matches all images matching one of the specified domains" hidden:"true"`
+	//} `group:"Filters" description:"Optional additional filters. Specifying each kind of filter must be matched at least once" hidden:"true"`
 
 	Positional struct {
 		InputFile flags.Filename `required:"yes"`
 	} `positional-args:"yes"`
 
-	mainOptions *mainOptions
-	mode        MatchingMode
+	mainOpts *mainOptions
+	mode     MatchingMode
 }
 
-func (fo *MatchingOptions) MainOptions() *mainOptions {
-	return fo.mainOptions
+func (mopts *MatchingOptions) mainOptions() *mainOptions {
+	return mopts.mainOpts
 }
 
 func addContainsCommand(mainOptions *mainOptions) (*flags.Command, error) {
 	parser := mainOptions.Parser()
 	var containsOptions MatchingOptions
-	containsOptions.mainOptions = mainOptions
-	containsOptions.mode = MATCH_ONLY
+	containsOptions.mainOpts = mainOptions
+	containsOptions.mode = matchOnly
 
 	return parser.AddCommand("contains",
 		"Test if a file contains image references with matching predicates.",
@@ -55,23 +55,24 @@ func addContainsCommand(mainOptions *mainOptions) (*flags.Command, error) {
 }
 
 var (
-	ERR_AT_LEAST_ONE_PREDICATE = errors.Errorf("Provide at least one predicate")
-	ERR_AT_MOST_ONE_PREDICATE  = errors.Errorf("Provide at most one of --any, --latest, --unpinned, --outdated")
+	ErrAtLeastOnePredicate = errors.Errorf("Provide at least one predicate")
+	ErrAtMostOnePredicate  = errors.Errorf("Provide at most one of --any, --latest, --unpinned, --outdated")
 )
 
-func verifyContainsOptions(fo *MatchingOptions) error {
-
+func verifyContainsOptionsAtLeastOnePredicate(fo *MatchingOptions) error {
 	p := fo.Predicates
-	f := fo.Filters
 	if !p.Any &&
 		!p.Latest &&
 		!p.Unpinned &&
-		len(f.Name) == 0 &&
-		len(f.Domain) == 0 &&
 		!p.Outdated {
 
-		return ERR_AT_LEAST_ONE_PREDICATE
+		return ErrAtLeastOnePredicate
 	}
+	return nil
+}
+
+func verifyContainsOptionsAtMostOnePredicate(fo *MatchingOptions) error {
+	p := fo.Predicates
 
 	set := 0
 	if p.Any {
@@ -87,36 +88,51 @@ func verifyContainsOptions(fo *MatchingOptions) error {
 		set++
 	}
 	if set > 1 {
-		return ERR_AT_MOST_ONE_PREDICATE
+		return ErrAtMostOnePredicate
 	}
 
 	return nil
 }
 
-func (opts *MatchingOptions) Execute(args []string) error {
+func verifyContainsOptions(fo *MatchingOptions) error {
+	err := verifyContainsOptionsAtLeastOnePredicate(fo)
+	if err != nil {
+		return err
+	}
+
+	err = verifyContainsOptionsAtMostOnePredicate(fo)
+	return err
+}
+
+func (mopts *MatchingOptions) Execute(args []string) error {
 	return errors.New("Use ExecuteWithExitCode instead")
 }
 
-func (opts *MatchingOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err error) {
-	err = verifyContainsOptions(opts)
-	if err != nil {
-		opts.Log().Errorf("Invalid options: %s\n", err.Error())
+func (mopts *MatchingOptions) ExecuteWithExitCode(args []string) (ExitCode, error) {
+	errVerify := verifyContainsOptions(mopts)
+	if errVerify != nil {
+		mopts.Log().Errorf("Invalid options: %s\n", errVerify.Error())
 
 		parser := flags.NewParser(&struct{}{}, flags.HelpFlag)
-		command, _ := addContainsCommand(opts.mainOptions)
-		parser.ParseArgs([]string{command.Name, "--help"})
+		command, err := addContainsCommand(mopts.mainOpts)
+		if err != nil {
+			return ExitUnknownError, err
+		}
 
-		parser.WriteHelp(opts.mainOptions.stdout)
-		exitCode = EXIT_INVALID_PARAMS
-		return
+		_, err = parser.ParseArgs([]string{command.Name, "--help"})
+		if err != nil && err.(*flags.Error).Type != flags.ErrHelp {
+			return ExitUnknownError, err
+		}
+
+		parser.WriteHelp(mopts.mainOpts.stdout)
+		return ExitInvalidParams, errVerify
 	}
 
-	exitCode, err = opts.match()
-	return
+	return mopts.match()
 }
 
-func (opts *MatchingOptions) getPredicate() dockproc.Predicate {
-	predicates := opts.Predicates
+func (mopts *MatchingOptions) getPredicate() dockproc.Predicate {
+	predicates := mopts.Predicates
 
 	switch {
 	case predicates.Any:
@@ -130,46 +146,49 @@ func (opts *MatchingOptions) getPredicate() dockproc.Predicate {
 	return nil
 }
 
-func (opts *MatchingOptions) open(readable string) (io.ReadCloser, error) {
-	return opts.mainOptions.readableOpener(readable)
+func (mopts *MatchingOptions) open(readable string) (io.ReadCloser, error) {
+	return mopts.mainOpts.readableOpener(readable)
 }
 
-func saveClose(readCloser io.ReadCloser) {
+func saveClose(log *logrus.Logger, readCloser io.Closer) {
 	if readCloser != nil {
-		readCloser.Close()
+		err := readCloser.Close()
+		if err != nil {
+			log.Errorf("Error closing: %s", err.Error())
+		}
 	}
 }
 
-func (opts *MatchingOptions) match() (exitCode ExitCode, err error) {
-	log := opts.Log()
+func (mopts *MatchingOptions) match() (exitCode ExitCode, err error) {
+	log := mopts.Log()
 
-	filePathInput := string(opts.Positional.InputFile)
+	filePathInput := string(mopts.Positional.InputFile)
 
-	fpInput, err := opts.open(filePathInput)
-	defer saveClose(fpInput)
+	fpInput, err := mopts.open(filePathInput)
+	defer saveClose(log, fpInput)
 
 	if err != nil {
 		log.Errorf("Could not open file: %s", err.Error())
-		exitCode = EXIT_COULD_NOT_OPEN_FILE
+		exitCode = ExitCouldNotOpenFile
 		return
 	}
 
-	formatProvider := opts.MainOptions().FormatProvider()
+	formatProvider := mopts.mainOptions().FormatProvider()
 	fileFormat, formatError := dockfmt.IdentifyFormat(log, formatProvider, fpInput, filePathInput)
 	if fileFormat == nil {
-		return EXIT_INVALID_FORMAT, formatError
+		return ExitInvalidFormat, formatError
 	}
 
 	formatProcessor := dockfmt.FormatProcessorNew(fileFormat, log, fpInput)
-	exitCode, err = opts.matchFormatProcessor(formatProcessor)
+	exitCode, err = mopts.matchFormatProcessor(formatProcessor)
 	return
 }
 
-func (opts *MatchingOptions) matchFormatProcessor(formatProcessor dockfmt.FormatProcessor) (exitCode ExitCode, err error) {
-	log := opts.Log()
+func (mopts *MatchingOptions) matchFormatProcessor(formatProcessor dockfmt.FormatProcessor) (exitCode ExitCode, err error) {
+	log := mopts.Log()
 
-	predicate := opts.getPredicate()
-	accumulator, err := dockproc.MatchesAccumulatorNew(predicate, log, opts.Stdout())
+	predicate := mopts.getPredicate()
+	accumulator, err := dockproc.MatchesAccumulatorNew(predicate, log, mopts.Stdout())
 
 	errAcc := accumulator.Accumulate(formatProcessor)
 	if errAcc != nil {
@@ -179,23 +198,27 @@ func (opts *MatchingOptions) matchFormatProcessor(formatProcessor dockfmt.Format
 	matches := accumulator.Matches()
 
 	if len(matches) > 0 {
-		exitCode = EXIT_SUCCESS
+		exitCode = ExitSuccess
 	} else {
-		exitCode = EXIT_NOT_FOUND
+		exitCode = ExitNotFound
 	}
 
-	if opts.mode == MATCH_AND_PRINT {
+	if mopts.mode == matchAndPrint {
 		for _, r := range matches {
-			fmt.Fprintf(opts.Stdout(), "%s\n", r.Original())
+			_, err = fmt.Fprintf(mopts.Stdout(), "%s\n", r.Original())
+			if err != nil {
+				exitCode = ExitUnknownError
+				return
+			}
 		}
 	}
 	return
 }
 
-func (opts *MatchingOptions) Log() *logrus.Logger {
-	return opts.mainOptions.Log()
+func (mopts *MatchingOptions) Log() *logrus.Logger {
+	return mopts.mainOpts.Log()
 }
 
-func (fo *MatchingOptions) Stdout() io.Writer {
-	return fo.MainOptions().stdout
+func (mopts *MatchingOptions) Stdout() io.Writer {
+	return mopts.mainOptions().stdout
 }

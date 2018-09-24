@@ -6,19 +6,20 @@ import (
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"io"
 	"os"
 	"testing"
 )
 
-func ListOptionsTest() *containsOptionsTest {
-	mainOptions := MainOptionsTest()
+func listOptionsTestNew() *containsOptionsTest {
+	mainOptions := mainOptionsTestNew()
 	containsOptions := containsOptionsTest{
 		MatchingOptions: &MatchingOptions{},
 		mainOptionsTest: mainOptions,
 	}
 
-	containsOptions.mainOptions = mainOptions.mainOptions
-	containsOptions.mode = MATCH_AND_PRINT
+	containsOptions.mainOpts = mainOptions.mainOptions
+	containsOptions.mode = matchAndPrint
 
 	return &containsOptions
 }
@@ -41,49 +42,49 @@ func TestMainMarkdownWithList(t *testing.T) {
 
 	os.Args = []string{"exe", "--markdown"}
 
-	mainOptions := MainOptionsTestNew(addListCommand)
+	mainOptions := mainOptionsACNew(addListCommand)
 	buffer := bytes.NewBuffer(nil)
 	mainOptions.SetStdout(buffer)
 	exitCode := doMain(mainOptions)
 
 	assert.Contains(t, buffer.String(), "list command")
 
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 }
 
 func TestMainAsciiDocWithList(t *testing.T) {
 
 	os.Args = []string{"exe", "--asciidoc-usage"}
 
-	mainOptions := MainOptionsTestNew(addListCommand)
+	mainOptions := mainOptionsACNew(addListCommand)
 	buffer := bytes.NewBuffer(nil)
 	mainOptions.SetStdout(buffer)
 	exitCode := doMain(mainOptions)
 
 	assert.Contains(t, buffer.String(), "list command")
 
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 }
 
 func TestListHelpIsNotAnError(t *testing.T) {
 
 	os.Args = []string{"exe", "list", "--help"}
 
-	mainOptions := MainOptionsTestNew(addListCommand)
+	mainOptions := mainOptionsACNew(addListCommand)
 	buffer := bytes.NewBuffer(nil)
 	mainOptions.SetStdout(buffer)
 	exitCode := doMain(mainOptions)
 
 	assert.Contains(t, buffer.String(), "list command")
 
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 }
 
 func TestListHelpContainsImplementedPredicates(t *testing.T) {
 
 	os.Args = []string{"exe", "list", "--help"}
 
-	mainOptions := MainOptionsTestNew(addListCommand)
+	mainOptions := mainOptionsACNew(addListCommand)
 	buffer := bytes.NewBuffer(nil)
 	mainOptions.SetStdout(buffer)
 	exitCode := doMain(mainOptions)
@@ -92,14 +93,14 @@ func TestListHelpContainsImplementedPredicates(t *testing.T) {
 	assert.Contains(t, buffer.String(), "--latest")
 	assert.Contains(t, buffer.String(), "--unpinned")
 
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 }
 
 func TestListHelpHidesUnimplementedPredicates(t *testing.T) {
 
 	os.Args = []string{"exe", "list", "--help"}
 
-	mainOptions := MainOptionsTestNew(addListCommand)
+	mainOptions := mainOptionsACNew(addListCommand)
 	buffer := bytes.NewBuffer(nil)
 	mainOptions.SetStdout(buffer)
 	exitCode := doMain(mainOptions)
@@ -108,7 +109,7 @@ func TestListHelpHidesUnimplementedPredicates(t *testing.T) {
 	assert.NotContains(t, buffer.String(), "--name")
 	assert.NotContains(t, buffer.String(), "--domain")
 
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 }
 
 var _ dockfmt.FormatProcessor = (*FormatProcessorMock)(nil)
@@ -119,12 +120,16 @@ type FormatProcessorMock struct {
 	process func(imageNameProcessor dockfmt.ImageNameProcessor) error
 }
 
+func (d *FormatProcessorMock) WithWriter(writer io.Writer) dockfmt.FormatProcessor {
+	panic("implement me")
+}
+
 func (d *FormatProcessorMock) Process(imageNameProcessor dockfmt.ImageNameProcessor) error {
 	return d.process(imageNameProcessor)
 }
 
 func TestListCommandPrints(t *testing.T) {
-	test := ListOptionsTest()
+	test := listOptionsTestNew()
 	stdout := test.MainOptions().Stdout()
 
 	test.Predicates.Any = true

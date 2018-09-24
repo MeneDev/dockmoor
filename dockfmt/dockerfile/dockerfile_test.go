@@ -19,14 +19,14 @@ func init() {
 }
 
 func TestDockerfileName(t *testing.T) {
-	format := DockerfileFormatNew()
+	format := New()
 	name := format.Name()
 	assert.Equal(t, "Dockerfile", name)
 }
 
 func TestDockerfileFormatEmptyIsInvalid(t *testing.T) {
 	file := ``
-	format := DockerfileFormatNew()
+	format := New()
 	valid := format.ValidateInput(log, strings.NewReader(file), "anything")
 
 	assert.Error(t, valid)
@@ -34,7 +34,7 @@ func TestDockerfileFormatEmptyIsInvalid(t *testing.T) {
 
 func TestDockerfileFormatMissingFromIsInvalid(t *testing.T) {
 	file := `RUN command`
-	format := DockerfileFormatNew()
+	format := New()
 	valid := format.ValidateInput(log, strings.NewReader(file), "anything")
 
 	assert.Error(t, valid)
@@ -42,7 +42,7 @@ func TestDockerfileFormatMissingFromIsInvalid(t *testing.T) {
 
 func TestDockerfileFormatOtherIsInvalid(t *testing.T) {
 	file := `other stuff`
-	format := DockerfileFormatNew()
+	format := New()
 	valid := format.ValidateInput(log, strings.NewReader(file), "anything")
 
 	assert.Error(t, valid)
@@ -50,7 +50,7 @@ func TestDockerfileFormatOtherIsInvalid(t *testing.T) {
 
 func TestDockerfileFromScratchIsValid(t *testing.T) {
 	file := `FROM scratch`
-	format := DockerfileFormatNew()
+	format := New()
 	valid := format.ValidateInput(log, strings.NewReader(file), "anything")
 
 	assert.Nil(t, valid)
@@ -59,7 +59,7 @@ func TestDockerfileFromScratchIsValid(t *testing.T) {
 func TestDockerfileFromScratchPlusInvalidIsInvalid(t *testing.T) {
 	file := `FROM scratch
 Invalid thing`
-	format := DockerfileFormatNew()
+	format := New()
 	valid := format.ValidateInput(log, strings.NewReader(file), "anything")
 
 	assert.Error(t, valid)
@@ -67,7 +67,7 @@ Invalid thing`
 
 func TestDockerfileFromNginxIsValid(t *testing.T) {
 	file := `FROM nginx`
-	format := DockerfileFormatNew()
+	format := New()
 	valid := format.ValidateInput(log, strings.NewReader(file), "anything")
 
 	assert.Nil(t, valid)
@@ -75,7 +75,7 @@ func TestDockerfileFromNginxIsValid(t *testing.T) {
 
 func TestDockerfileFromNginxWithTagIsValid(t *testing.T) {
 	file := `FROM nginx:tag`
-	format := DockerfileFormatNew()
+	format := New()
 	valid := format.ValidateInput(log, strings.NewReader(file), "anything")
 
 	assert.Nil(t, valid)
@@ -84,7 +84,7 @@ func TestDockerfileFromNginxWithTagIsValid(t *testing.T) {
 func TestDockerfileMultiFromIsValid(t *testing.T) {
 	file := `FROM nginx:tag
 FROM something:tag`
-	format := DockerfileFormatNew()
+	format := New()
 	valid := format.ValidateInput(log, strings.NewReader(file), "anything")
 
 	assert.Nil(t, valid)
@@ -94,7 +94,7 @@ func TestMultilineCommandIsValid(t *testing.T) {
 RUN some \
 	command`
 
-	format := DockerfileFormatNew()
+	format := New()
 	valid := format.ValidateInput(log, strings.NewReader(file), "anything")
 
 	assert.Nil(t, valid)
@@ -106,7 +106,7 @@ RUN some \
 	command
 
 FROM something:tag`
-	format := DockerfileFormatNew()
+	format := New()
 	calls := 0
 	format.ValidateInput(log, strings.NewReader(file), "anything")
 
@@ -121,7 +121,7 @@ FROM something:tag`
 
 func TestDockerfilePassProcessorErrors(t *testing.T) {
 	file := `FROM valid`
-	format := DockerfileFormatNew()
+	format := New()
 	format.ValidateInput(log, strings.NewReader(file), "anything")
 
 	expected := errors.New("Expected")
@@ -142,7 +142,7 @@ RUN something \
 	in the end
 
 # And a comment`
-	format := DockerfileFormatNew()
+	format := New()
 	format.ValidateInput(log, strings.NewReader(file), "anything")
 
 	calls := 0
@@ -157,7 +157,7 @@ RUN something \
 
 func TestDockerfileInvalidFromReported(t *testing.T) {
 	file := `FROM nginx:a:b`
-	format := DockerfileFormatNew()
+	format := New()
 	format.ValidateInput(log, strings.NewReader(file), "anything")
 
 	processErr := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (string, error) {
@@ -169,7 +169,7 @@ func TestDockerfileInvalidFromReported(t *testing.T) {
 
 func TestParserErrorsAreReported(t *testing.T) {
 	file := `FROM nginx:a:b`
-	format := DockerfileFormatNew()
+	format := newDockerfileFormat()
 
 	expected := errors.New("expected")
 	format.parseFunction = func(rwc io.Reader) (*parser.Result, error) {
@@ -183,7 +183,7 @@ func TestParserErrorsAreReported(t *testing.T) {
 
 func TestParserSha256(t *testing.T) {
 	file := `FROM nginx@sha256:db5acc22920799fe387a903437eb89387607e5b3f63cf0f4472ac182d7bad644`
-	format := DockerfileFormatNew()
+	format := New()
 
 	err := format.ValidateInput(log, strings.NewReader(file), "anything")
 
@@ -203,7 +203,7 @@ func TestProcessLogsReplacingReferences(t *testing.T) {
 	log.SetLevel(logrus.InfoLevel)
 
 	file := `FROM nginx`
-	format := DockerfileFormatNew()
+	format := New()
 
 	err := format.ValidateInput(log, strings.NewReader(file), "anything")
 

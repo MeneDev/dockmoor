@@ -3,10 +3,10 @@ package main
 type ExitCode int
 
 const (
-	EXIT_SUCCESS ExitCode = iota
-	EXIT_INVALID_PARAMS
-	EXIT_UNKNOWN_ERROR
-	EXIT_NOT_FOUND
-	EXIT_INVALID_FORMAT
-	EXIT_COULD_NOT_OPEN_FILE
+	ExitSuccess ExitCode = iota
+	ExitInvalidParams
+	ExitUnknownError
+	ExitNotFound
+	ExitInvalidFormat
+	ExitCouldNotOpenFile
 )

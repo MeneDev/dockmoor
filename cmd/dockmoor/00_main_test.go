@@ -16,10 +16,9 @@ type mainOptionsTest struct {
 	openerMock *ReadableOpenerMock
 }
 
-func MainOptionsTest() *mainOptionsTest {
-	mainOptions := mainOptionsTest{mainOptions: &mainOptions{}}
-	parser := flags.NewParser(mainOptions.mainOptions, flags.HelpFlag|flags.PassDoubleDash)
-	mainOptions.parser = parser
+func mainOptionsTestNew() *mainOptionsTest {
+	mopts := mainOptionsNew()
+	mainOptions := mainOptionsTest{mainOptions: mopts}
 
 	stdout := bytes.NewBuffer(nil)
 
@@ -46,7 +45,7 @@ func (options *mainOptionsTest) Stdout() *bytes.Buffer {
 }
 
 func testMain(args []string, registerOptions ...func(mainOptions *mainOptions) (*flags.Command, error)) (theCommand flags.Commander, cmdArgs []string, exitCode ExitCode, buffer *bytes.Buffer) {
-	mainOptions := MainOptionsTest()
+	mainOptions := mainOptionsTestNew()
 
 	for _, reg := range registerOptions {
 		reg(mainOptions.mainOptions)
@@ -68,7 +67,7 @@ func TestNoCommandKnownIsError(t *testing.T) {
 func TestHelpIsNotError(t *testing.T) {
 	_, _, exitCode, stdout := testMain([]string{"--help"})
 	s := stdout.String()
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 	assert.NotContains(t, s, "level=error")
 	assert.Contains(t, s, "Usage")
 	assert.Contains(t, s, "Application Options")
@@ -78,7 +77,7 @@ func TestHelpIsNotError(t *testing.T) {
 func TestManIsNotError(t *testing.T) {
 	_, _, exitCode, stdout := testMain([]string{"--manpage"})
 	s := stdout.String()
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 	assert.NotContains(t, s, "level=error")
 	assert.Contains(t, s, "NAME")
 	assert.Contains(t, s, "SYNOPSIS")
@@ -88,13 +87,13 @@ func TestManIsNotError(t *testing.T) {
 func TestMarkdownIsNotError(t *testing.T) {
 	_, _, exitCode, stdout := testMain([]string{"--markdown"})
 	s := stdout.String()
-	assert.Equal(t, EXIT_SUCCESS, exitCode)
+	assert.Equal(t, ExitSuccess, exitCode)
 	assert.NotEmpty(t, s)
 }
 
 func TestOpensStdin(t *testing.T) {
 
-	optionsTest := MainOptionsTest()
+	optionsTest := mainOptionsTestNew()
 	opener := defaultReadableOpener(optionsTest.mainOptions)
 
 	readCloser, e := opener("-")

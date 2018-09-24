@@ -36,6 +36,41 @@ jobs:
           paths:
               - /tmp/builder_pushed
 
+  guess_quality:
+    docker:
+    - image: "$CI_PROJECT_PATH-builder:latest"
+    steps:
+      - checkout
+      - run:
+          name: gofmt
+          command: |
+            report="$(gofmt -s -d .)"
+            if [[ ! -z "$report" ]]; then
+              echo "Formatting not gofmt conform"
+              echo "$report"
+              exit 1
+            fi
+      - run:
+          name: ineffassign
+          command: |
+            report="$(ineffassign .)"
+            if [[ ! -z "$report" ]]; then
+              echo "Found inefficient assignments with ineffassign"
+              echo "$report"
+              exit 2
+            fi
+      - run:
+          name: go vet
+          command: |
+            report="$(go vet ./...)"
+            if [[ ! -z "$report" ]]; then
+              echo "Problems found by go vet"
+              echo "$report"
+              exit 3
+            fi
+
+    working_directory: /go/src/github.com/MeneDev/dockmoor
+
   build:
     docker:
       - image: "$CI_PROJECT_PATH-builder:latest"

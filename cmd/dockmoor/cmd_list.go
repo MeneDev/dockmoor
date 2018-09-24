@@ -7,8 +7,8 @@ import (
 func addListCommand(mainOptions *mainOptions) (*flags.Command, error) {
 	parser := mainOptions.Parser()
 	var containsOptions MatchingOptions
-	containsOptions.mainOptions = mainOptions
-	containsOptions.mode = MATCH_AND_PRINT
+	containsOptions.mainOpts = mainOptions
+	containsOptions.mode = matchAndPrint
 
 	return parser.AddCommand("list",
 		"List image references with matching predicates.",

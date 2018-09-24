@@ -10,7 +10,7 @@ type FormatProvider interface {
 	Formats() []Format
 }
 
-func DefaultFormatProvider() *defaultFormatProvider {
+func DefaultFormatProvider() FormatProvider {
 	provider := new(defaultFormatProvider)
 
 	return provider
@@ -49,7 +49,7 @@ func IdentifyFormat(log logrus.FieldLogger, formatProvider FormatProvider, reade
 		"knownFormats": formats,
 	})
 
-	var pinner Format = nil
+	var pinner Format
 	var pinnerErrors error
 	for _, p := range formats {
 		validationErr := p.ValidateInput(log, reader, filename)

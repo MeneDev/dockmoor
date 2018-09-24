@@ -16,6 +16,7 @@ type ImageNameProcessor func(r dockref.Reference) (string, error)
 
 type FormatProcessor interface {
 	Process(imageNameProcessor ImageNameProcessor) error
+	WithWriter(writer io.Writer) FormatProcessor
 }
 
 var _ FormatProcessor = (*formatProcessor)(nil)
@@ -31,14 +32,14 @@ func (fp *formatProcessor) Process(imageNameProcessor ImageNameProcessor) error 
 	return fp.format.Process(fp.log, fp.reader, fp.writer, imageNameProcessor)
 }
 
-func (fp *formatProcessor) WithWriter(writer io.Writer) *formatProcessor {
+func (fp *formatProcessor) WithWriter(writer io.Writer) FormatProcessor {
 	fp.writer = writer
 	return fp
 }
 
 func FormatProcessorNew(format Format,
 	log logrus.FieldLogger,
-	reader io.Reader) *formatProcessor {
+	reader io.Reader) FormatProcessor {
 	return &formatProcessor{
 		format: format,
 		log:    log,

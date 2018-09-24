@@ -20,7 +20,7 @@ type delegatingFormatMock struct {
 	ProcessDelegate       func(log logrus.FieldLogger, reader io.Reader, writer io.Writer, imageNameProcessor dockfmt.ImageNameProcessor) error
 }
 
-func DelegatingFormatMockNew() *delegatingFormatMock {
+func delegatingFormatMockNew() *delegatingFormatMock {
 	return &delegatingFormatMock{
 		NameDelegate: func() string {
 			return "delegatingFormatMock"
@@ -58,7 +58,7 @@ func (m *PredicateMock) Matches(ref dockref.Reference) bool {
 }
 
 func formatMockProcessing(images []string) *delegatingFormatMock {
-	mockFormat := DelegatingFormatMockNew()
+	mockFormat := delegatingFormatMockNew()
 	mockFormat.ProcessDelegate = func(log logrus.FieldLogger, reader io.Reader, writer io.Writer, imageNameProcessor dockfmt.ImageNameProcessor) error {
 		for _, img := range images {
 			ref, _ := dockref.FromOriginal(img)
@@ -107,7 +107,7 @@ func TestContainsAccumulator(t *testing.T) {
 				formatProcessor := dockfmt.FormatProcessorNew(mockFormat, nil, nil)
 
 				containsAccumulator.Accumulate(formatProcessor)
-				result := containsAccumulator.matches
+				result := containsAccumulator.Matches()
 
 				if matches {
 					assert.NotEmpty(t, result)

@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -19,11 +20,15 @@ type ExitCodeCommander interface {
 }
 
 type mainOptions struct {
-	LogLevel      string `required:"no" short:"l" long:"log-level" description:"Sets the log-level" choice:"NONE" choice:"ERROR" choice:"WARN" choice:"INFO" choice:"DEBUG" default:"ERROR"`
-	ShowVersion   bool   `required:"no" long:"version" description:"Show version and exit"`
-	Manpage       bool   `required:"no" long:"manpage" description:"Show man page and exit"`
-	Markdown      bool   `required:"no" long:"markdown" description:"Show usage as markdown and exit"`
-	AsciiDocUsage bool   `required:"no" long:"asciidoc-usage" description:"Show usage as asciidoc and exit"`
+	LogLevel    string `required:"no" short:"l" long:"log-level" description:"Sets the log-level" choice:"NONE" choice:"ERROR" choice:"WARN" choice:"INFO" choice:"DEBUG" default:"ERROR"`
+	ShowVersion bool   `required:"no" long:"version" description:"Show version and exit"`
+
+	Help struct {
+		Help          bool `short:"h" long:"help" description:"Show help and exit"`
+		Manpage       bool `required:"no" long:"manpage" description:"Show man page and exit"`
+		Markdown      bool `required:"no" long:"markdown" description:"Show usage as markdown and exit"`
+		ASCIIDocUsage bool `required:"no" long:"asciidoc-usage" description:"Show usage as AsciiDoc and exit"`
+	} `group:"Help Options" description:"Help Options"`
 
 	readableOpener func(string) (io.ReadCloser, error)
 	parser         *flags.Parser
@@ -36,10 +41,10 @@ type mainOptions struct {
 var osStdout io.Writer = os.Stdout
 var osStdin io.ReadCloser = os.Stdin
 
-func MainOptionsNew() *mainOptions {
+func mainOptionsNew() *mainOptions {
 	mainOptions := &mainOptions{}
 
-	parser := flags.NewParser(mainOptions, flags.HelpFlag|flags.PassDoubleDash)
+	parser := flags.NewParser(mainOptions, flags.PassDoubleDash)
 	mainOptions.parser = parser
 	mainOptions.readableOpener = defaultReadableOpener(mainOptions)
 	mainOptions.log = logrus.New()
@@ -69,7 +74,7 @@ func defaultReadableOpener(options *mainOptions) func(filename string) (io.ReadC
 		if filename == "-" {
 			return options.stdin, nil
 		}
-		return os.Open(filename)
+		return os.Open(filepath.Clean(filename))
 	}
 }
 
@@ -81,7 +86,11 @@ func doMain(mainOptions *mainOptions) (exitCode ExitCode) {
 
 	if cmd != nil {
 		commander := cmd.(ExitCodeCommander)
-		exitCode, _ = commander.ExecuteWithExitCode(cmdArgs)
+		eC, err := commander.ExecuteWithExitCode(cmdArgs)
+		exitCode = eC
+		if err != nil {
+			mainOptions.Log().Errorf("Error: %s", err.Error())
+		}
 	}
 
 	return
@@ -92,12 +101,53 @@ var osExitInternal = os.Exit
 func osExit(exitCode ExitCode) { osExitInternal(int(exitCode)) }
 
 func main() {
-	mainOptions := MainOptionsNew()
-	addContainsCommand(mainOptions)
-	addListCommand(mainOptions)
+	mainOptions := mainOptionsNew()
+	log := mainOptions.Log()
+	if _, err := addContainsCommand(mainOptions); err != nil {
+		log.Errorf("Could not add contains command: %s", err)
+	}
+
+	if _, err := addListCommand(mainOptions); err != nil {
+		log.Errorf("Could not add contains command: %s", err)
+	}
 
 	exitCode := doMain(mainOptions)
 	osExit(exitCode)
+}
+
+func handleHelp(mainOptions *mainOptions) bool {
+	parser := mainOptions.parser
+	if mainOptions.Help.Help {
+		parser.WriteHelp(mainOptions.stdout)
+		return true
+	}
+
+	if mainOptions.Help.Markdown {
+		WriteMarkdown(parser, mainOptions.stdout)
+		return true
+	}
+
+	if mainOptions.Help.ASCIIDocUsage {
+		WriteASCIIDoc(parser, mainOptions.stdout)
+		return true
+	}
+
+	if mainOptions.Help.Manpage {
+		parser.WriteManPage(mainOptions.stdout)
+		return true
+	}
+
+	return false
+}
+
+func handleVersion(mainOptions *mainOptions) bool {
+	log := mainOptions.Log()
+	if mainOptions.ShowVersion {
+		WriteVersion(log, mainOptions.stdout)
+		return true
+	}
+
+	return false
 }
 
 func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.Commander, cmdArgs []string, exitCode ExitCode) {
@@ -111,7 +161,6 @@ func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.
 
 	parser.ShortDescription = "Manage docker image references."
 	parser.LongDescription = "Manage docker image references."
-	//parser.Usage = "Usage here"
 
 	parser.CommandHandler = func(command flags.Commander, args []string) error {
 		theCommand = command
@@ -120,47 +169,30 @@ func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.
 
 	cmdArgs, optsErr := parser.ParseArgs(args)
 
-	if flagsErr, ok := optsErr.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
-		parser.WriteHelp(mainOptions.stdout)
-		exitCode = EXIT_SUCCESS
+	if handleHelp(mainOptions) {
+		exitCode = ExitSuccess
 		return
 	}
 
-	if mainOptions.Markdown {
-		WriteMarkdown(parser, mainOptions.stdout)
-		exitCode = EXIT_SUCCESS
+	if handleVersion(mainOptions) {
+		exitCode = ExitSuccess
 		return
 	}
 
-	if mainOptions.AsciiDocUsage {
-		WriteAsciiDoc(parser, mainOptions.stdout)
-		exitCode = EXIT_SUCCESS
-		return
-	}
-
-	if mainOptions.Manpage {
-		parser.WriteManPage(mainOptions.stdout)
-		exitCode = EXIT_SUCCESS
-		return
-	}
-
-	if mainOptions.ShowVersion {
-		WriteVersion(mainOptions.stdout)
-		exitCode = EXIT_SUCCESS
-		return
-	}
-
+	log.SetLevel(logrus.ErrorLevel)
 	if mainOptions.LogLevel == "NONE" {
 		log.SetOutput(bytes.NewBuffer(nil))
 	} else {
-		level := logrus.ErrorLevel
-		level, _ = logrus.ParseLevel(mainOptions.LogLevel)
+		level, err := logrus.ParseLevel(mainOptions.LogLevel)
+		if err != nil {
+			log.Errorf("Error parsing log-level '%s': %s", mainOptions.LogLevel, err.Error())
+		}
 		log.SetLevel(level)
 	}
 
 	if optsErr != nil {
 		log.Errorf("Error in parameters: %s", optsErr)
-		exitCode = EXIT_INVALID_PARAMS
+		exitCode = ExitInvalidParams
 		return
 	}
 
@@ -170,23 +202,30 @@ func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.
 
 	if theCommand == nil {
 		log.Error("No Command specified")
-		exitCode = EXIT_INVALID_PARAMS
+		exitCode = ExitInvalidParams
 		return
 	}
 
-	exitCode = EXIT_SUCCESS
+	exitCode = ExitSuccess
 	return
 }
 
-var Version string = "<unknown Version>"
-var BuildDate string = "<unknown BuildDate>"
-var BuildNumber string = "<unknown BuildNumber>"
-var BuildCommit string = "<unknown BuildCommit>"
+var Version = "<unknown Version>"
+var BuildDate = "<unknown BuildDate>"
+var BuildNumber = "<unknown BuildNumber>"
+var BuildCommit = "<unknown BuildCommit>"
 
-func WriteVersion(writer io.Writer) {
+func WriteVersion(log *logrus.Logger, writer io.Writer) {
 	format := "%-13s%s\n"
-	fmt.Fprintf(writer, format, "Version:", Version)
-	fmt.Fprintf(writer, format, "BuildDate:", BuildDate)
-	fmt.Fprintf(writer, format, "BuildNumber:", BuildNumber)
-	fmt.Fprintf(writer, format, "BuildCommit:", BuildCommit)
+	fmtFprintf(log, writer, format, "Version:", Version)
+	fmtFprintf(log, writer, format, "BuildDate:", BuildDate)
+	fmtFprintf(log, writer, format, "BuildNumber:", BuildNumber)
+	fmtFprintf(log, writer, format, "BuildCommit:", BuildCommit)
+}
+
+func fmtFprintf(log *logrus.Logger, w io.Writer, format string, a ...interface{}) {
+	_, err := fmt.Fprintf(w, format, a...)
+	if err != nil {
+		log.Errorf("Error printing: %s", err.Error())
+	}
 }

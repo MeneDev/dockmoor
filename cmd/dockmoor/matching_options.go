@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"io"
+	"strings"
 )
 
 type MatchingMode int
@@ -17,9 +18,40 @@ const (
 	matchAndPrint MatchingMode = iota
 )
 
+
+var domainPredicateNames = []string{"domains"}
+var namePredicateNames = []string{"names"}
+var tagPredicateNames = []string{"latest", "outdated", "untagged", "tags"}
+var digestPredicateNames = []string{"digests", "unpinned"}
+
+var predicateGroups = map[string][]string{
+	"domain": domainPredicateNames,
+	"name": namePredicateNames,
+	"tag": tagPredicateNames,
+	"digest": digestPredicateNames,
+}
+
+var predicateNames = append(
+	append(
+		append(
+			domainPredicateNames,
+			namePredicateNames...),
+		tagPredicateNames...),
+	digestPredicateNames...)
+
 var (
-	ErrAtMostOnePredicate = errors.Errorf("Provide at most one of --latest, --unpinned, --outdated")
+	ErrAtMostOneDomainPredicate = errors.Errorf("Provide at most one of --" + strings.Join(domainPredicateNames, ", --"))
+	ErrAtMostOneNamePredicate = errors.Errorf("Provide at most one of --" + strings.Join(namePredicateNames, ", --"))
+	ErrAtMostOneTagPredicate = errors.Errorf("Provide at most one of --" + strings.Join(tagPredicateNames, ", --"))
+	ErrAtMostOneDigestPredicate = errors.Errorf("Provide at most one of --" + strings.Join(digestPredicateNames, ", --"))
 )
+
+var ErrAtMostOnePredicate = map[string]error {
+	"domain": ErrAtMostOneDomainPredicate,
+	"name": ErrAtMostOneNamePredicate,
+	"tag": ErrAtMostOneTagPredicate,
+	"digest": ErrAtMostOneDigestPredicate,
+}
 
 type MatchingOptions struct {
 	DomainPredicates struct {
@@ -120,16 +152,16 @@ func verifyMatchOptionsAtMostOnePredicatePerGroup(fo *MatchingOptions) error {
 	counts := calculateCounts(fo)
 
 	if counts.countDomain > 1 {
-		return ErrAtMostOnePredicate
+		return ErrAtMostOneDomainPredicate
 	}
 	if counts.countName > 1 {
-		return ErrAtMostOnePredicate
+		return ErrAtMostOneNamePredicate
 	}
 	if counts.countTag > 1 {
-		return ErrAtMostOnePredicate
+		return ErrAtMostOneTagPredicate
 	}
 	if counts.countDigest > 1 {
-		return ErrAtMostOnePredicate
+		return ErrAtMostOneDigestPredicate
 	}
 
 	return nil

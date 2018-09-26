@@ -12,26 +12,6 @@ func TestEmptyPredicates(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-var domainPredicateNames = []string{"domains"}
-var namePredicateNames = []string{"names"}
-var tagPredicateNames = []string{"latest", "outdated", "untagged", "tags"}
-var digestPredicateNames = []string{"digests", "unpinned"}
-
-var predicateGroups = [][]string{
-	domainPredicateNames,
-	namePredicateNames,
-	tagPredicateNames,
-	digestPredicateNames,
-}
-
-var predicateNames = append(
-	append(
-		append(
-			domainPredicateNames,
-			namePredicateNames...),
-		tagPredicateNames...),
-	digestPredicateNames...)
-
 func applyPredicatesByName(fo *MatchingOptions, names ...string) {
 
 	for _, name := range names {
@@ -73,18 +53,10 @@ func TestSinglePredicatesIsValid(t *testing.T) {
 	}
 }
 
-func TestNonGlobalPredicatesCanBeCombinedWithOther(t *testing.T) {
-
+func TestOnePredicateCanBeCombinedWithOneFromOtherGroup(t *testing.T) {
 	for iGroupA, groupA := range predicateGroups {
-		if iGroupA == 0 { // global
-			continue
-		}
-
 		for iGroupB, groupB := range predicateGroups {
-			if iGroupB == 0 { // global
-				continue
-			}
-			if iGroupA == iGroupB { // global
+			if iGroupA == iGroupB {
 				continue
 			}
 			for _, a := range groupA {
@@ -100,13 +72,12 @@ func TestNonGlobalPredicatesCanBeCombinedWithOther(t *testing.T) {
 				}
 			}
 		}
-
 	}
 }
 
 func TestMultipleFromSameGroupFail(t *testing.T) {
 
-	for _, group := range predicateGroups {
+	for groupName, group := range predicateGroups {
 		if len(group) <= 1 {
 			continue
 		}
@@ -123,20 +94,11 @@ func TestMultipleFromSameGroupFail(t *testing.T) {
 
 					err := verifyMatchOptions(fo)
 					assert.Error(t, err)
-					assert.Equal(t, ErrAtMostOnePredicate, err)
+					assert.Equal(t, ErrAtMostOnePredicate[groupName], err)
 				})
 			}
 		}
 	}
-}
-
-func TestAllExclusivePredicatesAtOnceFail(t *testing.T) {
-	fo := &MatchingOptions{}
-	fo.TagPredicates.Outdated = true
-	fo.DigestPredicates.Unpinned = true
-	fo.TagPredicates.Latest = true
-	err := verifyMatchOptions(fo)
-	assert.Equal(t, ErrAtMostOnePredicate, err)
 }
 
 func TestNonExclusivePredicatesCanBeCombined(t *testing.T) {

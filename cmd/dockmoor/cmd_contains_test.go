@@ -144,7 +144,7 @@ func TestAnyPredicateWhenNoFlagWithContains(t *testing.T) {
 
 func TestLatestPredicateWhenLatestFlagWithContains(t *testing.T) {
 	fo := &MatchingOptions{}
-	fo.Predicates.Latest = true
+	fo.TagPredicates.Latest = true
 
 	predicate := fo.getPredicate()
 
@@ -155,7 +155,7 @@ func TestLatestPredicateWhenLatestFlagWithContains(t *testing.T) {
 
 func TestUnpinnedPredicateWhenLatestFlagWithContains(t *testing.T) {
 	fo := &MatchingOptions{}
-	fo.Predicates.Unpinned = true
+	fo.DigestPredicates.Unpinned = true
 
 	predicate := fo.getPredicate()
 
@@ -180,7 +180,7 @@ func TestContainsCallsFindExecuteWithContains(t *testing.T) {
 
 func TestOpenErrorsArePropagatedWithContains(t *testing.T) {
 	fo := containsOptionsTestNew()
-	fo.Predicates.Latest = true
+	fo.TagPredicates.Latest = true
 	expectedError := errors.New("Could not open")
 	fo.MainOptions().openerMock.On("Open", mock.Anything).Return(nil, expectedError)
 

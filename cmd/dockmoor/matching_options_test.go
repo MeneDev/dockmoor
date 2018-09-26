@@ -37,23 +37,23 @@ func applyPredicatesByName(fo *MatchingOptions, names ...string) {
 	for _, name := range names {
 		switch {
 		case equalsAnyString("outdated", name):
-			fo.Predicates.Outdated = true
+			fo.TagPredicates.Outdated = true
 		case equalsAnyString("unpinned", name):
-			fo.Predicates.Unpinned = true
+			fo.DigestPredicates.Unpinned = true
 		case equalsAnyString("latest", name):
-			fo.Predicates.Latest = true
+			fo.TagPredicates.Latest = true
 		case equalsAnyString("domains", name):
-			fo.Predicates.Domains = []string{"a", "b"}
+			fo.DomainPredicates.Domains = []string{"a", "b"}
 		case equalsAnyString("names", name):
-			fo.Predicates.Names = []string{"a", "b"}
+			fo.NamePredicates.Names = []string{"a", "b"}
 		case equalsAnyString("untagged", name):
-			fo.Predicates.Untagged = true
+			fo.TagPredicates.Untagged = true
 		case equalsAnyString("tags", name):
-			fo.Predicates.Tags = []string{"a", "b"}
+			fo.TagPredicates.Tags = []string{"a", "b"}
 		case equalsAnyString("unpinned", name):
-			fo.Predicates.Unpinned = true
+			fo.DigestPredicates.Unpinned = true
 		case equalsAnyString("digests", name):
-			fo.Predicates.Digests = []string{"a", "b"}
+			fo.DigestPredicates.Digests = []string{"a", "b"}
 		default:
 			panic(fmt.Sprintf("Unknown predicate name '%s'", names))
 		}
@@ -132,9 +132,9 @@ func TestMultipleFromSameGroupFail(t *testing.T) {
 
 func TestAllExclusivePredicatesAtOnceFail(t *testing.T) {
 	fo := &MatchingOptions{}
-	fo.Predicates.Outdated = true
-	fo.Predicates.Unpinned = true
-	fo.Predicates.Latest = true
+	fo.TagPredicates.Outdated = true
+	fo.DigestPredicates.Unpinned = true
+	fo.TagPredicates.Latest = true
 	err := verifyMatchOptions(fo)
 	assert.Equal(t, ErrAtMostOnePredicate, err)
 }
@@ -143,14 +143,14 @@ func TestNonExclusivePredicatesCanBeCombined(t *testing.T) {
 	fo := &MatchingOptions{}
 
 	for _, domain := range [][]string{nil, {"a", "b"}} {
-		fo.Predicates.Domains = domain
+		fo.DomainPredicates.Domains = domain
 		for _, name := range [][]string{nil, {"a", "b"}} {
-			fo.Predicates.Names = name
+			fo.NamePredicates.Names = name
 			for _, tag := range [][]string{nil, {"a", "b"}} {
-				fo.Predicates.Tags = tag
+				fo.TagPredicates.Tags = tag
 				for _, digest := range []string{"unpinned"} {
 					unpinned := digest == "unpinned"
-					fo.Predicates.Unpinned = unpinned
+					fo.DigestPredicates.Unpinned = unpinned
 
 					testCase := fmt.Sprintf("predicates can be combined: %s/%s:%s@%t", domain, name, tag, unpinned)
 					t.Run(testCase, func(t *testing.T) {
@@ -184,10 +184,10 @@ func TestTagPredicateCombinations(t *testing.T) {
 						set++
 					}
 
-					fo.Predicates.Untagged = untagged
-					fo.Predicates.Latest = latest
-					fo.Predicates.Outdated = outdated
-					fo.Predicates.Tags = tags
+					fo.TagPredicates.Untagged = untagged
+					fo.TagPredicates.Latest = latest
+					fo.TagPredicates.Outdated = outdated
+					fo.TagPredicates.Tags = tags
 
 					testCase := fmt.Sprintf("domain tag combination: untagged:%t-latest:%t-outdated%t-tags:%s", untagged, latest, outdated, tags)
 					t.Run(testCase, func(t *testing.T) {
@@ -218,8 +218,8 @@ func TestDigestPredicateCombinations(t *testing.T) {
 				set++
 			}
 
-			fo.Predicates.Unpinned = unpinned
-			fo.Predicates.Digests = digests
+			fo.DigestPredicates.Unpinned = unpinned
+			fo.DigestPredicates.Digests = digests
 
 			testCase := fmt.Sprintf("domain tag combination: unpinned:%t-digests:%s", unpinned, digests)
 			t.Run(testCase, func(t *testing.T) {

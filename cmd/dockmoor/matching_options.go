@@ -22,23 +22,25 @@ var (
 )
 
 type MatchingOptions struct {
-	Predicates struct {
-		// Domain
+	DomainPredicates struct {
 		Domains []string `required:"no" long:"domain" description:"Matches all images matching one of the specified domains" hidden:"true"`
+	} `group:"Domain Predicates" description:"Limit matched image references depending on their domain"`
 
-		// Name
+	NamePredicates struct {
 		Names []string `required:"no" long:"name" description:"Matches all images matching one of the specified names" hidden:"true"`
+	} `group:"Name Predicates" description:"Limit matched image references depending on their name"`
 
-		// Tags
-		Untagged bool     `required:"no" long:"untagged" description:"Matches images with latest or no tag"`
+	TagPredicates struct {
+		Untagged bool     `required:"no" long:"untagged" description:"Matches images with no tag"`
 		Latest   bool     `required:"no" long:"latest" description:"Matches images with latest or no tag"`
 		Outdated bool     `required:"no" long:"outdated" description:"Matches all images with newer versions available" hidden:"true"`
 		Tags     []string `required:"no" long:"tag" description:"Matches all images matching one of the specified tags" hidden:"true"`
+	} `group:"Tag Predicates" description:"Limit matched image references depending on their tag"`
 
-		// Digest
+	DigestPredicates struct {
 		Unpinned bool     `required:"no" long:"unpinned" description:"Matches unpinned images"`
-		Digests  []string `required:"no" long:"digest" description:"Matches all digests matching one of the specified tags" hidden:"true"`
-	} `group:"Predicates" description:"Specify which kind of image references should be selected. Exactly one must be specified"`
+		Digests  []string `required:"no" long:"digest" description:"Matches all digests matching one of the specified digests" hidden:"true"`
+	} `group:"Digest Predicates" description:"Limit matched image references depending on their digest"`
 
 	Positional struct {
 		InputFile flags.Filename `required:"yes"`
@@ -64,67 +66,77 @@ type GroupCount struct {
 	countDomain, countName, countTag, countDigest int
 }
 
-func verifyMatchOptionsAtMostOnePredicatePerGroup(fo *MatchingOptions) (GroupCount, error) {
-	p := fo.Predicates
-
-	setDomain := 0
-	setName := 0
-	setTag := 0
-	setDigest := 0
-
-	if p.Domains != nil {
-		setDomain++
-	}
-
-	if p.Names != nil {
-		setName++
-	}
-
-	if p.Untagged {
-		setTag++
-	}
-
-	if p.Latest {
-		setTag++
-	}
-
-	if p.Outdated {
-		setTag++
-	}
-
-	if p.Tags != nil {
-		setTag++
-	}
-
-	if p.Unpinned {
-		setDigest++
-	}
-
-	if p.Digests != nil {
-		setDigest++
-	}
-
+func calculateCounts(fo *MatchingOptions) GroupCount {
+	setDomain := calculateDomainCounts(fo)
+	setName := calculateNameCounts(fo)
+	setTag := calculateTagCounts(fo)
+	setDigest := calculateDigestCounts(fo)
 	count := GroupCount{countDomain: setDomain, countName: setName, countTag: setTag, countDigest: setDigest}
+	return count
+}
 
-	if setDomain > 1 {
-		return count, ErrAtMostOnePredicate
+func calculateDomainCounts(options *MatchingOptions) (count int) {
+	if options.DomainPredicates.Domains != nil {
+		count++
 	}
-	if setName > 1 {
-		return count, ErrAtMostOnePredicate
+	return
+}
+
+func calculateNameCounts(options *MatchingOptions) (count int) {
+	if options.NamePredicates.Names != nil {
+		count++
 	}
-	if setTag > 1 {
-		return count, ErrAtMostOnePredicate
+	return
+}
+
+func calculateTagCounts(options *MatchingOptions) (count int) {
+	if options.TagPredicates.Tags != nil {
+		count++
 	}
-	if setDigest > 1 {
-		return count, ErrAtMostOnePredicate
+	if options.TagPredicates.Untagged {
+		count++
+	}
+	if options.TagPredicates.Outdated {
+		count++
+	}
+	if options.TagPredicates.Latest {
+		count++
+	}
+	return
+}
+
+func calculateDigestCounts(options *MatchingOptions) (count int) {
+	if options.DigestPredicates.Digests != nil {
+		count++
+	}
+	if options.DigestPredicates.Unpinned {
+		count++
+	}
+	return
+}
+
+func verifyMatchOptionsAtMostOnePredicatePerGroup(fo *MatchingOptions) error {
+
+	counts := calculateCounts(fo)
+
+	if counts.countDomain > 1 {
+		return ErrAtMostOnePredicate
+	}
+	if counts.countName > 1 {
+		return ErrAtMostOnePredicate
+	}
+	if counts.countTag > 1 {
+		return ErrAtMostOnePredicate
+	}
+	if counts.countDigest > 1 {
+		return ErrAtMostOnePredicate
 	}
 
-	return count, nil
+	return nil
 }
 
 func verifyMatchOptions(fo *MatchingOptions) error {
-	_, err := verifyMatchOptionsAtMostOnePredicatePerGroup(fo)
-
+	err := verifyMatchOptionsAtMostOnePredicatePerGroup(fo)
 	return err
 }
 
@@ -156,12 +168,10 @@ func (mopts *MatchingOptions) ExecuteWithExitCode(args []string) (ExitCode, erro
 }
 
 func (mopts *MatchingOptions) getPredicate() dockproc.Predicate {
-	predicates := mopts.Predicates
-
 	switch {
-	case predicates.Latest:
+	case mopts.TagPredicates.Latest:
 		return dockproc.LatestPredicateNew()
-	case predicates.Unpinned:
+	case mopts.DigestPredicates.Unpinned:
 		return dockproc.UnpinnedPredicateNew()
 	default:
 		return dockproc.AnyPredicateNew()

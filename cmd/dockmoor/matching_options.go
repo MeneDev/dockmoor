@@ -18,22 +18,27 @@ const (
 )
 
 var (
-	ErrAtLeastOnePredicate = errors.Errorf("Provide at least one predicate")
-	ErrAtMostOnePredicate  = errors.Errorf("Provide at most one of --any, --latest, --unpinned, --outdated")
+	ErrAtMostOnePredicate = errors.Errorf("Provide at most one of --latest, --unpinned, --outdated")
 )
 
 type MatchingOptions struct {
 	Predicates struct {
-		Any      bool `required:"no" long:"any" description:"Matches all images"`
-		Latest   bool `required:"no" long:"latest" description:"Matches images with latest or no tag"`
-		Unpinned bool `required:"no" long:"unpinned" description:"Matches unpinned images"`
-		Outdated bool `required:"no" long:"outdated" description:"Matches all images with newer versions available" hidden:"true"`
-	} `group:"Predicates" description:"Specify which kind of image references should be selected. Exactly one must be specified"`
+		// Domain
+		Domains []string `required:"no" long:"domain" description:"Matches all images matching one of the specified domains" hidden:"true"`
 
-	Filters struct {
-		Name   []string `required:"no" long:"name" description:"Matches all images matching one of the specified names" hidden:"true"`
-		Domain []string `required:"no" long:"domain" description:"Matches all images matching one of the specified domains" hidden:"true"`
-	} `group:"Filters" description:"Optional additional filters. Specifying each kind of filter must be matched at least once" hidden:"true"`
+		// Name
+		Names []string `required:"no" long:"name" description:"Matches all images matching one of the specified names" hidden:"true"`
+
+		// Tags
+		Untagged bool     `required:"no" long:"untagged" description:"Matches images with latest or no tag"`
+		Latest   bool     `required:"no" long:"latest" description:"Matches images with latest or no tag"`
+		Outdated bool     `required:"no" long:"outdated" description:"Matches all images with newer versions available" hidden:"true"`
+		Tags     []string `required:"no" long:"tag" description:"Matches all images matching one of the specified tags" hidden:"true"`
+
+		// Digest
+		Unpinned bool     `required:"no" long:"unpinned" description:"Matches unpinned images"`
+		Digests  []string `required:"no" long:"digest" description:"Matches all digests matching one of the specified tags" hidden:"true"`
+	} `group:"Predicates" description:"Specify which kind of image references should be selected. Exactly one must be specified"`
 
 	Positional struct {
 		InputFile flags.Filename `required:"yes"`
@@ -55,48 +60,71 @@ func (mopts *MatchingOptions) Stdout() io.Writer {
 	return mopts.mainOptions().stdout
 }
 
-func verifyContainsOptionsAtLeastOnePredicate(fo *MatchingOptions) error {
-	p := fo.Predicates
-	if !p.Any &&
-		!p.Latest &&
-		!p.Unpinned &&
-		!p.Outdated {
-
-		return ErrAtLeastOnePredicate
-	}
-	return nil
+type GroupCount struct {
+	countDomain, countName, countTag, countDigest int
 }
 
-func verifyContainsOptionsAtMostOnePredicate(fo *MatchingOptions) error {
+func verifyMatchOptionsAtMostOnePredicatePerGroup(fo *MatchingOptions) (GroupCount, error) {
 	p := fo.Predicates
 
-	set := 0
-	if p.Any {
-		set++
+	setDomain := 0
+	setName := 0
+	setTag := 0
+	setDigest := 0
+
+	if p.Domains != nil {
+		setDomain++
 	}
+
+	if p.Names != nil {
+		setName++
+	}
+
+	if p.Untagged {
+		setTag++
+	}
+
 	if p.Latest {
-		set++
-	}
-	if p.Unpinned {
-		set++
-	}
-	if p.Outdated {
-		set++
-	}
-	if set > 1 {
-		return ErrAtMostOnePredicate
+		setTag++
 	}
 
-	return nil
+	if p.Outdated {
+		setTag++
+	}
+
+	if p.Tags != nil {
+		setTag++
+	}
+
+	if p.Unpinned {
+		setDigest++
+	}
+
+	if p.Digests != nil {
+		setDigest++
+	}
+
+	count := GroupCount{countDomain: setDomain, countName: setName, countTag: setTag, countDigest: setDigest}
+
+	if setDomain > 1 {
+		return count, ErrAtMostOnePredicate
+	}
+	if setName > 1 {
+		return count, ErrAtMostOnePredicate
+	}
+	if setTag > 1 {
+		return count, ErrAtMostOnePredicate
+	}
+	if setDigest > 1 {
+		return count, ErrAtMostOnePredicate
+	}
+
+	return count, nil
 }
 
-func verifyContainsOptions(fo *MatchingOptions) error {
-	err := verifyContainsOptionsAtLeastOnePredicate(fo)
-	if err != nil {
-		return err
-	}
+func verifyMatchOptions(fo *MatchingOptions) error {
+	_, err := verifyMatchOptionsAtMostOnePredicatePerGroup(fo)
 
-	err = verifyContainsOptionsAtMostOnePredicate(fo)
 	return err
 }
 
@@ -105,7 +133,7 @@ func (mopts *MatchingOptions) Execute(args []string) error {
 }
 
 func (mopts *MatchingOptions) ExecuteWithExitCode(args []string) (ExitCode, error) {
-	errVerify := verifyContainsOptions(mopts)
+	errVerify := verifyMatchOptions(mopts)
 	if errVerify != nil {
 		mopts.Log().Errorf("Invalid options: %s\n", errVerify.Error())
 
@@ -131,15 +159,13 @@ func (mopts *MatchingOptions) getPredicate() dockproc.Predicate {
 	predicates := mopts.Predicates
 
 	switch {
-	case predicates.Any:
-		return dockproc.AnyPredicateNew()
 	case predicates.Latest:
 		return dockproc.LatestPredicateNew()
 	case predicates.Unpinned:
 		return dockproc.UnpinnedPredicateNew()
+	default:
+		return dockproc.AnyPredicateNew()
 	}
-
-	return nil
 }
 
 func (mopts *MatchingOptions) open(readable string) (io.ReadCloser, error) {

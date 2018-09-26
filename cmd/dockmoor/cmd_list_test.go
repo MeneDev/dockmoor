@@ -89,7 +89,6 @@ func TestListHelpContainsImplementedPredicates(t *testing.T) {
 	mainOptions.SetStdout(buffer)
 	exitCode := doMain(mainOptions)
 
-	assert.Contains(t, buffer.String(), "--any")
 	assert.Contains(t, buffer.String(), "--latest")
 	assert.Contains(t, buffer.String(), "--unpinned")
 
@@ -131,8 +130,6 @@ func (d *FormatProcessorMock) Process(imageNameProcessor dockfmt.ImageNameProces
 func TestListCommandPrints(t *testing.T) {
 	test := listOptionsTestNew()
 	stdout := test.MainOptions().Stdout()
-
-	test.Predicates.Any = true
 
 	processorMock := &FormatProcessorMock{}
 	processorMock.process = func(imageNameProcessor dockfmt.ImageNameProcessor) error {

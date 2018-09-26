@@ -37,7 +37,10 @@ func mainOptionsACNew(commandAdders ...func(mainOptions *mainOptions) (*flags.Co
 	mainOptions.SetStdout(bytes.NewBuffer(nil))
 
 	for _, adder := range commandAdders {
-		adder(mainOptions)
+		_, err := adder(mainOptions)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return mainOptions
@@ -47,7 +50,7 @@ func TestContainAnyMatches(t *testing.T) {
 	df1 := dockerfile(`FROM nginx`)
 	defer os.Remove(df1)
 
-	os.Args = []string{"exe", "contains", "--any", df1}
+	os.Args = []string{"exe", "contains", df1}
 	mainOptions := mainOptionsACNew(addContainsCommand)
 
 	exitCode := doMain(mainOptions)
@@ -59,7 +62,7 @@ func TestContainsAnyNoMatch(t *testing.T) {
 	df1 := dockerfile(`invalid`)
 	defer os.Remove(df1)
 
-	os.Args = []string{"exe", "contains", "--any", df1}
+	os.Args = []string{"exe", "contains", df1}
 	mainOptions := mainOptionsACNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
@@ -116,7 +119,7 @@ func TestContainsInvalidOptions(t *testing.T) {
 	df1 := dockerfile(`FROM nginx`)
 	defer os.Remove(df1)
 
-	os.Args = []string{"exe", "contains", "--any", "--latest", df1}
+	os.Args = []string{"exe", "contains", "--untagged", "--latest", df1}
 
 	mainOptions := mainOptionsACNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
@@ -155,7 +158,7 @@ func TestMainMarkdown(t *testing.T) {
 
 func TestMainLoglevelNone(t *testing.T) {
 
-	os.Args = []string{"exe", "--log-level=NONE", "contains", "--any", "/notExistingFile"}
+	os.Args = []string{"exe", "--log-level=NONE", "contains", "/notExistingFile"}
 	buffer := bytes.NewBuffer(nil)
 	mainOptions := mainOptionsACNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
@@ -176,7 +179,7 @@ func TestExitCodeIsZeroForDockerfile(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	stdout, code := shell(t, `dockmoor contains --any {{.Dockerfile}}`, struct {
+	stdout, code := shell(t, `dockmoor contains {{.Dockerfile}}`, struct {
 		Dockerfile string
 	}{tmpfn})
 
@@ -236,7 +239,7 @@ func TestExitCodeIsNotZeroForInvalidDockerfile(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	stdout, code := shell(t, `dockmoor contains --any {{.Dockerfile}}`, struct {
+	stdout, code := shell(t, `dockmoor contains {{.Dockerfile}}`, struct {
 		Dockerfile string
 	}{tmpfn})
 

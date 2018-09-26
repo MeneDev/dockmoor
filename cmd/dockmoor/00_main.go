@@ -20,7 +20,7 @@ type ExitCodeCommander interface {
 }
 
 type mainOptions struct {
-	LogLevel    string `required:"no" short:"l" long:"log-level" description:"Sets the log-level" choice:"NONE" choice:"ERROR" choice:"WARN" choice:"INFO" choice:"DEBUG" default:"ERROR"`
+	LogLevel    string `required:"no" short:"l" long:"log-level" description:"Sets the log-level" choice:"NONE" choice:"ERROR" choice:"WARN" choice:"INFO" choice:"DEBUG" default:"WARN"`
 	ShowVersion bool   `required:"no" long:"version" description:"Show version and exit"`
 
 	Help struct {
@@ -89,7 +89,8 @@ func doMain(mainOptions *mainOptions) (exitCode ExitCode) {
 		eC, err := commander.ExecuteWithExitCode(cmdArgs)
 		exitCode = eC
 		if err != nil {
-			mainOptions.Log().Errorf("Error: %s", err.Error())
+			// This is only debug level because the loging should take place at a more informed place
+			mainOptions.Log().Debug("Error: %s", err.Error())
 		}
 	}
 
@@ -179,15 +180,17 @@ func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.
 		return
 	}
 
-	log.SetLevel(logrus.ErrorLevel)
+	level := logrus.WarnLevel
+	log.SetLevel(level)
 	if mainOptions.LogLevel == "NONE" {
 		log.SetOutput(bytes.NewBuffer(nil))
 	} else {
 		level, err := logrus.ParseLevel(mainOptions.LogLevel)
 		if err != nil {
 			log.Errorf("Error parsing log-level '%s': %s", mainOptions.LogLevel, err.Error())
+		} else {
+			log.SetLevel(level)
 		}
-		log.SetLevel(level)
 	}
 
 	if optsErr != nil {

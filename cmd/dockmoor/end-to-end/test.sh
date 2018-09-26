@@ -17,7 +17,7 @@ mkdir -p $RESULTS || fail 2 "Cannot create $RESULTS folder"
 
 ( # find any file with supported format (i.e. Dockerfile) in folder and subfolder
 #tag::listAnyInFolder[]
-find some-folder/ -type f -exec dockmoor list --any {} \; | sort | uniq
+find some-folder/ -type f -exec dockmoor list {} \; | sort | uniq
 #end::listAnyInFolder[]
 ) >$RESULTS/listAnyInFolder.stdout 2>$RESULTS/listAnyInFolder.stderr
 exitCode=$?
@@ -70,7 +70,7 @@ echo $exitCode >$RESULTS/listUnpinnedInFolder.exitCode
 
 ( # list all image references from file
 #tag::listAnyInFile[]
-dockmoor list --any Dockerfile
+dockmoor list Dockerfile
 #end::listAnyInFile[]
 ) >$RESULTS/listAnyInFile.stdout 2>$RESULTS/listAnyInFile.stderr
 exitCode=$?
@@ -145,7 +145,7 @@ echo $exitCode >$RESULTS/listUnpinnedInFile.exitCode
 
 ( # contains all image references in supported file (i.e. Dockerfile)
 #tag::containsAnyInFolder[]
-find some-folder/ -type f -exec dockmoor contains --any {} \; -print
+find some-folder/ -type f -exec dockmoor contains {} \; -print
 #end::containsAnyInFolder[]
 ) >$RESULTS/containsAnyInFolder.stdout 2>$RESULTS/containsAnyInFolder.stderr
 exitCode=$?
@@ -200,7 +200,7 @@ echo $exitCode >$RESULTS/containsUnpinnedInFolder.exitCode
 
 ( # test if file is of supported format
 #tag::containsAnyTestFormatInvalid[]
-dockmoor contains --any some-folder/NotADockerfile
+dockmoor contains some-folder/NotADockerfile
 #end::containsAnyTestFormatInvalid[]
 ) >$RESULTS/containsAnyTestFormatInvalid.stdout 2>$RESULTS/containsAnyTestFormatInvalid.stderr
 exitCode=$?
@@ -209,7 +209,7 @@ echo $exitCode >$RESULTS/containsAnyTestFormatInvalid.exitCode
 
 ( # test if file is of supported format
 #tag::containsAnyTestFormatValid[]
-dockmoor contains --any Dockerfile
+dockmoor contains Dockerfile
 #end::containsAnyTestFormatValid[]
 ) >$RESULTS/containsAnyTestFormatValid.stdout 2>$RESULTS/containsAnyTestFormatValid.stderr
 exitCode=$?
@@ -218,7 +218,7 @@ echo $exitCode >$RESULTS/containsAnyTestFormatValid.exitCode
 
 ( # calling contains with non existing file exits with 5
 # tag::containsAnyNonExisting[]
-dockmoor contains --any nonExisting
+dockmoor contains nonExisting
 # end::containsAnyNonExisting[]
 ) >$RESULTS/containsAnyNonExisting.stdout 2>$RESULTS/containsAnyNonExisting.stderr
 exitCode=$?

@@ -40,88 +40,6 @@ func containsOptionsTestNew() *containsOptionsTest {
 	return &containsOptions
 }
 
-func TestEmptyPredicates(t *testing.T) {
-	fo := &MatchingOptions{}
-	err := verifyContainsOptions(fo)
-	assert.Equal(t, ErrAtLeastOnePredicate, err)
-}
-
-func TestSingleExclusivePredicatesFail(t *testing.T) {
-	strings := []string{"any", "latest", "unpinned", "outdated"}
-	for _, a := range strings {
-		t.Run(a, func(t *testing.T) {
-			fo := &MatchingOptions{}
-			fo.Predicates.Any = equalsAnyString("any", a)
-			fo.Predicates.Outdated = equalsAnyString("outdated", a)
-			fo.Predicates.Unpinned = equalsAnyString("unpinned", a)
-			fo.Predicates.Latest = equalsAnyString("latest", a)
-			err := verifyContainsOptions(fo)
-			assert.Nil(t, err)
-		})
-	}
-}
-
-func TestMultipleExclusivePredicatesFail(t *testing.T) {
-
-	strings := []string{"any", "latest", "unpinned", "outdated"}
-	for _, a := range strings {
-		for _, b := range strings {
-			if a == b {
-				continue
-			}
-
-			t.Run(a+" and "+b, func(t *testing.T) {
-				fo := &MatchingOptions{}
-				fo.Predicates.Any = equalsAnyString("any", a, b)
-				fo.Predicates.Outdated = equalsAnyString("outdated", a, b)
-				fo.Predicates.Unpinned = equalsAnyString("unpinned", a, b)
-				fo.Predicates.Latest = equalsAnyString("latest", a, b)
-				err := verifyContainsOptions(fo)
-				assert.Equal(t, ErrAtMostOnePredicate, err)
-			})
-		}
-	}
-
-	for _, a := range strings {
-		for _, b := range strings {
-			if a == b {
-				continue
-			}
-
-			for _, c := range strings {
-				if a == c {
-					continue
-				}
-
-				if b == c {
-					continue
-				}
-
-				t.Run(a+" and "+b+" and "+c, func(t *testing.T) {
-					fo := &MatchingOptions{}
-					fo.Predicates.Any = equalsAnyString("any", a, b, c)
-					fo.Predicates.Outdated = equalsAnyString("outdated", a, b, c)
-					fo.Predicates.Unpinned = equalsAnyString("unpinned", a, b, c)
-					fo.Predicates.Latest = equalsAnyString("latest", a, b, c)
-					err := verifyContainsOptions(fo)
-					assert.Equal(t, ErrAtMostOnePredicate, err)
-				})
-			}
-		}
-	}
-
-}
-
-func TestAllExclusivePredicatesAtOnceFail(t *testing.T) {
-	fo := &MatchingOptions{}
-	fo.Predicates.Any = true
-	fo.Predicates.Outdated = true
-	fo.Predicates.Unpinned = true
-	fo.Predicates.Latest = true
-	err := verifyContainsOptions(fo)
-	assert.Equal(t, ErrAtMostOnePredicate, err)
-}
-
 type ReadableOpenerMock struct {
 	mock.Mock
 }
@@ -166,7 +84,6 @@ func TestInvalidDockerfileWithContains(t *testing.T) {
 		mainOpts: mainOptions.mainOptions,
 	}
 
-	fo.Predicates.Any = true
 	fo.Positional.InputFile = flags.Filename(NotADockerfile)
 
 	// when
@@ -201,7 +118,6 @@ func TestReportInvalidPredicateWithContains(t *testing.T) {
 		mainOpts: mainOptions.mainOptions,
 	}
 
-	fo.Predicates.Any = true
 	fo.Positional.InputFile = flags.Filename(NotADockerfile)
 
 	// when
@@ -216,17 +132,8 @@ func TestReportInvalidPredicateWithContains(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestNoPredicateForNoFlagsWithContains(t *testing.T) {
+func TestAnyPredicateWhenNoFlagWithContains(t *testing.T) {
 	fo := &MatchingOptions{}
-
-	predicate := fo.getPredicate()
-
-	assert.Nil(t, predicate)
-}
-
-func TestAnyPredicateWhenAnyFlagWithContains(t *testing.T) {
-	fo := &MatchingOptions{}
-	fo.Predicates.Any = true
 
 	predicate := fo.getPredicate()
 
@@ -341,7 +248,6 @@ func TestContainsHelpContainsImplementedPredicates(t *testing.T) {
 	mainOptions.SetStdout(buffer)
 	exitCode := doMain(mainOptions)
 
-	assert.Contains(t, buffer.String(), "--any")
 	assert.Contains(t, buffer.String(), "--latest")
 	assert.Contains(t, buffer.String(), "--unpinned")
 
@@ -367,8 +273,6 @@ func TestFindHelpHidesUnimplementedPredicates(t *testing.T) {
 func TestContainsCommandDoesntPrint(t *testing.T) {
 	test := containsOptionsTestNew()
 	stdout := test.MainOptions().Stdout()
-
-	test.Predicates.Any = true
 
 	processorMock := &FormatProcessorMock{}
 	processorMock.process = func(imageNameProcessor dockfmt.ImageNameProcessor) error {

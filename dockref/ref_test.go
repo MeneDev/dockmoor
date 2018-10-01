@@ -96,3 +96,37 @@ func TestNameAndTagAndDigest(t *testing.T) {
 		})
 	}
 }
+
+func TestDomainAndNameAndTagAndDigest(t *testing.T) {
+	originals := []string{"nginx"}
+	for _, original := range originals {
+		t.Run("Parses "+original, func(t *testing.T) {
+			ref, e := FromOriginal(original)
+			assert.Nil(t, e)
+			assert.Equal(t, "docker.io", ref.Domain())
+			assert.Equal(t, "library/nginx", ref.Path())
+		})
+	}
+	originals = []string{"my.com/nginx"}
+	for _, original := range originals {
+		t.Run("Parses "+original, func(t *testing.T) {
+			ref, e := FromOriginal(original)
+			assert.Nil(t, e)
+			assert.Equal(t, "my.com", ref.Domain())
+			assert.Equal(t, "nginx", ref.Path())
+		})
+	}
+}
+
+func TestDockref_Named(t *testing.T) {
+	t.Run("Returns Named for named references", func(t *testing.T) {
+		ref, e := FromOriginal("nginx")
+		assert.Nil(t, e)
+		assert.NotNil(t, ref.Named())
+	})
+	t.Run("Returns nil for unnamed references", func(t *testing.T) {
+		ref, e := FromOriginal("d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		assert.Nil(t, e)
+		assert.Nil(t, ref.Named())
+	})
+}

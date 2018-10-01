@@ -13,8 +13,14 @@ func FromOriginal(original string) (ref Reference, e error) {
 	}
 
 	var name string
-	if named, ok := r.(reference.Named); ok {
+	var domain string
+	var path string
+	var named reference.Named
+	var ok bool
+	if named, ok = r.(reference.Named); ok {
 		name = named.Name()
+		domain = reference.Domain(named)
+		path = reference.Path(named)
 	}
 
 	var tag string
@@ -29,9 +35,12 @@ func FromOriginal(original string) (ref Reference, e error) {
 
 	ref = dockref{
 		original: original,
+		domain: domain,
 		name:     name,
 		tag:      tag,
 		digest:   dig,
+		path: path,
+		named: named,
 	}
 	return
 }
@@ -42,6 +51,9 @@ type Reference interface {
 	DigestString() string
 	Digest() digest.Digest
 	Original() string
+	Domain() string
+	Path() string
+	Named() reference.Named
 }
 
 var _ Reference = (*dockref)(nil)
@@ -51,6 +63,13 @@ type dockref struct {
 	original string
 	tag      string
 	digest   string
+	domain   string
+	path     string
+	named    reference.Named
+}
+
+func (r dockref) Named() reference.Named {
+	return r.named
 }
 
 func (r dockref) Name() string {
@@ -71,4 +90,12 @@ func (r dockref) Digest() digest.Digest {
 
 func (r dockref) Original() string {
 	return r.original
+}
+
+func (r dockref) Domain() string {
+	return r.domain
+}
+
+func (r dockref) Path() string {
+	return r.path
 }

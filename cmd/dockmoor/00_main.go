@@ -47,10 +47,12 @@ func mainOptionsNew() *mainOptions {
 	parser := flags.NewParser(mainOptions, flags.PassDoubleDash)
 	mainOptions.parser = parser
 	mainOptions.readableOpener = defaultReadableOpener(mainOptions)
-	mainOptions.log = logrus.New()
+	log := logrus.New()
+	mainOptions.log = log
 	mainOptions.formatProvider = dockfmt.DefaultFormatProvider()
 	mainOptions.stdout = osStdout
 	mainOptions.stdin = osStdin
+	log.SetOutput(osStdout)
 
 	return mainOptions
 }
@@ -101,15 +103,20 @@ var osExitInternal = os.Exit
 
 func osExit(exitCode ExitCode) { osExitInternal(int(exitCode)) }
 
+
+var AddCommand = func (opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error) {
+	return opts.Parser().AddCommand(command, shortDescription, longDescription, data)
+}
+
 func main() {
 	mainOptions := mainOptionsNew()
 	log := mainOptions.Log()
-	if _, err := addContainsCommand(mainOptions); err != nil {
+	if _, err := addContainsCommand(mainOptions, AddCommand); err != nil {
 		log.Errorf("Could not add contains command: %s", err)
 	}
 
-	if _, err := addListCommand(mainOptions); err != nil {
-		log.Errorf("Could not add contains command: %s", err)
+	if _, err := addListCommand(mainOptions, AddCommand); err != nil {
+		log.Errorf("Could not add list command: %s", err)
 	}
 
 	exitCode := doMain(mainOptions)
@@ -188,6 +195,8 @@ func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.
 		level, err := logrus.ParseLevel(mainOptions.LogLevel)
 		if err != nil {
 			log.Errorf("Error parsing log-level '%s': %s", mainOptions.LogLevel, err.Error())
+			exitCode = ExitInvalidParams
+			return
 		} else {
 			log.SetLevel(level)
 		}

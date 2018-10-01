@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/MeneDev/dockmoor/dockfmt"
-	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
@@ -13,7 +12,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"reflect"
 	"testing"
 )
 
@@ -132,38 +130,6 @@ func TestReportInvalidPredicateWithContains(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestAnyPredicateWhenNoFlagWithContains(t *testing.T) {
-	fo := &MatchingOptions{}
-
-	predicate := fo.getPredicate()
-
-	expected := reflect.TypeOf(dockproc.AnyPredicateNew())
-	actual := reflect.TypeOf(predicate)
-	assert.Equal(t, expected, actual)
-}
-
-func TestLatestPredicateWhenLatestFlagWithContains(t *testing.T) {
-	fo := &MatchingOptions{}
-	fo.TagPredicates.Latest = true
-
-	predicate := fo.getPredicate()
-
-	expected := reflect.TypeOf(dockproc.LatestPredicateNew())
-	actual := reflect.TypeOf(predicate)
-	assert.Equal(t, expected, actual)
-}
-
-func TestUnpinnedPredicateWhenLatestFlagWithContains(t *testing.T) {
-	fo := &MatchingOptions{}
-	fo.DigestPredicates.Unpinned = true
-
-	predicate := fo.getPredicate()
-
-	expected := reflect.TypeOf(dockproc.UnpinnedPredicateNew())
-	actual := reflect.TypeOf(predicate)
-	assert.Equal(t, expected, actual)
-}
-
 func TestFilenameRequiredWithContains(t *testing.T) {
 	_, _, exitCode, stdout := testMain([]string{"contains"}, addContainsCommand)
 	assert.NotEqual(t, 0, exitCode)
@@ -211,6 +177,7 @@ func TestMainMarkdownWithContains(t *testing.T) {
 
 	assert.Equal(t, ExitSuccess, exitCode)
 }
+
 func TestMainAsciiDocWithContains(t *testing.T) {
 
 	os.Args = []string{"exe", "--asciidoc-usage"}

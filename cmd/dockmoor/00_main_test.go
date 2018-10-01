@@ -3,9 +3,13 @@ package main
 import (
 	"bytes"
 	"github.com/jessevdk/go-flags"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"io"
+	"io/ioutil"
+	"os"
+	"strings"
 	"testing"
 )
 
@@ -44,11 +48,11 @@ func (options *mainOptionsTest) Stdout() *bytes.Buffer {
 	return options.stdout.(*bytes.Buffer)
 }
 
-func testMain(args []string, registerOptions ...func(mainOptions *mainOptions) (*flags.Command, error)) (theCommand flags.Commander, cmdArgs []string, exitCode ExitCode, buffer *bytes.Buffer) {
+func testMain(args []string, registerOptions ...func(mainOptions *mainOptions, adder func (opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error)) (theCommand flags.Commander, cmdArgs []string, exitCode ExitCode, buffer *bytes.Buffer) {
 	mainOptions := mainOptionsTestNew()
 
 	for _, reg := range registerOptions {
-		reg(mainOptions.mainOptions)
+		reg(mainOptions.mainOptions, AddCommand)
 	}
 
 	cmd, args, exitCode := CommandFromArgs(mainOptions.mainOptions, args)
@@ -100,5 +104,77 @@ func TestOpensStdin(t *testing.T) {
 
 	assert.Nil(t, e)
 	assert.Equal(t, optionsTest.stdin, readCloser)
+}
 
+
+var _ io.Writer = (*failingWriter)(nil)
+type failingWriter struct {
+
+}
+
+func (failingWriter) Write(p []byte) (n int, err error) {
+	return 0, errors.Errorf("Error")
+}
+
+func Test_fmtFprintf_reportsWriteErrors(t *testing.T)  {
+	logger := logrus.New()
+	buffer := bytes.NewBuffer(nil)
+	logger.SetOutput(buffer)
+
+	fmtFprintf(logger, failingWriter{}, "foo")
+
+	assert.Contains(t, buffer.String(), "level=error")
+}
+
+func TestCommandFromArgs_failsOnWrongLogLevel(t *testing.T)  {
+	opts := mainOptionsTestNew()
+	buffer := bytes.NewBuffer(nil)
+	opts.SetStdout(buffer)
+
+	addListCommand(opts.mainOptions, AddCommand)
+
+	_, _, exitCode := CommandFromArgs(opts.mainOptions, []string {"--log-level=panda", "list", "file"})
+
+	assert.Equal(t, ExitInvalidParams, exitCode)
+	assert.Contains(t, buffer.String(), "level=error")
+	assert.Contains(t, buffer.String(), "Error parsing log-level")
+}
+
+func TestMainReportsAddingListCommandErrors(t *testing.T)  {
+	org := AddCommand
+	defer func() {
+		AddCommand = org
+	}()
+
+	AddCommand = func(opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error) {
+		return nil, errors.Errorf("A Panda, rolling around")
+	}
+
+	args := []string{"exe"}
+	exitCodeSet := false
+	oldOsExit := osExitInternal
+	osExitInternal = func(code int) {
+		exitCodeSet = true
+	}
+
+	oldStdout := osStdout
+	stdoutBuf := bytes.NewBuffer(nil)
+	osStdout = stdoutBuf
+	oldStdin := os.Stdin
+	osStdin = ioutil.NopCloser(strings.NewReader(""))
+	oldArgs := os.Args
+	os.Args = args
+
+	defer func() {
+		osStdout = oldStdout
+		osStdin = oldStdin
+		osExitInternal = oldOsExit
+		os.Args = oldArgs
+	}()
+
+	main()
+
+	assert.Contains(t, stdoutBuf.String(), "level=error")
+	assert.Contains(t, stdoutBuf.String(), "Could not add list command")
+	assert.Contains(t, stdoutBuf.String(), "Could not add contains command")
 }

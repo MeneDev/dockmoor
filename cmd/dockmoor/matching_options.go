@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockproc"
+	"github.com/hashicorp/go-multierror"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -151,12 +152,16 @@ func verifyMatchOptionsAtMostOnePredicatePerGroup(fo *MatchingOptions) error {
 
 	counts := calculateCounts(fo)
 
-	if counts.countDomain > 1 {
-		return ErrAtMostOneDomainPredicate
-	}
-	if counts.countName > 1 {
-		return ErrAtMostOneNamePredicate
-	}
+	// domain and name cannot have more than one predicate set
+	// as there is only one
+
+	//if counts.countDomain > 1 {
+	//	return ErrAtMostOneDomainPredicate
+	//}
+	//if counts.countName > 1 {
+	//	return ErrAtMostOneNamePredicate
+	//}
+
 	if counts.countTag > 1 {
 		return ErrAtMostOneTagPredicate
 	}
@@ -177,36 +182,114 @@ func (mopts *MatchingOptions) Execute(args []string) error {
 }
 
 func (mopts *MatchingOptions) ExecuteWithExitCode(args []string) (ExitCode, error) {
+	var result *multierror.Error
+
 	errVerify := verifyMatchOptions(mopts)
 	if errVerify != nil {
 		mopts.Log().Errorf("Invalid options: %s\n", errVerify.Error())
 
 		parser := flags.NewParser(&struct{}{}, flags.HelpFlag)
-		command, err := addContainsCommand(mopts.mainOpts)
-		if err != nil {
-			return ExitUnknownError, err
-		}
+		command, err := addContainsCommand(mopts.mainOpts, AddCommand)
+		result = multierror.Append(err, err)
 
 		_, err = parser.ParseArgs([]string{command.Name, "--help"})
-		if err != nil && err.(*flags.Error).Type != flags.ErrHelp {
-			return ExitUnknownError, err
-		}
+		result = multierror.Append(err, err)
 
 		parser.WriteHelp(mopts.mainOpts.stdout)
 		return ExitInvalidParams, errVerify
 	}
 
-	return mopts.match()
+	exitCode, err := mopts.match()
+	result = multierror.Append(err, err)
+
+	return exitCode, result.ErrorOrNil()
+}
+
+var latestPredicateFactory = func () dockproc.Predicate {
+	return dockproc.LatestPredicateNew()
+}
+
+var latestUnpinnedFactory = func () dockproc.Predicate {
+	return dockproc.UnpinnedPredicateNew()
+}
+
+var anyPredicateFactory = func () dockproc.Predicate {
+	return dockproc.AnyPredicateNew()
+}
+
+var domainsPredicateFactory = func(domains []string) dockproc.Predicate {
+	return dockproc.DomainsPredicateNew(domains)
+}
+var namePredicateFactory = func(names []string) dockproc.Predicate {
+	return dockproc.NamesPredicateNew(names)
+}
+//var outdatedPredicateFactory = func() dockproc.Predicate {
+//	return dockproc.OutdatedPredicateNew()
+//}
+var untaggedPredicateFactory = func() dockproc.Predicate {
+	return dockproc.UntaggedPredicateNew()
+}
+var tagsPredicateFactory = func(tags []string) dockproc.Predicate {
+	return dockproc.TagsPredicateNew(tags)
+}
+var digestsPredicateFactory = func(digests []string) dockproc.Predicate {
+	return dockproc.DigestsPredicateNew(digests)
+}
+var andPredicateFactory = func(predicates []dockproc.Predicate) dockproc.Predicate {
+	return dockproc.AndPredicateNew(predicates)
 }
 
 func (mopts *MatchingOptions) getPredicate() dockproc.Predicate {
-	switch {
-	case mopts.TagPredicates.Latest:
-		return dockproc.LatestPredicateNew()
-	case mopts.DigestPredicates.Unpinned:
-		return dockproc.UnpinnedPredicateNew()
+	anyPredicate := anyPredicateFactory()
+	var predicates []dockproc.Predicate
+
+	if mopts.DomainPredicates.Domains != nil {
+		p := domainsPredicateFactory(mopts.DomainPredicates.Domains)
+		predicates = append(predicates, p)
+	}
+
+	if mopts.NamePredicates.Names != nil {
+		p := namePredicateFactory(mopts.NamePredicates.Names)
+		predicates = append(predicates, p)
+	}
+
+	//if mopts.TagPredicates.Outdated {
+	//	p := outdatedPredicateFactory()
+	//	predicates = append(predicates, p)
+	//}
+
+	if mopts.TagPredicates.Untagged {
+		p := untaggedPredicateFactory()
+		predicates = append(predicates, p)
+	}
+
+	if mopts.TagPredicates.Tags != nil {
+		p := tagsPredicateFactory(mopts.TagPredicates.Tags)
+		predicates = append(predicates, p)
+	}
+
+	if mopts.TagPredicates.Latest {
+		p := latestPredicateFactory()
+		predicates = append(predicates, p)
+	}
+
+	if mopts.DigestPredicates.Unpinned {
+		p := latestUnpinnedFactory()
+		predicates = append(predicates, p)
+	}
+
+	if mopts.DigestPredicates.Digests != nil {
+		p := digestsPredicateFactory(mopts.DigestPredicates.Digests)
+		predicates = append(predicates, p)
+	}
+
+	switch len(predicates) {
+	case 0:
+		return anyPredicate
+	case 1:
+		return predicates[0]
 	default:
-		return dockproc.AnyPredicateNew()
+		return andPredicateFactory(predicates)
 	}
 }
 
@@ -267,14 +350,13 @@ func (mopts *MatchingOptions) matchFormatProcessor(formatProcessor dockfmt.Forma
 		exitCode = ExitNotFound
 	}
 
+	var results *multierror.Error
+
 	if mopts.mode == matchAndPrint {
 		for _, r := range matches {
 			_, err = fmt.Fprintf(mopts.Stdout(), "%s\n", r.Original())
-			if err != nil {
-				exitCode = ExitUnknownError
-				return
-			}
+			results = multierror.Append(results, err)
 		}
 	}
-	return
+	return exitCode, results.ErrorOrNil()
 }

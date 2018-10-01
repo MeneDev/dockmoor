@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/stretchr/testify/assert"
+	"reflect"
 	"testing"
 )
 
@@ -195,4 +197,113 @@ func TestDigestPredicateCombinations(t *testing.T) {
 			})
 		}
 	}
+}
+
+
+func TestAnyPredicateWhenNoFlagWithContains(t *testing.T) {
+	fo := &MatchingOptions{}
+
+	predicate := fo.getPredicate()
+
+	assert.IsType(t, dockproc.AnyPredicateNew(), predicate)
+}
+
+func TestDomainsPredicateWhenDomainsSet(t *testing.T) {
+	fo := &MatchingOptions{}
+	fo.DomainPredicates.Domains = []string {"a", "b"}
+
+	predicate := fo.getPredicate()
+
+	assert.IsType(t, dockproc.DomainsPredicateNew([]string {"a", "b"}), predicate)
+}
+
+func TestNamesPredicateWhenNamesSet(t *testing.T) {
+	fo := &MatchingOptions{}
+	fo.NamePredicates.Names = []string {"a", "b"}
+
+	predicate := fo.getPredicate()
+
+	assert.IsType(t, dockproc.NamesPredicateNew([]string {"a", "b"}), predicate)
+}
+
+func TestTagsPredicateWhenTagsSet(t *testing.T) {
+	fo := &MatchingOptions{}
+	fo.TagPredicates.Tags = []string {"a", "b"}
+
+	predicate := fo.getPredicate()
+
+	assert.IsType(t, dockproc.TagsPredicateNew([]string {"a", "b"}), predicate)
+}
+
+func TestUntaggedPredicateWhenUntaggedSet(t *testing.T) {
+	fo := &MatchingOptions{}
+	fo.TagPredicates.Untagged = true
+
+	predicate := fo.getPredicate()
+
+	assert.IsType(t, dockproc.UntaggedPredicateNew(), predicate)
+}
+
+//func TestOutdatedPredicateWhenOutdatedSet(t *testing.T) {
+//	fo := &MatchingOptions{}
+//	fo.TagPredicates.Outdated = true
+//
+//	predicate := fo.getPredicate()
+//
+//	assert.IsType(t, dockproc.OutdatedPredicateNew(), predicate)
+//}
+
+func TestLatestPredicateWhenLatestSet(t *testing.T) {
+	fo := &MatchingOptions{}
+	fo.TagPredicates.Latest = true
+
+	predicate := fo.getPredicate()
+
+	assert.IsType(t, dockproc.LatestPredicateNew(), predicate)
+}
+
+func TestDigestsPredicateWhenDomainSet(t *testing.T) {
+	fo := &MatchingOptions{}
+	fo.DigestPredicates.Digests = []string {"a", "b"}
+
+	predicate := fo.getPredicate()
+
+	assert.IsType(t, dockproc.DigestsPredicateNew([]string {"a", "b"}), predicate)
+}
+
+func TestUnpinnedPredicateWhenUnpinnedSet(t *testing.T) {
+	fo := &MatchingOptions{}
+	fo.DigestPredicates.Unpinned = true
+
+	predicate := fo.getPredicate()
+
+	assert.IsType(t, dockproc.UnpinnedPredicateNew(), predicate)
+}
+
+func TestAndPredicateWhenUnpinnedAndLatestSet(t *testing.T) {
+	fo := &MatchingOptions{}
+	fo.DigestPredicates.Unpinned = true
+	fo.TagPredicates.Latest = true
+
+	predicate := fo.getPredicate()
+
+	assert.IsType(t, dockproc.AndPredicateNew(nil), predicate)
+
+	andPredicate, _ := predicate.(dockproc.AndPredicate)
+	andPredicate.Predicates()
+
+	assert.IsType(t, dockproc.AndPredicateNew(nil), predicate)
+
+	matches := 0
+	for _, p := range andPredicate.Predicates() {
+		t := reflect.TypeOf(p)
+		switch t {
+		case reflect.TypeOf(dockproc.UnpinnedPredicateNew()):
+			fallthrough
+		case reflect.TypeOf(dockproc.LatestPredicateNew()):
+			matches++
+		}
+	}
+
+	assert.Equal(t, 2, matches)
 }

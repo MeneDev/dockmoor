@@ -215,3 +215,33 @@ func TestProcessLogsReplacingReferences(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Nil(t, processErr)
 }
+
+var _ io.Writer = (*failingWriter)(nil)
+type failingWriter struct {
+
+}
+
+func (failingWriter) Write(p []byte) (n int, err error) {
+	return 0, errors.Errorf("Error")
+}
+
+func TestDockerfileFormat_ReportsFlushError(t *testing.T) {
+	var log = logrus.New()
+	buffer := bytes.NewBuffer(nil)
+	log.SetOutput(buffer)
+	log.SetLevel(logrus.ErrorLevel)
+
+	file := `FROM nginx`
+	format := New()
+
+	err := format.ValidateInput(log, strings.NewReader(file), "anything")
+
+	processErr := format.Process(log, strings.NewReader(file), failingWriter{}, func(r dockref.Reference) (string, error) {
+		return "nginx@pinned", nil
+	})
+
+	assert.Contains(t, buffer.String(), `Error flushing writer`)
+	assert.Contains(t, buffer.String(), `level=error`)
+	assert.Nil(t, err)
+	assert.Nil(t, processErr)
+}

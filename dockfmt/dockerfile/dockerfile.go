@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockref"
+	"github.com/hashicorp/go-multierror"
 	"github.com/moby/buildkit/frontend/dockerfile/command"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 	"github.com/pkg/errors"
@@ -107,12 +108,14 @@ func (format *dockerfileFormat) ValidateInput(log logrus.FieldLogger, reader io.
 func saveFlush(log logrus.FieldLogger, writer *bufio.Writer) {
 	err := writer.Flush()
 	if err != nil {
-		log.Errorf("Error flushing writer %s", err.Error())
+		log.Errorf("Error flushing writer: %s", err.Error())
 	}
 }
 
 func (format *dockerfileFormat) Process(log logrus.FieldLogger, reader io.Reader, w io.Writer, imageNameProcessor dockfmt.ImageNameProcessor) error {
+	result := new(multierror.Error)
 	writer := bufio.NewWriter(w)
+
 	defer saveFlush(log, writer)
 
 	root := format.result.AST
@@ -123,9 +126,7 @@ func (format *dockerfileFormat) Process(log logrus.FieldLogger, reader io.Reader
 		curLineNum++
 		for i := curLineNum; i < cmd.StartLine; i++ {
 			_, err := writer.WriteString(lines[i-1])
-			if err != nil {
-				return err
-			}
+			result = multierror.Append(result, err)
 			curLineNum++
 		}
 
@@ -139,9 +140,7 @@ func (format *dockerfileFormat) Process(log logrus.FieldLogger, reader io.Reader
 		if !handled {
 			for i := cmd.StartLine; i <= endLine; i++ {
 				_, err := writer.WriteString(lines[i-1])
-				if err != nil {
-					return err
-				}
+				result = multierror.Append(result, err)
 			}
 		}
 		curLineNum = endLine
@@ -152,12 +151,10 @@ func (format *dockerfileFormat) Process(log logrus.FieldLogger, reader io.Reader
 
 	for i := endLine; i < len(lines); i++ {
 		_, err := writer.WriteString(lines[i])
-		if err != nil {
-			return err
-		}
+		result = multierror.Append(result, err)
 	}
 
-	return nil
+	return result.ErrorOrNil()
 }
 
 func endLineOfNode(command *parser.Node) int {
@@ -168,6 +165,8 @@ func endLineOfNode(command *parser.Node) int {
 }
 
 func (format *dockerfileFormat) processNode(log logrus.FieldLogger, node *parser.Node, writer *bufio.Writer, imageNameProcessor dockfmt.ImageNameProcessor) (bool, error) {
+	result := new(multierror.Error)
+
 	if node.Value == "from" {
 		from := node.Next.Value
 		log.Infof("Found image %s", from)
@@ -203,12 +202,10 @@ func (format *dockerfileFormat) processNode(log logrus.FieldLogger, node *parser
 
 		for i := start; i <= end; i++ {
 			_, err := writer.WriteString(strings.Replace(format.lines[i-1], from, canonicalString, 1))
-			if err != nil {
-				return false, err
-			}
+			result = multierror.Append(result, err)
 		}
-		return true, nil
+		return true, result.ErrorOrNil()
 	}
 	// pass-through
-	return false, nil
+	return false, result.ErrorOrNil()
 }

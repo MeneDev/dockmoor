@@ -20,6 +20,5 @@ RUN go get -u golang.org/x/lint/golint
 RUN go get -u github.com/gordonklaus/ineffassign
 RUN wget -O gometalinter.tar.gz https://github.com/alecthomas/gometalinter/releases/download/v2.0.11/gometalinter-2.0.11-linux-amd64.tar.gz \
     && tar -xvf gometalinter.tar.gz \
-    && rm gometalinter.tar.gz \
-    && tar -xvf gometalinter.tar.gz
+    && rm gometalinter.tar.gz
 ENV PATH="${PATH}:/go/gometalinter"

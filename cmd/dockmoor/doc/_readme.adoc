@@ -7,3 +7,12 @@ include::cmdContains.adoc[]
 * Dockerfile (as used by `docker build`)
 
 include::dockmoor.adoc[]
+
+== Building locally and Contributing
+
+Appreciated! See link:CONTRIBUTING.md[CONTRIBUTING] for details.
+
+== Roadmap
+Currently dockmoor is in a very eraly stage and under constant development.
+
+To get an idea where the journey will go, take a look at the link:ROADMAP.md[Roadmap]

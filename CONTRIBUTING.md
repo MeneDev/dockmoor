@@ -5,9 +5,16 @@ Thanks for your interest, you're very welcome to contribute. Don't take anything
 ## Prerequisites for building
 
 * Setup a recent go, the CI currently uses Version 1.10.3  
-* Clone develop branch, make sure to clone to the correct location, e.g. `/home/user/go/github.com/MeneDev/dockmoor`
+* Clone develop branch, make sure to clone to your `GOPATH`, e.g. `/home/mene/go/github.com/MeneDev/dockmoor`
+```bash
+cd $GOPATH
+mkdir -p src/github.com/MeneDev
+git clone https://github.com/MeneDev/dockmoor.git src/github.com/MeneDev/dockmoor
+```
 * Install [`dep` v0.5.0](https://github.com/golang/dep/releases/tag/v0.5.0)
+  * If you use Homebrew you should be able to `brew install dep`
 * Run `dep ensure` inside project folder
+
 
 ## Prerequisites for quality control
 These are optional to get the project running, but are greatly appreciated before creating Pull Requests.
@@ -108,6 +115,8 @@ Please do not merge against the master branch, use develop instead.
 Please run the `guess-quality.sh` script in the root folder and look at the output. Ideally there is none.
 
 Please take a look at the test coverage.
+
+Please make sure there are no merge conflicts.
 
 ## Releasing
 

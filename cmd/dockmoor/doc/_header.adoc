@@ -6,3 +6,18 @@ image:https://img.shields.io/github/release/MeneDev/dockmoor.svg["GitHub release
 image:https://img.shields.io/twitter/follow/MeneDev.svg?style=social&label=%40MeneDev[Follow @MeneDev on Twitter, link=https://twitter.com/MeneDev]
 
 Manage docker image references.
+
+== Features
+
+*Implemented*
+
+* find Dockerfiles
+* list image references
+* filter by various predicates, e.g. only untagged or `latest`
+
+*Upcomming*
+
+* Pin used image references to currently used version to make builds reproducible
+* Find outdated image references
+* Update to newer major, minor or patch version respecting SemVer
+

@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.0.5
+#### New predicates
+* domain
+* name
+* familiar-name
+* path
+* tag
+* untagged
+* digest
+#### Removed predicates
+* any (no implicit). Potentially breaking.
+
 ## v0.0.4
 
 ### New Commands

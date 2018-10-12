@@ -48,7 +48,7 @@ func (options *mainOptionsTest) Stdout() *bytes.Buffer {
 	return options.stdout.(*bytes.Buffer)
 }
 
-func testMain(args []string, registerOptions ...func(mainOptions *mainOptions, adder func (opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error)) (theCommand flags.Commander, cmdArgs []string, exitCode ExitCode, buffer *bytes.Buffer) {
+func testMain(args []string, registerOptions ...func(mainOptions *mainOptions, adder func(opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error)) (theCommand flags.Commander, cmdArgs []string, exitCode ExitCode, buffer *bytes.Buffer) {
 	mainOptions := mainOptionsTestNew()
 
 	for _, reg := range registerOptions {
@@ -106,17 +106,16 @@ func TestOpensStdin(t *testing.T) {
 	assert.Equal(t, optionsTest.stdin, readCloser)
 }
 
-
 var _ io.Writer = (*failingWriter)(nil)
-type failingWriter struct {
 
+type failingWriter struct {
 }
 
 func (failingWriter) Write(p []byte) (n int, err error) {
 	return 0, errors.Errorf("Error")
 }
 
-func Test_fmtFprintf_reportsWriteErrors(t *testing.T)  {
+func Test_fmtFprintf_reportsWriteErrors(t *testing.T) {
 	logger := logrus.New()
 	buffer := bytes.NewBuffer(nil)
 	logger.SetOutput(buffer)
@@ -126,21 +125,21 @@ func Test_fmtFprintf_reportsWriteErrors(t *testing.T)  {
 	assert.Contains(t, buffer.String(), "level=error")
 }
 
-func TestCommandFromArgs_failsOnWrongLogLevel(t *testing.T)  {
+func TestCommandFromArgs_failsOnWrongLogLevel(t *testing.T) {
 	opts := mainOptionsTestNew()
 	buffer := bytes.NewBuffer(nil)
 	opts.SetStdout(buffer)
 
 	addListCommand(opts.mainOptions, AddCommand)
 
-	_, _, exitCode := CommandFromArgs(opts.mainOptions, []string {"--log-level=panda", "list", "file"})
+	_, _, exitCode := CommandFromArgs(opts.mainOptions, []string{"--log-level=panda", "list", "file"})
 
 	assert.Equal(t, ExitInvalidParams, exitCode)
 	assert.Contains(t, buffer.String(), "level=error")
 	assert.Contains(t, buffer.String(), "Error parsing log-level")
 }
 
-func TestMainReportsAddingListCommandErrors(t *testing.T)  {
+func TestMainReportsAddingListCommandErrors(t *testing.T) {
 	org := AddCommand
 	defer func() {
 		AddCommand = org

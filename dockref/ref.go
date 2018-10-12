@@ -35,12 +35,12 @@ func FromOriginal(original string) (ref Reference, e error) {
 
 	ref = dockref{
 		original: original,
-		domain: domain,
+		domain:   domain,
 		name:     name,
 		tag:      tag,
 		digest:   dig,
-		path: path,
-		named: named,
+		path:     path,
+		named:    named,
 	}
 	return
 }

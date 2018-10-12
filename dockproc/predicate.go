@@ -212,7 +212,7 @@ type digestsPredicate struct {
 
 func (p digestsPredicate) Matches(ref dockref.Reference) bool {
 	for _, digest := range p.digests {
-		if digest == ref.DigestString() || "sha256:" + digest == ref.DigestString() {
+		if digest == ref.DigestString() || "sha256:"+digest == ref.DigestString() {
 			return true
 		}
 	}

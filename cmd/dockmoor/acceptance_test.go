@@ -31,7 +31,7 @@ func dockerfile(content string) (fileName string) {
 	return tmpfile.Name()
 }
 
-func mainOptionsACNew(commandAdders ...func(mainOptions *mainOptions, adder func (opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error)) *mainOptions {
+func mainOptionsACNew(commandAdders ...func(mainOptions *mainOptions, adder func(opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error)) *mainOptions {
 	mainOptions := mainOptionsNew()
 
 	mainOptions.SetStdout(bytes.NewBuffer(nil))

@@ -57,8 +57,13 @@ func TestUnpinnedPredicate(t *testing.T) {
 
 	predicate := UnpinnedPredicateNew()
 
-	shouldMatches := []string{"nginx", "nginx:latest", "nginx:1.15.2-alpine-perl",
-		"mongo:3.4.16-windowsservercore-ltsc2016"}
+	shouldMatches := []string{
+		"nginx",
+		"nginx:latest",
+		"nginx:1.15.2-alpine-perl",
+		"mongo:3.4.16-windowsservercore-ltsc2016",
+		"example.com/image-name:latest",
+	}
 
 	for _, original := range shouldMatches {
 		t.Run("Matches "+original, func(t *testing.T) {
@@ -69,7 +74,8 @@ func TestUnpinnedPredicate(t *testing.T) {
 		})
 	}
 
-	shouldNotMatches := []string{"d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
+	shouldNotMatches := []string{
+		"d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
 		"nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
 		"nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
 	}
@@ -169,12 +175,8 @@ func TestNamesPredicate(t *testing.T) {
 	shouldMatches := []string{
 		"nginx",
 		"docker.io/library/nginx",
-		"my.com/nginx",
+		"docker.io/mongo:3.4.16-windowsservercore-ltsc2016",
 		"mongo:3.4.16-windowsservercore-ltsc2016",
-		"my.com/nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
-		"my2.com/nginx:latest", "my.com/nginx:1.15.2-alpine-perl",
-		"my2.com/mongo:3.4.16-windowsservercore-ltsc2016",
-		"my.com/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
 	}
 
 	for _, original := range shouldMatches {
@@ -187,6 +189,53 @@ func TestNamesPredicate(t *testing.T) {
 	}
 
 	shouldNotMatches := []string{
+		"my.com/nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
+		"my2.com/nginx:latest", "my.com/nginx:1.15.2-alpine-perl",
+		"my2.com/mongo:3.4.16-windowsservercore-ltsc2016",
+		"my.com/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
+		"my.com/nginx",
+		"d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
+		"my3.org/d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
+	}
+
+	for _, original := range shouldNotMatches {
+		t.Run("Not matching "+original, func(t *testing.T) {
+			ref, e := dockref.FromOriginal(original)
+
+			assert.Nil(t, e)
+			assert.False(t, predicate.Matches(ref))
+		})
+	}
+
+}
+
+func TestFamiliarNamesPredicate(t *testing.T) {
+
+	predicate := FamiliarNamesPredicateNew([]string{"nginx", "mongo"})
+
+	shouldMatches := []string{
+		"nginx",
+		"docker.io/library/nginx",
+		"mongo:3.4.16-windowsservercore-ltsc2016",
+		"docker.io/library/mongo",
+		"docker.io/library/mongo:3.4.16-windowsservercore-ltsc2016",
+	}
+
+	for _, original := range shouldMatches {
+		t.Run("Matches "+original, func(t *testing.T) {
+			ref, e := dockref.FromOriginal(original)
+
+			assert.Nil(t, e)
+			assert.True(t, predicate.Matches(ref))
+		})
+	}
+
+	shouldNotMatches := []string{
+		"my.com/nginx",
+		"my.com/nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
+		"my2.com/nginx:latest", "my.com/nginx:1.15.2-alpine-perl",
+		"my2.com/mongo:3.4.16-windowsservercore-ltsc2016",
+		"my.com/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
 		"d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
 		"my3.org/d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
 	}
@@ -242,7 +291,6 @@ func TestTagsPredicate(t *testing.T) {
 	}
 
 }
-
 func TestDigestsPredicate(t *testing.T) {
 
 	predicate := DigestsPredicateNew([]string{
@@ -273,6 +321,50 @@ func TestDigestsPredicate(t *testing.T) {
 		"my.com/nginx:1.15.2-alpine-perl",
 		"mongo:3.4.16-windowsservercore-ltsc2016",
 		"my2.com/mongo:3.4.16-windowsservercore-ltsc2016",
+		// That's a name!
+		"my3.org/d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
+	}
+
+	for _, original := range shouldNotMatches {
+		t.Run("Not matching "+original, func(t *testing.T) {
+			ref, e := dockref.FromOriginal(original)
+
+			assert.Nil(t, e)
+			assert.False(t, predicate.Matches(ref))
+		})
+	}
+}
+
+func TestPathsPredicate(t *testing.T) {
+
+	predicate := PathsPredicateNew([]string{
+		"library/nginx",
+		"mongo",
+	})
+
+	shouldMatches := []string{
+		"nginx",
+		"docker.io/library/nginx",
+		"my2.com/mongo:3.4.16-windowsservercore-ltsc2016",
+	}
+
+	for _, original := range shouldMatches {
+		t.Run("Matches "+original, func(t *testing.T) {
+			ref, e := dockref.FromOriginal(original)
+
+			assert.Nil(t, e)
+			assert.True(t, predicate.Matches(ref))
+		})
+	}
+
+	shouldNotMatches := []string{
+		"d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
+		"my.com/nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
+		"my.com/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
+		"my.com/nginx",
+		"my2.com/nginx:latest",
+		"my.com/nginx:1.15.2-alpine-perl",
+		"mongo:3.4.16-windowsservercore-ltsc2016",
 		// That's a name!
 		"my3.org/d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
 	}

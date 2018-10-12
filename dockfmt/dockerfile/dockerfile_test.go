@@ -217,8 +217,8 @@ func TestProcessLogsReplacingReferences(t *testing.T) {
 }
 
 var _ io.Writer = (*failingWriter)(nil)
-type failingWriter struct {
 
+type failingWriter struct {
 }
 
 func (failingWriter) Write(p []byte) (n int, err error) {

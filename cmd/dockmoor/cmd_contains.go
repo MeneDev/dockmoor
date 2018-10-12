@@ -4,7 +4,7 @@ import (
 	"github.com/jessevdk/go-flags"
 )
 
-func addContainsCommand(mainOptions *mainOptions, adder func (opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error) {
+func addContainsCommand(mainOptions *mainOptions, adder func(opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error) {
 	var containsOptions MatchingOptions
 	containsOptions.mainOpts = mainOptions
 	containsOptions.mode = matchOnly

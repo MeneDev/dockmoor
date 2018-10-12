@@ -103,8 +103,7 @@ var osExitInternal = os.Exit
 
 func osExit(exitCode ExitCode) { osExitInternal(int(exitCode)) }
 
-
-var AddCommand = func (opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error) {
+var AddCommand = func(opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error) {
 	return opts.Parser().AddCommand(command, shortDescription, longDescription, data)
 }
 

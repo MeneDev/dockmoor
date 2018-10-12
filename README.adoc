@@ -1,5 +1,5 @@
 
-:branch: master
+:branch: develop
 
 == dockmoor
 image:https://img.shields.io/circleci/project/github/MeneDev/dockmoor/{branch}.svg[Build Status (Circle CI), link=https://circleci.com/gh/MeneDev/dockmoor]
@@ -26,7 +26,7 @@ List all image references in file
 
 [subs=+macros]
 ....
-dockmoor list --any https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[Dockerfile]
+dockmoor list https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[Dockerfile]
 ....
 
 stdout:
@@ -35,16 +35,16 @@ stdout:
 ....
 image-name
 image-name:latest
-image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
 image-name:1.12
-image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
 image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
-example.com/image-name
-example.com/image-name:latest
-example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+docker.io/library/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+docker.io/library/image-name
+docker.io/library/image-name:latest
 example.com/image-name:1.12
-example.com/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
 example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+example.com/other-image
+example.com/other-image:latest
 ....
 
 stderr is empty +
@@ -65,10 +65,11 @@ stdout:
 ....
 image-name
 image-name:latest
-image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
-example.com/image-name
-example.com/image-name:latest
+docker.io/library/image-name
+docker.io/library/image-name:latest
 example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+example.com/other-image
+example.com/other-image:latest
 ....
 
 stderr is empty +
@@ -90,9 +91,11 @@ stdout:
 image-name
 image-name:latest
 image-name:1.12
-example.com/image-name
-example.com/image-name:latest
+docker.io/library/image-name
+docker.io/library/image-name:latest
 example.com/image-name:1.12
+example.com/other-image
+example.com/other-image:latest
 ....
 
 stderr is empty +
@@ -145,7 +148,7 @@ Use unix find to list all image references
 
 [subs=+macros]
 ....
-find https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/[some-folder/] -type f -exec dockmoor list --any {} \; | sort | uniq
+find https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/[some-folder/] -type f -exec dockmoor list {} \; | sort | uniq
 ....
 
 stdout:
@@ -215,7 +218,7 @@ Use unix find to list all supported files
 
 [subs=+macros]
 ....
-find https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/[some-folder/] -type f -exec dockmoor contains --any {} \; -print
+find https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/[some-folder/] -type f -exec dockmoor contains {} \; -print
 ....
 
 stdout:
@@ -241,7 +244,7 @@ The `contains` command returns with exit code 0 when an image reference was foun
 
 [subs=+macros]
 ....
-dockmoor contains --any https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[Dockerfile]
+dockmoor contains https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[Dockerfile]
 ....
 
 stdout is empty +
@@ -250,7 +253,7 @@ exit code: 0
 
 [subs=+macros]
 ....
-dockmoor contains --any https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/NotADockerfile[some-folder/NotADockerfile]
+dockmoor contains https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/NotADockerfile[some-folder/NotADockerfile]
 ....
 
 stdout is empty +
@@ -279,18 +282,6 @@ Application Options
 
 *--version* Show version and exit
 
-*--manpage* Show man page and exit
-
-*--markdown* Show usage as markdown and exit
-
-*--asciidoc-usage* Show usage as asciidoc and exit
-
-[[_help_options]]
-Help Options
-------------
-
-*-h*, *--help* Show this help message
-
 [[_commands]]
 Commands
 ~~~~~~~~
@@ -308,23 +299,47 @@ ________________________________________________________
 
 Test if a file contains image references with matching predicates. Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions and is of valid format, non-null otherwise
 
-[[_predicates]]
-Predicates
-~~~~~~~~~~
+[[_domain_predicates]]
+Domain Predicates
+~~~~~~~~~~~~~~~~~
 
-Specify which kind of image references should be selected. Exactly one must be specified
+Limit matched image references depending on their domain
 
-*--any* Matches all images
+*--domain* Matches all images matching one of the specified domains
 
-*--latest* Matches images with latest or no tag
+[[_name_predicates]]
+Name Predicates
+~~~~~~~~~~~~~~~
 
-*--unpinned* Matches unpinned images
+Limit matched image references depending on their name
 
-[[_help_options_2]]
-Help Options
-~~~~~~~~~~~~
+*--name* Matches all images matching one of the specified names (e.g. "docker.io/library/nginx")
 
-*-h*, *--help* Show this help message
+*-f*, *--familiar-name* Matches all images matching one of the specified familiar names (e.g. "nginx")
+
+*--path* Matches all images matching one of the specified paths (e.g. "library/nginx")
+
+[[_tag_predicates]]
+Tag Predicates
+~~~~~~~~~~~~~~
+
+Limit matched image references depending on their tag
+
+*--untagged* Matches images with no tag
+
+*--latest* Matches images with latest or no tag. References with digest are only matched when explicit latest tag is present.
+
+*--tag* Matches all images matching one of the specified tag
+
+[[_digest_predicates]]
+Digest Predicates
+~~~~~~~~~~~~~~~~~
+
+Limit matched image references depending on their digest
+
+*--unpinned* Matches unpinned image references, i.e. image references without digest.
+
+*--digest* Matches all image references with one of the provided digests
 
 [[_list_command]]
 list command
@@ -336,21 +351,59 @@ ________________________________________________
 
 List image references with matching predicates. Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions and is of valid format, non-null otherwise
 
-[[_predicates_2]]
-Predicates
-~~~~~~~~~~
+[[_domain_predicates_2]]
+Domain Predicates
+~~~~~~~~~~~~~~~~~
 
-Specify which kind of image references should be selected. Exactly one must be specified
+Limit matched image references depending on their domain
 
-*--any* Matches all images
+*--domain* Matches all images matching one of the specified domains
 
-*--latest* Matches images with latest or no tag
+[[_name_predicates_2]]
+Name Predicates
+~~~~~~~~~~~~~~~
 
-*--unpinned* Matches unpinned images
+Limit matched image references depending on their name
 
-[[_help_options_3]]
-Help Options
-~~~~~~~~~~~~
+*--name* Matches all images matching one of the specified names (e.g. "docker.io/library/nginx")
 
-*-h*, *--help* Show this help message
+*-f*, *--familiar-name* Matches all images matching one of the specified familiar names (e.g. "nginx")
+
+*--path* Matches all images matching one of the specified paths (e.g. "library/nginx")
+
+[[_tag_predicates_2]]
+Tag Predicates
+~~~~~~~~~~~~~~
+
+Limit matched image references depending on their tag
+
+*--untagged* Matches images with no tag
+
+*--latest* Matches images with latest or no tag. References with digest are only matched when explicit latest tag is present.
+
+*--tag* Matches all images matching one of the specified tag
+
+[[_digest_predicates_2]]
+Digest Predicates
+~~~~~~~~~~~~~~~~~
+
+Limit matched image references depending on their digest
+
+*--unpinned* Matches unpinned image references, i.e. image references without digest.
+
+*--digest* Matches all image references with one of the provided digests
+
+[[_building_locally_and_contributing]]
+Building locally and Contributing
+---------------------------------
+
+Appreciated! See link:CONTRIBUTING.md[CONTRIBUTING] for details.
+
+[[_roadmap]]
+Roadmap
+-------
+
+Currently dockmoor is in a very eraly stage and under constant development.
+
+To get an idea where the journey will go, take a look at the link:ROADMAP.md[Roadmap]
 

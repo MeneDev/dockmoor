@@ -117,28 +117,72 @@ func (p namesPredicate) Matches(ref dockref.Reference) bool {
 	for _, v := range p.names {
 		ref2, _ := dockref.FromOriginal(v)
 
-		if ref.Domain() == "docker.io" && ref2.Domain() == "docker.io" {
-			if ref.Name() == ref2.Name() {
-				return true
-			}
-		} else {
-			// Ignore everything that is not considered the name,
-			// e.g. docker.io/library/ or the domain-name
-			fam1 := reference.FamiliarName(ref.Named())
-			fam2 := reference.FamiliarName(ref2.Named())
-
-			if ref.Path() == ref2.Path() ||
-				fam2 == ref.Path() ||
-				fam1 == ref2.Path() {
-				return true
-			}
+		if ref.Name() == ref2.Name() {
+			return true
 		}
 	}
+
 	return false
 }
 
 func NamesPredicateNew(names []string) Predicate {
 	return namesPredicate{names: names}
+}
+
+var _ Predicate = (*familiarNamesPredicate)(nil)
+
+type familiarNamesPredicate struct {
+	familiarNames []string
+}
+
+func (p familiarNamesPredicate) Matches(ref dockref.Reference) bool {
+	named := ref.Named()
+	if named == nil {
+		return false
+	}
+
+	fam1 := reference.FamiliarName(ref.Named())
+
+	for _, v := range p.familiarNames {
+		ref2, _ := dockref.FromOriginal(v)
+		fam2 := reference.FamiliarName(ref2.Named())
+
+		if fam1 == fam2 {
+			return true
+		}
+	}
+
+	return false
+}
+
+func FamiliarNamesPredicateNew(familiarNames []string) Predicate {
+	return familiarNamesPredicate{familiarNames: familiarNames}
+}
+
+var _ Predicate = (*pathsPredicate)(nil)
+
+type pathsPredicate struct {
+	paths []string
+}
+
+func (p pathsPredicate) Matches(ref dockref.Reference) bool {
+	named := ref.Named()
+	if named == nil {
+		return false
+	}
+
+	path := reference.Path(named)
+	for _, v := range p.paths {
+		if path == v {
+			return true
+		}
+	}
+
+	return false
+}
+
+func PathsPredicateNew(paths []string) Predicate {
+	return pathsPredicate{paths: paths}
 }
 
 var _ Predicate = (*tagsPredicate)(nil)

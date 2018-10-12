@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"io"
-	"strings"
 )
 
 type MatchingMode int
@@ -19,60 +18,112 @@ const (
 	matchAndPrint MatchingMode = iota
 )
 
+const (
+	domainPred       = "domain"
+	namePred         = "name"
+	pathPred         = "path"
+	familiarNamePred = "familiar-name"
 
-var domainPredicateNames = []string{"domains"}
-var namePredicateNames = []string{"names"}
-var tagPredicateNames = []string{"latest", "outdated", "untagged", "tags"}
-var digestPredicateNames = []string{"digests", "unpinned"}
+	latestPred   = "latest"
+	outdatedPred = "outdated"
+	untaggedPred = "untagged"
+	tagPred      = "tag"
+
+	digestsPred  = "digest"
+	unpinnedPred = "unpinned"
+)
+
+var namePredicateNames = []string{domainPred, namePred, pathPred, familiarNamePred}
+var tagPredicateNames = []string{latestPred, outdatedPred, untaggedPred, tagPred}
+var digestPredicateNames = []string{digestsPred, unpinnedPred}
 
 var predicateGroups = map[string][]string{
-	"domain": domainPredicateNames,
-	"name": namePredicateNames,
-	"tag": tagPredicateNames,
+	"name":   namePredicateNames,
+	"tag":    tagPredicateNames,
 	"digest": digestPredicateNames,
 }
 
 var predicateNames = append(
 	append(
-		append(
-			domainPredicateNames,
-			namePredicateNames...),
+		namePredicateNames,
 		tagPredicateNames...),
 	digestPredicateNames...)
 
-var (
-	ErrAtMostOneDomainPredicate = errors.Errorf("Provide at most one of --" + strings.Join(domainPredicateNames, ", --"))
-	ErrAtMostOneNamePredicate = errors.Errorf("Provide at most one of --" + strings.Join(namePredicateNames, ", --"))
-	ErrAtMostOneTagPredicate = errors.Errorf("Provide at most one of --" + strings.Join(tagPredicateNames, ", --"))
-	ErrAtMostOneDigestPredicate = errors.Errorf("Provide at most one of --" + strings.Join(digestPredicateNames, ", --"))
-)
+func indexOf(item string, slice []string) int {
+	for i, v := range slice {
+		if v == item {
+			return i
+		}
+	}
+	return -1
+}
 
-var ErrAtMostOnePredicate = map[string]error {
-	"domain": ErrAtMostOneDomainPredicate,
-	"name": ErrAtMostOneNamePredicate,
-	"tag": ErrAtMostOneTagPredicate,
-	"digest": ErrAtMostOneDigestPredicate,
+func without(item string, slice []string) []string {
+	strings, _ := withoutErr(item, slice)
+	return strings
+}
+
+func withoutErr(item string, slice []string) ([]string, error) {
+	idx := indexOf(item, slice)
+	if idx < 0 {
+		return slice, errors.Errorf("Cannot find item '%s' in slice", item)
+	}
+	wo := make([]string, 0)
+	wo = append(wo, slice[:idx]...)
+	wo = append(wo, slice[idx+1:]...)
+
+	return wo, nil
+}
+
+var exclusives = map[string][]string{
+	domainPred: {
+		namePred, familiarNamePred,
+	},
+	namePred: {
+		domainPred, pathPred, familiarNamePred,
+	},
+	familiarNamePred: {
+		domainPred, pathPred, namePred,
+	},
+	pathPred: {
+		namePred, familiarNamePred,
+	},
+	latestPred:   without(latestPred, tagPredicateNames),
+	outdatedPred: without(outdatedPred, tagPredicateNames),
+	untaggedPred: without(untaggedPred, tagPredicateNames),
+	tagPred:      without(tagPred, tagPredicateNames),
+
+	digestsPred:  without(digestsPred, digestPredicateNames),
+	unpinnedPred: without(unpinnedPred, digestPredicateNames),
+}
+
+var unimplemented = []string{outdatedPred}
+
+func errorFor(a, b string) error {
+	return errors.Errorf("Cannot combine --%s and --%s", a, b)
 }
 
 type MatchingOptions struct {
 	DomainPredicates struct {
-		Domains []string `required:"no" long:"domain" description:"Matches all images matching one of the specified domains" hidden:"true"`
+		Domains []string `required:"no" long:"domain" description:"Matches all images matching one of the specified domains"`
 	} `group:"Domain Predicates" description:"Limit matched image references depending on their domain"`
 
 	NamePredicates struct {
-		Names []string `required:"no" long:"name" description:"Matches all images matching one of the specified names" hidden:"true"`
+		Names         []string `required:"no" long:"name" description:"Matches all images matching one of the specified names (e.g. \"docker.io/library/nginx\")"`
+		FamiliarNames []string `required:"no" long:"familiar-name" short:"f" description:"Matches all images matching one of the specified familiar names (e.g. \"nginx\")"`
+		Paths         []string `required:"no" long:"path" description:"Matches all images matching one of the specified paths (e.g. \"library/nginx\")"`
 	} `group:"Name Predicates" description:"Limit matched image references depending on their name"`
 
 	TagPredicates struct {
 		Untagged bool     `required:"no" long:"untagged" description:"Matches images with no tag"`
-		Latest   bool     `required:"no" long:"latest" description:"Matches images with latest or no tag"`
+		Latest   bool     `required:"no" long:"latest" description:"Matches images with latest or no tag. References with digest are only matched when explicit latest tag is present."`
 		Outdated bool     `required:"no" long:"outdated" description:"Matches all images with newer versions available" hidden:"true"`
-		Tags     []string `required:"no" long:"tag" description:"Matches all images matching one of the specified tags" hidden:"true"`
+		Tags     []string `required:"no" long:"tag" description:"Matches all images matching one of the specified tag"`
 	} `group:"Tag Predicates" description:"Limit matched image references depending on their tag"`
 
 	DigestPredicates struct {
-		Unpinned bool     `required:"no" long:"unpinned" description:"Matches unpinned images"`
-		Digests  []string `required:"no" long:"digest" description:"Matches all digests matching one of the specified digests" hidden:"true"`
+		Unpinned bool     `required:"no" long:"unpinned" description:"Matches unpinned image references, i.e. image references without digest."`
+		Digests  []string `required:"no" long:"digest" description:"Matches all image references with one of the provided digests"`
 	} `group:"Digest Predicates" description:"Limit matched image references depending on their digest"`
 
 	Positional struct {
@@ -99,81 +150,60 @@ type GroupCount struct {
 	countDomain, countName, countTag, countDigest int
 }
 
-func calculateCounts(fo *MatchingOptions) GroupCount {
-	setDomain := calculateDomainCounts(fo)
-	setName := calculateNameCounts(fo)
-	setTag := calculateTagCounts(fo)
-	setDigest := calculateDigestCounts(fo)
-	count := GroupCount{countDomain: setDomain, countName: setName, countTag: setTag, countDigest: setDigest}
-	return count
+func (mopts *MatchingOptions) isSetPredicateByName(name string) bool {
+	switch name {
+	case domainPred:
+		return mopts.DomainPredicates.Domains != nil
+	case namePred:
+		return mopts.NamePredicates.Names != nil
+	case pathPred:
+		return mopts.NamePredicates.Paths != nil
+	case familiarNamePred:
+		return mopts.NamePredicates.FamiliarNames != nil
+	case latestPred:
+		return mopts.TagPredicates.Latest
+	case outdatedPred:
+		return mopts.TagPredicates.Outdated
+	case untaggedPred:
+		return mopts.TagPredicates.Untagged
+	case tagPred:
+		return mopts.TagPredicates.Tags != nil
+	case digestsPred:
+		return mopts.DigestPredicates.Digests != nil
+	case unpinnedPred:
+		return mopts.DigestPredicates.Unpinned
+	}
+
+	panic(fmt.Sprintf("Unknown predicate name %s", name))
 }
 
-func calculateDomainCounts(options *MatchingOptions) (count int) {
-	if options.DomainPredicates.Domains != nil {
-		count++
-	}
-	return
-}
+func verifyMatchOptions(mo *MatchingOptions) error {
 
-func calculateNameCounts(options *MatchingOptions) (count int) {
-	if options.NamePredicates.Names != nil {
-		count++
-	}
-	return
-}
+	var err error
 
-func calculateTagCounts(options *MatchingOptions) (count int) {
-	if options.TagPredicates.Tags != nil {
-		count++
-	}
-	if options.TagPredicates.Untagged {
-		count++
-	}
-	if options.TagPredicates.Outdated {
-		count++
-	}
-	if options.TagPredicates.Latest {
-		count++
-	}
-	return
-}
+	for i1, p1 := range predicateNames {
+		if !mo.isSetPredicateByName(p1) {
+			continue
+		}
 
-func calculateDigestCounts(options *MatchingOptions) (count int) {
-	if options.DigestPredicates.Digests != nil {
-		count++
-	}
-	if options.DigestPredicates.Unpinned {
-		count++
-	}
-	return
-}
+		for i2, p2 := range predicateNames {
+			if i1 >= i2 {
+				continue
+			}
 
-func verifyMatchOptionsAtMostOnePredicatePerGroup(fo *MatchingOptions) error {
+			if !mo.isSetPredicateByName(p2) {
+				continue
+			}
 
-	counts := calculateCounts(fo)
+			strings := exclusives[p1]
+			idx := indexOf(p2, strings)
 
-	// domain and name cannot have more than one predicate set
-	// as there is only one
-
-	//if counts.countDomain > 1 {
-	//	return ErrAtMostOneDomainPredicate
-	//}
-	//if counts.countName > 1 {
-	//	return ErrAtMostOneNamePredicate
-	//}
-
-	if counts.countTag > 1 {
-		return ErrAtMostOneTagPredicate
-	}
-	if counts.countDigest > 1 {
-		return ErrAtMostOneDigestPredicate
+			if idx >= 0 {
+				err = multierror.Append(err, errorFor(p1, p2))
+			}
+		}
 	}
 
-	return nil
-}
-
-func verifyMatchOptions(fo *MatchingOptions) error {
-	err := verifyMatchOptionsAtMostOnePredicatePerGroup(fo)
 	return err
 }
 
@@ -205,15 +235,15 @@ func (mopts *MatchingOptions) ExecuteWithExitCode(args []string) (ExitCode, erro
 	return exitCode, result.ErrorOrNil()
 }
 
-var latestPredicateFactory = func () dockproc.Predicate {
+var latestPredicateFactory = func() dockproc.Predicate {
 	return dockproc.LatestPredicateNew()
 }
 
-var latestUnpinnedFactory = func () dockproc.Predicate {
+var latestUnpinnedFactory = func() dockproc.Predicate {
 	return dockproc.UnpinnedPredicateNew()
 }
 
-var anyPredicateFactory = func () dockproc.Predicate {
+var anyPredicateFactory = func() dockproc.Predicate {
 	return dockproc.AnyPredicateNew()
 }
 
@@ -223,6 +253,13 @@ var domainsPredicateFactory = func(domains []string) dockproc.Predicate {
 var namePredicateFactory = func(names []string) dockproc.Predicate {
 	return dockproc.NamesPredicateNew(names)
 }
+var familiarNamePredicateFactory = func(familiarNames []string) dockproc.Predicate {
+	return dockproc.FamiliarNamesPredicateNew(familiarNames)
+}
+var pathsPredicateFactory = func(paths []string) dockproc.Predicate {
+	return dockproc.PathsPredicateNew(paths)
+}
+
 //var outdatedPredicateFactory = func() dockproc.Predicate {
 //	return dockproc.OutdatedPredicateNew()
 //}
@@ -250,6 +287,16 @@ func (mopts *MatchingOptions) getPredicate() dockproc.Predicate {
 
 	if mopts.NamePredicates.Names != nil {
 		p := namePredicateFactory(mopts.NamePredicates.Names)
+		predicates = append(predicates, p)
+	}
+
+	if mopts.NamePredicates.FamiliarNames != nil {
+		p := familiarNamePredicateFactory(mopts.NamePredicates.FamiliarNames)
+		predicates = append(predicates, p)
+	}
+
+	if mopts.NamePredicates.Paths != nil {
+		p := pathsPredicateFactory(mopts.NamePredicates.Paths)
 		predicates = append(predicates, p)
 	}
 

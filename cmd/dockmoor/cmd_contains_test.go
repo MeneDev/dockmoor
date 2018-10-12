@@ -215,8 +215,9 @@ func TestContainsHelpContainsImplementedPredicates(t *testing.T) {
 	mainOptions.SetStdout(buffer)
 	exitCode := doMain(mainOptions)
 
-	assert.Contains(t, buffer.String(), "--latest")
-	assert.Contains(t, buffer.String(), "--unpinned")
+	for _, name := range predicateNames {
+		assert.Contains(t, buffer.String(), "--"+name)
+	}
 
 	assert.Equal(t, ExitSuccess, exitCode)
 }

@@ -1,5 +1,5 @@
 
-:branch: develop
+:branch: master
 
 == dockmoor
 image:https://img.shields.io/circleci/project/github/MeneDev/dockmoor/{branch}.svg[Build Status (Circle CI), link=https://circleci.com/gh/MeneDev/dockmoor]
@@ -9,6 +9,20 @@ image:https://img.shields.io/github/release/MeneDev/dockmoor.svg["GitHub release
 image:https://img.shields.io/twitter/follow/MeneDev.svg?style=social&label=%40MeneDev[Follow @MeneDev on Twitter, link=https://twitter.com/MeneDev]
 
 Manage docker image references.
+
+== Features
+
+*Implemented*
+
+* find Dockerfiles
+* list image references
+* filter by various predicates, e.g. only untagged or `latest`
+
+*Upcomming*
+
+* Pin used image references to currently used version to make builds reproducible
+* Find outdated image references
+* Update to newer major, minor or patch version respecting SemVer
 
 [[_examples]]
 Examples
@@ -205,10 +219,10 @@ stdout:
 
 [subs=+macros]
 ....
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
 ....
 
 stderr is empty +
@@ -227,9 +241,9 @@ stdout:
 
 [subs=+macros]
 ....
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
 ....
 
 stderr is empty +
@@ -248,12 +262,12 @@ stdout:
 
 [subs=+macros]
 ....
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-digest[some-folder/Dockerfile-nginx-digest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-tagged-digest[some-folder/Dockerfile-nginx-tagged-digest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-digest[some-folder/Dockerfile-nginx-digest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 ....
 
 stderr is empty +
@@ -301,7 +315,7 @@ ________________________________________________________________________________
 Application Options
 -------------------
 
-*-l*, *--log-level* Sets the log-level (one of `NONE`, `ERROR`, `WARN`, `INFO`, `DEBUG`)
+**-l**, *--log-level* Sets the log-level (one of `NONE`, `ERROR`, `WARN`, `INFO`, `DEBUG`)
 
 *--version* Show version and exit
 
@@ -338,7 +352,7 @@ Limit matched image references depending on their name
 
 *--name* Matches all images matching one of the specified names (e.g. "docker.io/library/nginx")
 
-*-f*, *--familiar-name* Matches all images matching one of the specified familiar names (e.g. "nginx")
+**-f**, *--familiar-name* Matches all images matching one of the specified familiar names (e.g. "nginx")
 
 *--path* Matches all images matching one of the specified paths (e.g. "library/nginx")
 
@@ -390,7 +404,7 @@ Limit matched image references depending on their name
 
 *--name* Matches all images matching one of the specified names (e.g. "docker.io/library/nginx")
 
-*-f*, *--familiar-name* Matches all images matching one of the specified familiar names (e.g. "nginx")
+**-f**, *--familiar-name* Matches all images matching one of the specified familiar names (e.g. "nginx")
 
 *--path* Matches all images matching one of the specified paths (e.g. "library/nginx")
 

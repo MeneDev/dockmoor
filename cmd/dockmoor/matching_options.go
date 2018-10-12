@@ -56,13 +56,13 @@ func deliberatelyUnhandled(err error) {
 	// noop
 }
 
-func without(item string, slice []string) []string {
-	strings, err := withoutErr(item, slice)
+func withoutNoError(item string, slice []string) []string {
+	strings, err := without(item, slice)
 	deliberatelyUnhandled(err)
 	return strings
 }
 
-func withoutErr(item string, slice []string) ([]string, error) {
+func without(item string, slice []string) ([]string, error) {
 	idx := indexOf(item, slice)
 	if idx < 0 {
 		return slice, errors.Errorf("Cannot find item '%s' in slice", item)
@@ -87,13 +87,13 @@ var exclusives = map[string][]string{
 	pathPred: {
 		namePred, familiarNamePred,
 	},
-	latestPred:   without(latestPred, tagPredicateNames),
-	outdatedPred: without(outdatedPred, tagPredicateNames),
-	untaggedPred: without(untaggedPred, tagPredicateNames),
-	tagPred:      without(tagPred, tagPredicateNames),
+	latestPred:   withoutNoError(latestPred, tagPredicateNames),
+	outdatedPred: withoutNoError(outdatedPred, tagPredicateNames),
+	untaggedPred: withoutNoError(untaggedPred, tagPredicateNames),
+	tagPred:      withoutNoError(tagPred, tagPredicateNames),
 
-	digestsPred:  without(digestsPred, digestPredicateNames),
-	unpinnedPred: without(unpinnedPred, digestPredicateNames),
+	digestsPred:  withoutNoError(digestsPred, digestPredicateNames),
+	unpinnedPred: withoutNoError(unpinnedPred, digestPredicateNames),
 }
 
 func errorFor(a, b string) error {

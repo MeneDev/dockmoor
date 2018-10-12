@@ -1,6 +1,7 @@
 package dockref
 
 import (
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -129,4 +130,16 @@ func TestDockref_Named(t *testing.T) {
 		assert.Nil(t, e)
 		assert.Nil(t, ref.Named())
 	})
+}
+
+func TestFromOriginalNoError(t *testing.T) {
+	reference := FromOriginalNoError("nginx")
+	assert.NotNil(t, reference)
+}
+
+func TestDeliberatelyUnsued(t *testing.T)  {
+	deliberatelyUnsued(errors.New("error"))
+	deliberatelyUnsued(nil)
+	// didn't crash
+	assert.True(t, true)
 }

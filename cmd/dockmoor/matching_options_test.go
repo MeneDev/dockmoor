@@ -81,7 +81,7 @@ func TestAllPredicateNamesAreRecognizedByParser(t *testing.T) {
 				longName := opt.LongName
 
 				var err error
-				optsToCheck, err = withoutErr(longName, optsToCheck)
+				optsToCheck, err = without(longName, optsToCheck)
 				assert.Nil(t, err)
 			}
 		}

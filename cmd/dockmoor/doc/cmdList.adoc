@@ -2,6 +2,24 @@
 === list command
 The single file examples all refer to https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[a multi-stage build Dockerfile]
 
+==== List all image references with latest or no tag from a specific domain in file
+
+You can use multiple predicates to filter the matching image references.
+In this example the `domain` predicate is used together wih the `latest` predicate.
+Predicates are connected to a `conjunction`: all predicates must match.
+
+[subs=+macros]
+----
+include::../end-to-end/test.sh[tag=listDomainWithLatestInFile,indent=0]
+----
+stdout:
+----
+include::../end-to-end/results/listDomainWithLatestInFile.stdout[indent=0]
+----
+stderr is empty +
+exit code:
+include::../end-to-end/results/listDomainWithLatestInFile.exitCode[]
+
 ==== List all image references in file
 
 [subs=+macros]

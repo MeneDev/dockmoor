@@ -20,6 +20,29 @@ list command
 
 The single file examples all refer to https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[a multi-stage build Dockerfile]
 
+[[_list_all_image_references_with_latest_or_no_tag_from_a_specific_domain_in_file]]
+List all image references with latest or no tag from a specific domain in file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can use multiple predicates to filter the matching image references. In this example the `domain` predicate is used together wih the `latest` predicate. Predicates are connected to a `conjunction`: all predicates must match.
+
+[subs=+macros]
+....
+dockmoor list --domain=example.com --latest https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[Dockerfile]
+....
+
+stdout:
+
+[subs=+macros]
+....
+example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+example.com/other-image
+example.com/other-image:latest
+....
+
+stderr is empty +
+exit code: 0
+
 [[_list_all_image_references_in_file]]
 List all image references in file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

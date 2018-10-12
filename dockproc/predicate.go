@@ -115,7 +115,7 @@ func (p namesPredicate) Matches(ref dockref.Reference) bool {
 	}
 
 	for _, v := range p.names {
-		ref2, _ := dockref.FromOriginal(v)
+		ref2 := dockref.FromOriginalNoError(v)
 
 		if ref.Name() == ref2.Name() {
 			return true
@@ -144,7 +144,7 @@ func (p familiarNamesPredicate) Matches(ref dockref.Reference) bool {
 	fam1 := reference.FamiliarName(ref.Named())
 
 	for _, v := range p.familiarNames {
-		ref2, _ := dockref.FromOriginal(v)
+		ref2 := dockref.FromOriginalNoError(v)
 		fam2 := reference.FamiliarName(ref2.Named())
 
 		if fam1 == fam2 {

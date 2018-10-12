@@ -103,28 +103,6 @@ func TestSinglePredicatesIsValid(t *testing.T) {
 	}
 }
 
-func TestOnePredicateCanBeCombinedWithOneFromOtherGroup(t *testing.T) {
-	for iGroupA, groupA := range predicateGroups {
-		for iGroupB, groupB := range predicateGroups {
-			if iGroupA == iGroupB {
-				continue
-			}
-			for _, a := range groupA {
-				for _, b := range groupB {
-
-					t.Run(fmt.Sprintf("%s and %s", a, b), func(t *testing.T) {
-						fo := &MatchingOptions{}
-						applyPredicatesByName(fo, a, b)
-
-						err := verifyMatchOptions(fo)
-						assert.Nil(t, err)
-					})
-				}
-			}
-		}
-	}
-}
-
 func TestMultipleFromSameGroupFail(t *testing.T) {
 
 	for i1, p1 := range predicateNames {
@@ -353,6 +331,8 @@ func TestAndPredicateWhenUnpinnedAndLatestSet(t *testing.T) {
 
 	assert.Equal(t, 2, matches)
 }
+
+var unimplemented = []string{outdatedPred}
 
 func TestHelpContainsImplementedPredicates(t *testing.T) {
 

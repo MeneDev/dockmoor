@@ -150,10 +150,9 @@ func TestMainReportsAddingListCommandErrors(t *testing.T) {
 	}
 
 	args := []string{"exe"}
-	exitCodeSet := false
 	oldOsExit := osExitInternal
 	osExitInternal = func(code int) {
-		exitCodeSet = true
+		// don't actually exit
 	}
 
 	oldStdout := osStdout

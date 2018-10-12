@@ -80,37 +80,6 @@ func TestListHelpIsNotAnError(t *testing.T) {
 	assert.Equal(t, ExitSuccess, exitCode)
 }
 
-func TestListHelpContainsImplementedPredicates(t *testing.T) {
-
-	os.Args = []string{"exe", "list", "--help"}
-
-	mainOptions := mainOptionsACNew(addListCommand)
-	buffer := bytes.NewBuffer(nil)
-	mainOptions.SetStdout(buffer)
-	exitCode := doMain(mainOptions)
-
-	assert.Contains(t, buffer.String(), "--latest")
-	assert.Contains(t, buffer.String(), "--unpinned")
-
-	assert.Equal(t, ExitSuccess, exitCode)
-}
-
-func TestListHelpHidesUnimplementedPredicates(t *testing.T) {
-
-	os.Args = []string{"exe", "list", "--help"}
-
-	mainOptions := mainOptionsACNew(addListCommand)
-	buffer := bytes.NewBuffer(nil)
-	mainOptions.SetStdout(buffer)
-	exitCode := doMain(mainOptions)
-
-	assert.NotContains(t, buffer.String(), "--outdated")
-	assert.NotContains(t, buffer.String(), "--name")
-	assert.NotContains(t, buffer.String(), "--domain")
-
-	assert.Equal(t, ExitSuccess, exitCode)
-}
-
 var _ dockfmt.FormatProcessor = (*FormatProcessorMock)(nil)
 
 type FormatProcessorMock struct {

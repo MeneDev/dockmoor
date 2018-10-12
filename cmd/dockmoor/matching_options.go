@@ -37,12 +37,6 @@ var namePredicateNames = []string{domainPred, namePred, pathPred, familiarNamePr
 var tagPredicateNames = []string{latestPred, outdatedPred, untaggedPred, tagPred}
 var digestPredicateNames = []string{digestsPred, unpinnedPred}
 
-var predicateGroups = map[string][]string{
-	"name":   namePredicateNames,
-	"tag":    tagPredicateNames,
-	"digest": digestPredicateNames,
-}
-
 var predicateNames = append(
 	append(
 		namePredicateNames,
@@ -58,8 +52,13 @@ func indexOf(item string, slice []string) int {
 	return -1
 }
 
+func deliberatelyUnhandled(err error) {
+	// noop
+}
+
 func without(item string, slice []string) []string {
-	strings, _ := withoutErr(item, slice)
+	strings, err := withoutErr(item, slice)
+	deliberatelyUnhandled(err)
 	return strings
 }
 
@@ -96,8 +95,6 @@ var exclusives = map[string][]string{
 	digestsPred:  without(digestsPred, digestPredicateNames),
 	unpinnedPred: without(unpinnedPred, digestPredicateNames),
 }
-
-var unimplemented = []string{outdatedPred}
 
 func errorFor(a, b string) error {
 	return errors.Errorf("Cannot combine --%s and --%s", a, b)
@@ -144,10 +141,6 @@ func (mopts *MatchingOptions) Log() *logrus.Logger {
 
 func (mopts *MatchingOptions) Stdout() io.Writer {
 	return mopts.mainOptions().stdout
-}
-
-type GroupCount struct {
-	countDomain, countName, countTag, countDigest int
 }
 
 func (mopts *MatchingOptions) isSetPredicateByName(name string) bool {
@@ -216,21 +209,22 @@ func (mopts *MatchingOptions) ExecuteWithExitCode(args []string) (ExitCode, erro
 
 	errVerify := verifyMatchOptions(mopts)
 	if errVerify != nil {
+		result = multierror.Append(result, errVerify)
 		mopts.Log().Errorf("Invalid options: %s\n", errVerify.Error())
 
 		parser := flags.NewParser(&struct{}{}, flags.HelpFlag)
 		command, err := addContainsCommand(mopts.mainOpts, AddCommand)
-		result = multierror.Append(err, err)
+		result = multierror.Append(result, err)
 
 		_, err = parser.ParseArgs([]string{command.Name, "--help"})
-		result = multierror.Append(err, err)
+		result = multierror.Append(result, err)
 
 		parser.WriteHelp(mopts.mainOpts.stdout)
-		return ExitInvalidParams, errVerify
+		return ExitInvalidParams, result.ErrorOrNil()
 	}
 
 	exitCode, err := mopts.match()
-	result = multierror.Append(err, err)
+	result = multierror.Append(result, err)
 
 	return exitCode, result.ErrorOrNil()
 }
@@ -383,6 +377,10 @@ func (mopts *MatchingOptions) matchFormatProcessor(formatProcessor dockfmt.Forma
 
 	predicate := mopts.getPredicate()
 	accumulator, err := dockproc.MatchesAccumulatorNew(predicate, log, mopts.Stdout())
+
+	if err != nil {
+		return ExitUnknownError, err
+	}
 
 	errAcc := accumulator.Accumulate(formatProcessor)
 	if errAcc != nil {

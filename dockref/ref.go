@@ -6,6 +6,19 @@ import (
 	"github.com/opencontainers/go-digest"
 )
 
+func deliberatelyUnsued(err error) {
+	// noop
+}
+
+// FromOriginalNoError same functionallity as FromOriginal, but hides errors.
+// Use this function only when you know that the input cannot have an error
+func FromOriginalNoError(original string) Reference {
+	ref, e := FromOriginal(original)
+	deliberatelyUnsued(e)
+
+	return ref
+}
+
 func FromOriginal(original string) (ref Reference, e error) {
 	r, e := reference.ParseAnyReference(original)
 	if e != nil {

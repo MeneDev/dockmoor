@@ -206,38 +206,6 @@ func TestContainsHelpIsNotAnError(t *testing.T) {
 	assert.Equal(t, ExitSuccess, exitCode)
 }
 
-func TestContainsHelpContainsImplementedPredicates(t *testing.T) {
-
-	os.Args = []string{"exe", "contains", "--help"}
-
-	mainOptions := mainOptionsACNew(addContainsCommand)
-	buffer := bytes.NewBuffer(nil)
-	mainOptions.SetStdout(buffer)
-	exitCode := doMain(mainOptions)
-
-	for _, name := range predicateNames {
-		assert.Contains(t, buffer.String(), "--"+name)
-	}
-
-	assert.Equal(t, ExitSuccess, exitCode)
-}
-
-func TestFindHelpHidesUnimplementedPredicates(t *testing.T) {
-
-	os.Args = []string{"exe", "contains", "--help"}
-
-	mainOptions := mainOptionsACNew(addContainsCommand)
-	buffer := bytes.NewBuffer(nil)
-	mainOptions.SetStdout(buffer)
-	exitCode := doMain(mainOptions)
-
-	assert.NotContains(t, buffer.String(), "--outdated")
-	assert.NotContains(t, buffer.String(), "--name")
-	assert.NotContains(t, buffer.String(), "--domain")
-
-	assert.Equal(t, ExitSuccess, exitCode)
-}
-
 func TestContainsCommandDoesntPrint(t *testing.T) {
 	test := containsOptionsTestNew()
 	stdout := test.MainOptions().Stdout()

@@ -3,6 +3,8 @@ package dockproc
 import (
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/docker/distribution/reference"
+	"regexp"
+	"strings"
 )
 
 type Predicate interface {
@@ -91,7 +93,11 @@ type domainsPredicate struct {
 
 func (p domainsPredicate) Matches(ref dockref.Reference) bool {
 	for _, v := range p.domains {
-		if v == ref.Domain() {
+		if isRegex(v) {
+			if RegExpMatches(v, ref.Domain()) {
+				return true
+			}
+		} else if v == ref.Domain() {
 			return true
 		}
 	}
@@ -117,7 +123,11 @@ func (p namesPredicate) Matches(ref dockref.Reference) bool {
 	for _, v := range p.names {
 		ref2 := dockref.FromOriginalNoError(v)
 
-		if ref.Name() == ref2.Name() {
+		if isRegex(v) {
+			if RegExpMatches(v, ref.Name()) {
+				return true
+			}
+		} else if ref.Name() == ref2.Name() {
 			return true
 		}
 	}
@@ -144,11 +154,18 @@ func (p familiarNamesPredicate) Matches(ref dockref.Reference) bool {
 	fam1 := reference.FamiliarName(ref.Named())
 
 	for _, v := range p.familiarNames {
-		ref2 := dockref.FromOriginalNoError(v)
-		fam2 := reference.FamiliarName(ref2.Named())
 
-		if fam1 == fam2 {
-			return true
+		if isRegex(v) {
+			if RegExpMatches(v, fam1) {
+				return true
+			}
+		} else {
+			ref2 := dockref.FromOriginalNoError(v)
+			fam2 := reference.FamiliarName(ref2.Named())
+
+			if fam1 == fam2 {
+				return true
+			}
 		}
 	}
 
@@ -173,7 +190,11 @@ func (p pathsPredicate) Matches(ref dockref.Reference) bool {
 
 	path := reference.Path(named)
 	for _, v := range p.paths {
-		if path == v {
+		if isRegex(v) {
+			if RegExpMatches(v, path) {
+				return true
+			}
+		} else if path == v {
 			return true
 		}
 	}
@@ -193,7 +214,11 @@ type tagsPredicate struct {
 
 func (p tagsPredicate) Matches(ref dockref.Reference) bool {
 	for _, tag := range p.tags {
-		if tag == ref.Tag() {
+		if isRegex(tag) {
+			if RegExpMatches(tag, ref.Tag()) {
+				return true
+			}
+		} else if tag == ref.Tag() {
 			return true
 		}
 	}
@@ -249,4 +274,19 @@ func (a andPredicate) Matches(ref dockref.Reference) bool {
 
 func AndPredicateNew(predicates []Predicate) Predicate {
 	return andPredicate{predicates: predicates}
+}
+
+func isRegex(pattern string) bool {
+	if strings.HasPrefix(pattern, "/") && strings.HasSuffix(pattern, "/") {
+		return true
+	}
+	return false
+}
+
+func RegExpMatches(pattern string, ref string) bool {
+	matched, err := regexp.MatchString(pattern[1: len(pattern) - 1], ref)
+	if err != nil {
+		return false
+	}
+	return matched
 }

@@ -20,4 +20,4 @@ Manage docker image references.
 * Pin used image references to currently used version to make builds reproducible
 * Find outdated image references
 * Update to newer major, minor or patch version respecting SemVer
-
+* Other formats: docker-compose, GitLab CI, Circle CI, Travis CI, ...

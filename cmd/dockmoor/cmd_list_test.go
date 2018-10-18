@@ -111,7 +111,7 @@ func TestListCommandPrints(t *testing.T) {
 		return nil
 	}
 
-	test.matchFormatProcessor(processorMock)
+	test.matchAndProcessFormatProcessor(processorMock)
 
 	s := stdout.String()
 	assert.Contains(t, s, "nginx")

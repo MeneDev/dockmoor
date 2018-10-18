@@ -223,7 +223,7 @@ func (mopts *MatchingOptions) ExecuteWithExitCode(args []string) (ExitCode, erro
 		return ExitInvalidParams, result.ErrorOrNil()
 	}
 
-	exitCode, err := mopts.match()
+	exitCode, err := mopts.matchAndProcess()
 	result = multierror.Append(result, err)
 
 	return exitCode, result.ErrorOrNil()
@@ -347,7 +347,7 @@ func saveClose(log *logrus.Logger, readCloser io.Closer) {
 	}
 }
 
-func (mopts *MatchingOptions) match() (exitCode ExitCode, err error) {
+func (mopts *MatchingOptions) matchAndProcess() (exitCode ExitCode, err error) {
 	log := mopts.Log()
 
 	filePathInput := string(mopts.Positional.InputFile)
@@ -368,11 +368,11 @@ func (mopts *MatchingOptions) match() (exitCode ExitCode, err error) {
 	}
 
 	formatProcessor := dockfmt.FormatProcessorNew(fileFormat, log, fpInput)
-	exitCode, err = mopts.matchFormatProcessor(formatProcessor)
+	exitCode, err = mopts.matchAndProcessFormatProcessor(formatProcessor)
 	return
 }
 
-func (mopts *MatchingOptions) matchFormatProcessor(formatProcessor dockfmt.FormatProcessor) (exitCode ExitCode, err error) {
+func (mopts *MatchingOptions) matchAndProcessFormatProcessor(formatProcessor dockfmt.FormatProcessor) (exitCode ExitCode, err error) {
 	log := mopts.Log()
 
 	predicate := mopts.getPredicate()
@@ -396,6 +396,7 @@ func (mopts *MatchingOptions) matchFormatProcessor(formatProcessor dockfmt.Forma
 	}
 
 	var results *multierror.Error
+
 
 	if mopts.mode == matchAndPrint {
 		for _, r := range matches {

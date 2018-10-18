@@ -78,14 +78,14 @@ func TestInvalidDockerfileWithContains(t *testing.T) {
 
 	mainOptions.formatProvider = formatProvider
 
-	fo := &MatchingOptions{
+	mo := &MatchingOptions{
 		mainOpts: mainOptions.mainOptions,
 	}
 
-	fo.Positional.InputFile = flags.Filename(NotADockerfile)
+	mo.Positional.InputFile = flags.Filename(NotADockerfile)
 
 	// when
-	_, err := fo.match()
+	_, err := mo.matchAndProcess()
 
 	// then
 	assert.NotNil(t, err)
@@ -119,7 +119,7 @@ func TestReportInvalidPredicateWithContains(t *testing.T) {
 	fo.Positional.InputFile = flags.Filename(NotADockerfile)
 
 	// when
-	_, err := fo.match()
+	_, err := fo.matchAndProcess()
 
 	s := stdout.String()
 
@@ -150,7 +150,7 @@ func TestOpenErrorsArePropagatedWithContains(t *testing.T) {
 	expectedError := errors.New("Could not open")
 	fo.MainOptions().openerMock.On("Open", mock.Anything).Return(nil, expectedError)
 
-	exitCode, err := fo.match()
+	exitCode, err := fo.matchAndProcess()
 
 	assert.NotEqual(t, 0, exitCode)
 	assert.Equal(t, expectedError, err)
@@ -221,7 +221,7 @@ func TestContainsCommandDoesntPrint(t *testing.T) {
 		return nil
 	}
 
-	test.matchFormatProcessor(processorMock)
+	test.matchAndProcessFormatProcessor(processorMock)
 
 	s := stdout.String()
 	assert.Empty(t, s)

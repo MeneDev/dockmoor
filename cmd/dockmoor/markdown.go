@@ -8,6 +8,16 @@ import (
 	"strings"
 )
 
+func visibleCommands(commands []*flags.Command) []*flags.Command {
+	visible := make([]*flags.Command, 0)
+	for _, c := range commands {
+		if !c.Hidden {
+			visible = append(visible, c)
+		}
+	}
+	return visible
+}
+
 func mdPrintf(writer io.Writer, format string, a ...interface{}) (n int, err error) {
 	for i, e := range a {
 		if s, ok := e.(string); ok {
@@ -24,19 +34,19 @@ func WriteMarkdown(parser *flags.Parser, writer io.Writer) {
 	mdPrintf(writer, "%s Version %s\n\n", parser.Name, Version)
 	mdPrintf(writer, "%s\n\n", parser.LongDescription)
 	mdPrintf(writer, "## Usage\n")
-	commands := []*flags.Command{parser.Command}
+	commands := visibleCommands([]*flags.Command{parser.Command})
 	WriteMarkDownUsage(commands, writer)
 
 	WriteMarkdownGroups(writer, parser.Command.Groups(), 2)
 
 	mdPrintf(writer, "## Commands\n\n")
 
-	for _, cmd := range parser.Commands() {
+	for _, cmd := range visibleCommands(parser.Commands()) {
 		mdPrintf(writer, " * [%s](#%s)\n", cmd.Name, strings.ToLower(cmd.Name)+"-command")
 	}
 	mdPrintf(writer, "\n")
 
-	for _, cmd := range parser.Commands() {
+	for _, cmd := range visibleCommands(parser.Commands()) {
 		mdPrintf(writer, "## %s command\n", cmd.Name)
 		WriteMarkDownUsage(append(commands, cmd), writer)
 		mdPrintf(writer, "%s\n\n", cmd.LongDescription)
@@ -46,6 +56,8 @@ func WriteMarkdown(parser *flags.Parser, writer io.Writer) {
 }
 
 func WriteMarkDownUsage(commands []*flags.Command, writer io.Writer) {
+
+	commands = visibleCommands(commands)
 
 	mdPrintf(writer, "> ")
 	for idxCommand, command := range commands {
@@ -78,9 +90,9 @@ func WriteMarkDownUsage(commands []*flags.Command, writer io.Writer) {
 		if !isLastCommand {
 			mdPrintf(writer, " ")
 		} else {
-			if len(command.Commands()) > 0 {
+			if len(visibleCommands(command.Commands())) > 0 {
 				var cmds []string
-				for _, cmd := range command.Commands() {
+				for _, cmd := range visibleCommands(command.Commands()) {
 					cmds = append(cmds, fmt.Sprintf("[%s](#%s)", cmd.Name, strings.ToLower(cmd.Name)+"-command"))
 				}
 

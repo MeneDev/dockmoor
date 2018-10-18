@@ -10,18 +10,21 @@ import (
 func WriteASCIIDoc(parser *flags.Parser, writer io.Writer) {
 	mdPrintf(writer, "== Usage\n")
 	commands := []*flags.Command{parser.Command}
+	commands = visibleCommands(commands)
 	WriteASCIIDocUsage(commands, writer)
 
 	WriteASCIIDocGroups(writer, parser.Command.Groups(), 2)
 
 	mdPrintf(writer, "=== Commands\n\n")
 
-	for _, cmd := range parser.Commands() {
+	parserCommands := parser.Commands()
+	parserCommands = visibleCommands(parserCommands)
+	for _, cmd := range parserCommands {
 		mdPrintf(writer, " * <<%[2]s,%[1]s>>\n", cmd.Name, strings.ToLower(cmd.Name)+"-command")
 	}
 	mdPrintf(writer, "\n")
 
-	for _, cmd := range parser.Commands() {
+	for _, cmd := range parserCommands {
 		mdPrintf(writer, "==== %s command\n", cmd.Name)
 		WriteASCIIDocUsage(append(commands, cmd), writer)
 		mdPrintf(writer, "%s\n\n", cmd.LongDescription)
@@ -31,6 +34,8 @@ func WriteASCIIDoc(parser *flags.Parser, writer io.Writer) {
 }
 
 func WriteASCIIDocUsage(commands []*flags.Command, writer io.Writer) {
+
+	commands = visibleCommands(commands)
 
 	mdPrintf(writer, "> ")
 	for idxCommand, command := range commands {
@@ -63,9 +68,11 @@ func WriteASCIIDocUsage(commands []*flags.Command, writer io.Writer) {
 		if !isLastCommand {
 			mdPrintf(writer, " ")
 		} else {
-			if len(command.Commands()) > 0 {
+			commandCommands := command.Commands()
+			commandCommands = visibleCommands(commandCommands)
+			if len(commandCommands) > 0 {
 				var cmds []string
-				for _, cmd := range command.Commands() {
+				for _, cmd := range commandCommands {
 					cmds = append(cmds, fmt.Sprintf("<<%[2]s,%[1]s>>", cmd.Name, strings.ToLower(cmd.Name)+"-command"))
 				}
 

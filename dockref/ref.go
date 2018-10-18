@@ -67,6 +67,30 @@ type Reference interface {
 	Domain() string
 	Path() string
 	Named() reference.Named
+	Format() Format
+	Formatted(format Format) string
+}
+
+type Format int
+
+const (
+	FormatHasName Format = 1 << iota
+	FormatHasTag Format = 1 << iota
+	FormatHasDomain Format = 1 << iota
+	FormatHasDigest Format = 1 << iota
+)
+
+func (format Format) hasName() bool {
+	return format & FormatHasName != 0
+}
+func (format Format) hasTag() bool {
+	return format & FormatHasTag != 0
+}
+func (format Format) hasDomain() bool {
+	return format & FormatHasDomain != 0
+}
+func (format Format) hasDigest() bool {
+	return format & FormatHasDigest != 0
 }
 
 var _ Reference = (*dockref)(nil)
@@ -79,6 +103,60 @@ type dockref struct {
 	domain   string
 	path     string
 	named    reference.Named
+}
+
+func (r dockref) Format() Format {
+	var format Format = 0
+
+	if r.named != nil {
+		fn := reference.FamiliarString(r.named)
+		if fn != r.original {
+			format |= FormatHasDomain
+		}
+	}
+
+	if r.name != "" {
+		format |= FormatHasName
+	}
+	if r.tag != "" {
+		format |= FormatHasTag
+	}
+	if r.DigestString() != "" {
+		format |= FormatHasDigest
+	}
+
+	return format
+}
+
+func (r dockref) Formatted(format Format) string {
+
+	s := ""
+
+	var name string
+
+	if format.hasName() {
+		if format.hasDomain() {
+			name = r.name
+		} else {
+			name = reference.FamiliarName(r.named)
+		}
+		s += name
+	}
+
+	if format.hasTag() {
+		s += ":" + r.tag
+	}
+
+	if format.hasDigest() {
+		if format.hasName() {
+			s += "@" + r.DigestString()
+		} else {
+			s += r.Digest().Hex()
+		}
+	}
+
+
+	return s
 }
 
 func (r dockref) Named() reference.Named {

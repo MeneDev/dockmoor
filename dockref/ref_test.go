@@ -137,9 +137,168 @@ func TestFromOriginalNoError(t *testing.T) {
 	assert.NotNil(t, reference)
 }
 
-func TestDeliberatelyUnsued(t *testing.T)  {
+func TestDeliberatelyUnsued(t *testing.T) {
 	deliberatelyUnsued(errors.New("error"))
 	deliberatelyUnsued(nil)
 	// didn't crash
 	assert.True(t, true)
+}
+
+func TestDockref_Format(t *testing.T) {
+	func () {
+		original := "nginx"
+
+		t.Run(original, func(t *testing.T) {
+			nginx := FromOriginalNoError(original)
+			format := nginx.Format()
+
+			t.Run("has name", func(t *testing.T) {
+				assert.True(t, format.hasName())
+			})
+			t.Run("has no tag", func(t *testing.T) {
+				assert.False(t, format.hasTag())
+			})
+			t.Run("has no domain", func(t *testing.T) {
+				assert.False(t, format.hasDomain())
+			})
+			t.Run("has no digest", func(t *testing.T) {
+				assert.False(t, format.hasDigest())
+			})
+		})
+	}()
+
+	func () {
+		original := "nginx:latest"
+
+		t.Run(original, func(t *testing.T) {
+			nginx := FromOriginalNoError(original)
+			format := nginx.Format()
+
+			t.Run("has name", func(t *testing.T) {
+				assert.True(t, format.hasName())
+			})
+			t.Run("has tag", func(t *testing.T) {
+				assert.True(t, format.hasTag())
+			})
+			t.Run("has no domain", func(t *testing.T) {
+				assert.False(t, format.hasDomain())
+			})
+			t.Run("has no digest", func(t *testing.T) {
+				assert.False(t, format.hasDigest())
+			})
+		})
+	}()
+
+	func () {
+		original := "docker.io/library/nginx"
+
+		t.Run(original, func(t *testing.T) {
+			nginx := FromOriginalNoError(original)
+			format := nginx.Format()
+
+			t.Run("has name", func(t *testing.T) {
+				assert.True(t, format.hasName())
+			})
+			t.Run("has no tag", func(t *testing.T) {
+				assert.False(t, format.hasTag())
+			})
+			t.Run("has domain", func(t *testing.T) {
+				assert.True(t, format.hasDomain())
+			})
+			t.Run("has no digest", func(t *testing.T) {
+				assert.False(t, format.hasDigest())
+			})
+		})
+	}()
+
+
+	func () {
+		original := "docker.io/library/nginx:latest"
+
+		t.Run(original, func(t *testing.T) {
+			nginx := FromOriginalNoError(original)
+			format := nginx.Format()
+
+			t.Run("has name", func(t *testing.T) {
+				assert.True(t, format.hasName())
+			})
+			t.Run("has tag", func(t *testing.T) {
+				assert.True(t, format.hasTag())
+			})
+			t.Run("has domain", func(t *testing.T) {
+				assert.True(t, format.hasDomain())
+			})
+			t.Run("has no digest", func(t *testing.T) {
+				assert.False(t, format.hasDigest())
+			})
+		})
+	}()
+
+	func () {
+		original := "docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240"
+
+		t.Run(original, func(t *testing.T) {
+			nginx := FromOriginalNoError(original)
+			format := nginx.Format()
+
+			t.Run("has name", func(t *testing.T) {
+				assert.True(t, format.hasName())
+			})
+			t.Run("has tag", func(t *testing.T) {
+				assert.True(t, format.hasTag())
+			})
+			t.Run("has domain", func(t *testing.T) {
+				assert.True(t, format.hasDomain())
+			})
+			t.Run("has no digest", func(t *testing.T) {
+				assert.True(t, format.hasDigest())
+			})
+		})
+	}()
+
+
+	func () {
+		original := "d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240"
+
+		t.Run(original, func(t *testing.T) {
+			nginx := FromOriginalNoError(original)
+			format := nginx.Format()
+
+			t.Run("has no name", func(t *testing.T) {
+				assert.False(t, format.hasName())
+			})
+			t.Run("has no tag", func(t *testing.T) {
+				assert.False(t, format.hasTag())
+			})
+			t.Run("has no domain", func(t *testing.T) {
+				assert.False(t, format.hasDomain())
+			})
+			t.Run("has digest", func(t *testing.T) {
+				assert.True(t, format.hasDigest())
+			})
+		})
+	}()
+}
+
+func TestDockref_Formatted(t *testing.T) {
+
+	t.Run("reformatting with same format is equal", func(t *testing.T) {
+		originals := []string {
+			"nginx",
+			"nginx:latest",
+			"docker.io/library/nginx",
+			"docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
+			"d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
+		}
+
+		for _, original := range originals{
+			t.Run(original, func(t *testing.T) {
+				ref := FromOriginalNoError(original)
+				format := ref.Format()
+
+				formatted := ref.Formatted(format)
+				assert.Equal(t, original, formatted)
+			})
+		}
+	})
 }

@@ -16,7 +16,7 @@ Manage docker image references.
 
 * find Dockerfiles
 * list image references
-* filter by various predicates, e.g. only untagged or `latest`
+* filter by various predicates, e.g. untagged, `latest`, RegEx-match
 
 *Upcomming*
 
@@ -34,6 +34,31 @@ list command
 ~~~~~~~~~~~~
 
 The single file examples all refer to https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[a multi-stage build Dockerfile]
+
+[[_list_all_image_references_where_the_tag_ends_in_test]]
+List all image references where the tag ends in `-test`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Surrounding strings with `/` enables regular expression based matching.
+
+[subs=+macros]
+....
+dockmoor list --tag=/-test$/ https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[Dockerfile]
+....
+
+stdout:
+
+[subs=+macros]
+....
+image-name:1.12-test
+image-name:1.11-test
+docker.io/library/image-name:latest-test
+example.com/image-name:1.12-test
+example.com/image-name:latest-test@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+....
+
+stderr is empty +
+exit code: 0
 
 [[_list_all_image_references_with_latest_or_no_tag_from_a_specific_domain_in_file]]
 List all image references with latest or no tag from a specific domain in file
@@ -74,12 +99,18 @@ stdout:
 image-name
 image-name:latest
 image-name:1.12
+image-name:1.12-test
+image-name:1.11-test
 image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
 docker.io/library/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
 docker.io/library/image-name
 docker.io/library/image-name:latest
+docker.io/library/image-name:latest-test
 example.com/image-name:1.12
+example.com/image-name:1.12-test
+example.com/image-name:1.12-testing
 example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+example.com/image-name:latest-test@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
 example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
 example.com/other-image
 example.com/other-image:latest
@@ -129,9 +160,14 @@ stdout:
 image-name
 image-name:latest
 image-name:1.12
+image-name:1.12-test
+image-name:1.11-test
 docker.io/library/image-name
 docker.io/library/image-name:latest
+docker.io/library/image-name:latest-test
 example.com/image-name:1.12
+example.com/image-name:1.12-test
+example.com/image-name:1.12-testing
 example.com/other-image
 example.com/other-image:latest
 ....

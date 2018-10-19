@@ -13,7 +13,7 @@ Manage docker image references.
 
 * find Dockerfiles
 * list image references
-* filter by various predicates, e.g. only untagged or `latest`
+* filter by various predicates, e.g. untagged, `latest`, RegEx-match
 
 *Upcomming*
 

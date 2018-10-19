@@ -12,7 +12,7 @@ type Format interface {
 	ValidateInput(log logrus.FieldLogger, reader io.Reader, filename string) error
 	Process(log logrus.FieldLogger, reader io.Reader, writer io.Writer, imageNameProcessor ImageNameProcessor) error
 }
-type ImageNameProcessor func(r dockref.Reference) (string, error)
+type ImageNameProcessor func(r dockref.Reference) (dockref.Reference, error)
 
 type FormatProcessor interface {
 	Process(imageNameProcessor ImageNameProcessor) error

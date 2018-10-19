@@ -14,8 +14,8 @@ func TestFormatProcessor_ProcessPassesLogAndReaderAndImageProcessor(t *testing.T
 
 	formatMock := new(FormatMock)
 	reader := strings.NewReader("input")
-	processorFx := func(r dockref.Reference) (string, error) {
-		return "", nil
+	processorFx := func(r dockref.Reference) (dockref.Reference, error) {
+		return r, nil
 	}
 	formatMock.On("Process", log, reader, bytes.NewBuffer(nil), mock.Anything).Return(nil)
 
@@ -31,8 +31,8 @@ func TestFormatProcessor_ProcessPassesLogAndReaderAndImageProcessorAndWriter(t *
 
 	formatMock := new(FormatMock)
 	reader := strings.NewReader("input")
-	processorFx := func(r dockref.Reference) (string, error) {
-		return "", nil
+	processorFx := func(r dockref.Reference) (dockref.Reference, error) {
+		return r, nil
 	}
 	writer := bytes.NewBufferString("writer")
 	formatMock.On("Process", log, reader, writer, mock.Anything).Return(nil)

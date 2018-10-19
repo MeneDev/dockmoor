@@ -122,7 +122,7 @@ type MatchingOptions struct {
 	} `positional-args:"yes"`
 
 	mainOpts     *mainOptions
-	matchHandler func(r dockref.Reference) (string, error)
+	matchHandler func(r dockref.Reference) (dockref.Reference, error)
 }
 
 func (mopts *MatchingOptions) mainOptions() *mainOptions {
@@ -374,12 +374,12 @@ func (mopts *MatchingOptions) matchAndProcessFormatProcessor(formatProcessor doc
 	predicate := mopts.getPredicate()
 
 	matches := false
-	err = formatProcessor.Process(func(r dockref.Reference) (string, error) {
+	err = formatProcessor.Process(func(r dockref.Reference) (dockref.Reference, error) {
 		if predicate.Matches(r) {
 			matches = true
 			return mopts.matchHandler(r)
 		}
-		return "", nil
+		return r, nil
 	})
 
 	if err != nil {

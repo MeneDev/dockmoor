@@ -13,8 +13,8 @@ func ContainsOptionsNew(mainOptions *mainOptions) *containsOptions {
 	return &containsOptions{
 		MatchingOptions{
 			mainOpts: mainOptions,
-			matchHandler: func(r dockref.Reference) (string, error) {
-				return "", nil
+			matchHandler: func(r dockref.Reference) (dockref.Reference, error) {
+				return r, nil
 			},
 		},
 	}

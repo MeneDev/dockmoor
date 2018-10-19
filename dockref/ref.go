@@ -69,6 +69,7 @@ type Reference interface {
 	Named() reference.Named
 	Format() Format
 	Formatted(format Format) string
+	String() string
 }
 
 type Format int
@@ -188,4 +189,8 @@ func (r dockref) Domain() string {
 
 func (r dockref) Path() string {
 	return r.path
+}
+
+func (r dockref) String() string {
+	return r.Formatted(r.Format())
 }

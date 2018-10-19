@@ -176,17 +176,17 @@ func (format *dockerfileFormat) processNode(log logrus.FieldLogger, node *parser
 			return false, err
 		}
 
-		canonicalString, err := imageNameProcessor(ref)
+		processed, err := imageNameProcessor(ref)
 		if err != nil {
 			return false, err
 		}
 
-		if canonicalString != "" {
-			log.Infof("Pinning '%s' as '%s'", from, canonicalString)
+		if processed != ref {
+			log.Infof("Pinning '%s' as '%s'", from, processed)
 		}
 
 		//writer.WriteString(`FROM `)
-		//writer.WriteString(canonicalString)
+		//writer.WriteString(processed)
 
 		//next := node.Next.Next
 
@@ -201,7 +201,7 @@ func (format *dockerfileFormat) processNode(log logrus.FieldLogger, node *parser
 		start := node.StartLine
 
 		for i := start; i <= end; i++ {
-			_, err := writer.WriteString(strings.Replace(format.lines[i-1], from, canonicalString, 1))
+			_, err := writer.WriteString(strings.Replace(format.lines[i-1], from, processed.String(), 1))
 			result = multierror.Append(result, err)
 		}
 		return true, result.ErrorOrNil()

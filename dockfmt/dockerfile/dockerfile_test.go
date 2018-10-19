@@ -110,9 +110,9 @@ FROM something:tag`
 	calls := 0
 	format.ValidateInput(log, strings.NewReader(file), "anything")
 
-	err := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (string, error) {
+	err := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (dockref.Reference, error) {
 		calls++
-		return "", nil
+		return r, nil
 	})
 
 	assert.Nil(t, err)
@@ -125,8 +125,8 @@ func TestDockerfilePassProcessorErrors(t *testing.T) {
 	format.ValidateInput(log, strings.NewReader(file), "anything")
 
 	expected := errors.New("Expected")
-	err := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (string, error) {
-		return "", expected
+	err := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (dockref.Reference, error) {
+		return r, expected
 	})
 
 	assert.Equal(t, expected, err)
@@ -146,9 +146,9 @@ RUN something \
 	format.ValidateInput(log, strings.NewReader(file), "anything")
 
 	calls := 0
-	err := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (string, error) {
+	err := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (dockref.Reference, error) {
 		calls++
-		return "", nil
+		return r, nil
 	})
 
 	assert.Nil(t, err)
@@ -160,8 +160,8 @@ func TestDockerfileInvalidFromReported(t *testing.T) {
 	format := New()
 	format.ValidateInput(log, strings.NewReader(file), "anything")
 
-	processErr := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (string, error) {
-		return "", nil
+	processErr := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (dockref.Reference, error) {
+		return r, nil
 	})
 
 	assert.Error(t, processErr)
@@ -187,8 +187,8 @@ func TestParserSha256(t *testing.T) {
 
 	err := format.ValidateInput(log, strings.NewReader(file), "anything")
 
-	processErr := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (string, error) {
-		return "", nil
+	processErr := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (dockref.Reference, error) {
+		return r, nil
 	})
 
 	assert.Nil(t, err)
@@ -207,11 +207,12 @@ func TestProcessLogsReplacingReferences(t *testing.T) {
 
 	err := format.ValidateInput(log, strings.NewReader(file), "anything")
 
-	processErr := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (string, error) {
-		return "nginx@pinned", nil
+	expected := dockref.FromOriginalNoError("pinned")
+	processErr := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (dockref.Reference, error) {
+		return expected, nil
 	})
 
-	assert.Contains(t, buffer.String(), `nginx@pinned`)
+	assert.Contains(t, buffer.String(), expected.Original())
 	assert.Nil(t, err)
 	assert.Nil(t, processErr)
 }
@@ -236,8 +237,8 @@ func TestDockerfileFormat_ReportsFlushError(t *testing.T) {
 
 	err := format.ValidateInput(log, strings.NewReader(file), "anything")
 
-	processErr := format.Process(log, strings.NewReader(file), failingWriter{}, func(r dockref.Reference) (string, error) {
-		return "nginx@pinned", nil
+	processErr := format.Process(log, strings.NewReader(file), failingWriter{}, func(r dockref.Reference) (dockref.Reference, error) {
+		return dockref.FromOriginalNoError("pinned"), nil
 	})
 
 	assert.Contains(t, buffer.String(), `Error flushing writer`)

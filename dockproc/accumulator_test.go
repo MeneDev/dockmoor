@@ -70,11 +70,17 @@ func formatMockProcessing(images []string) *delegatingFormatMock {
 }
 
 func TestContainsAccumulator_ReturnsErrorWhenParameterIsNil(t *testing.T) {
-	logger := logrus.New()
-	logger.SetOutput(bytes.NewBuffer(nil))
+	logger, _ := logger()
 	acc, err := MatchesAccumulatorNew(nil, logger, bytes.NewBuffer(nil))
 	assert.Nil(t, acc)
 	assert.Error(t, err)
+}
+
+func logger() (*logrus.Logger, *bytes.Buffer) {
+	logger := logrus.New()
+	buffer := bytes.NewBuffer(nil)
+	logger.SetOutput(buffer)
+	return logger, buffer
 }
 
 func TestContainsAccumulator(t *testing.T) {
@@ -106,7 +112,7 @@ func TestContainsAccumulator(t *testing.T) {
 
 				formatProcessor := dockfmt.FormatProcessorNew(mockFormat, nil, nil)
 
-				containsAccumulator.Accumulate(formatProcessor)
+				containsAccumulator.Accumulate(formatProcessor, NullHandler)
 				result := containsAccumulator.Matches()
 
 				if matches {
@@ -150,9 +156,54 @@ func TestContainsAccumulator(t *testing.T) {
 			containsAccumulator, _ := MatchesAccumulatorNew(p, logger, bytes.NewBuffer(nil))
 
 			formatProcessor := dockfmt.FormatProcessorNew(mockFormat, nil, nil)
-			containsAccumulator.Accumulate(formatProcessor)
+			containsAccumulator.Accumulate(formatProcessor, NullHandler)
 			result := containsAccumulator.Matches()
 			assert.NotEmpty(t, result)
 		})
 	}
+}
+
+var _ dockref.Repository = (*MockRepository)(nil)
+
+type MockRepository struct {
+	mock.Mock
+}
+
+func (m *MockRepository) Resolve(reference dockref.Reference) (dockref.Reference, error) {
+	called := m.Called(reference)
+	refIf := called.Get(0)
+	e := called.Error(1)
+
+	ref := refIf.(dockref.Reference)
+
+	return ref, e
+}
+
+func (m *MockRepository) OnResolve(reference dockref.Reference) *mock.Call {
+	return m.On("Resolve", reference)
+}
+
+func TestPinAccumulator_Accumulate(t *testing.T) {
+	log, _ := logger()
+
+	output := bytes.NewBuffer(nil)
+
+	ref, _ := dockref.FromOriginal("nginx")
+
+	repository := new(MockRepository)
+	resolved, _ := dockref.FromOriginal("nginx:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf")
+	repository.OnResolve(ref).Return(resolved, nil)
+
+	accumulator, e := PinAccumulatorNew(AnyPredicateNew(), log, output, repository, dockref.FormatHasTag|dockref.FormatHasDigest)
+	assert.Nil(t, e)
+	assert.NotNil(t, accumulator)
+
+	mockFormat := formatMockProcessing([]string{"nginx"})
+
+	formatProcessor := dockfmt.FormatProcessorNew(mockFormat, nil, nil)
+
+	accumulator.Accumulate(formatProcessor, NullHandler)
+
+	assert.Len(t, accumulator.Results(), 1)
+	assert.Equal(t, resolved.Original(), accumulator.Results()[0])
 }

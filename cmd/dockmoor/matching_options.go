@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockproc"
+	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/hashicorp/go-multierror"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
@@ -127,8 +128,8 @@ type MatchingOptions struct {
 		InputFile flags.Filename `required:"yes"`
 	} `positional-args:"yes"`
 
-	mainOpts *mainOptions
-	mode     MatchingMode
+	mainOpts     *mainOptions
+	matchHandler func(r dockref.Reference) (string, error)
 }
 
 func (mopts *MatchingOptions) mainOptions() *mainOptions {
@@ -368,41 +369,42 @@ func (mopts *MatchingOptions) matchAndProcess() (exitCode ExitCode, err error) {
 	}
 
 	formatProcessor := dockfmt.FormatProcessorNew(fileFormat, log, fpInput)
+
 	exitCode, err = mopts.matchAndProcessFormatProcessor(formatProcessor)
 	return
 }
 
 func (mopts *MatchingOptions) matchAndProcessFormatProcessor(formatProcessor dockfmt.FormatProcessor) (exitCode ExitCode, err error) {
 	log := mopts.Log()
+	var results *multierror.Error
 
 	predicate := mopts.getPredicate()
-	accumulator, err := dockproc.MatchesAccumulatorNew(predicate, log, mopts.Stdout())
+
+	matches := false
+	err = formatProcessor.Process(func(r dockref.Reference) (string, error) {
+		if predicate.Matches(r) {
+			mopts.matchHandler(r)
+			matches = true
+		}
+		return "", nil
+	})
 
 	if err != nil {
-		return ExitUnknownError, err
+		log.Errorf("Error during accumulation: %s", err.Error())
+		results = multierror.Append(results, err)
 	}
 
-	errAcc := accumulator.Accumulate(formatProcessor)
-	if errAcc != nil {
-		log.Errorf("Error during accumulation: %s", errAcc.Error())
-	}
-
-	matches := accumulator.Matches()
-
-	if len(matches) > 0 {
+	if matches {
 		exitCode = ExitSuccess
 	} else {
 		exitCode = ExitNotFound
 	}
 
-	var results *multierror.Error
-
-
-	if mopts.mode == matchAndPrint {
-		for _, r := range matches {
-			_, err = fmt.Fprintf(mopts.Stdout(), "%s\n", r.Original())
-			results = multierror.Append(results, err)
-		}
-	}
+	//if mopts.mode == matchAndPrint {
+	//	for _, r := range matches {
+	//		_, err = fmt.Fprintf(mopts.Stdout(), "%s\n", r.Original())
+	//		results = multierror.Append(results, err)
+	//	}
+	//}
 	return exitCode, results.ErrorOrNil()
 }

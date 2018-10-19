@@ -11,17 +11,26 @@ import (
 	"testing"
 )
 
-func listOptionsTestNew() *containsOptionsTest {
+type listOptionsTest struct {
+	*listOptions
+
+	mainOptionsTest *mainOptionsTest
+}
+
+func listOptionsTestNew() *listOptionsTest {
 	mainOptions := mainOptionsTestNew()
-	containsOptions := containsOptionsTest{
-		MatchingOptions: &MatchingOptions{},
+	lot := listOptionsTest{
+		listOptions:     ListOptionsNew(mainOptions.mainOptions),
 		mainOptionsTest: mainOptions,
 	}
 
-	containsOptions.mainOpts = mainOptions.mainOptions
-	containsOptions.mode = matchAndPrint
+	lot.mainOpts = mainOptions.mainOptions
 
-	return &containsOptions
+	return &lot
+}
+
+func (lo *listOptionsTest) MainOptions() *mainOptionsTest {
+	return lo.mainOptionsTest
 }
 
 func TestFilenameRequiredWithList(t *testing.T) {
@@ -34,7 +43,7 @@ func TestFilenameRequiredWithList(t *testing.T) {
 func TestListCallsFindExecute(t *testing.T) {
 	cmd, _, _, _ := testMain([]string{"list", "fileName"}, addListCommand)
 
-	_, ok := cmd.(*MatchingOptions)
+	_, ok := cmd.(*listOptions)
 	assert.True(t, ok)
 }
 

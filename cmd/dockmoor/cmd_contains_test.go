@@ -16,7 +16,7 @@ import (
 )
 
 type containsOptionsTest struct {
-	*MatchingOptions
+	*containsOptions
 
 	mainOptionsTest *mainOptionsTest
 }
@@ -28,12 +28,11 @@ func (fo *containsOptionsTest) MainOptions() *mainOptionsTest {
 func containsOptionsTestNew() *containsOptionsTest {
 	mainOptions := mainOptionsTestNew()
 	containsOptions := containsOptionsTest{
-		MatchingOptions: &MatchingOptions{},
+		containsOptions: ContainsOptionsNew(mainOptions.mainOptions),
 		mainOptionsTest: mainOptions,
 	}
 
 	containsOptions.mainOpts = mainOptions.mainOptions
-	containsOptions.mode = matchOnly
 
 	return &containsOptions
 }
@@ -127,7 +126,7 @@ func TestReportInvalidPredicateWithContains(t *testing.T) {
 	assert.Contains(t, s, `level=error`)
 	assert.Contains(t, s, expected.Error())
 	// and: no error is returned
-	assert.Nil(t, err)
+	assert.Error(t, err)
 }
 
 func TestFilenameRequiredWithContains(t *testing.T) {
@@ -140,7 +139,7 @@ func TestFilenameRequiredWithContains(t *testing.T) {
 func TestContainsCallsFindExecuteWithContains(t *testing.T) {
 	cmd, _, _, _ := testMain([]string{"contains", "fileName"}, addContainsCommand)
 
-	_, ok := cmd.(*MatchingOptions)
+	_, ok := cmd.(*containsOptions)
 	assert.True(t, ok)
 }
 

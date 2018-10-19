@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.0.6
+
+Huge thank's to the first code contributor: [https://github.com/sbcd90](Subhobrata Dey aka sbcd90) :clap:
+#### Regular expressions for predicates
+* domain
+* name
+* familiar-name
+* path
+* tag
+
 ## v0.0.5
 #### New predicates
 * domain

@@ -300,3 +300,25 @@ func TestDockref_Formatted(t *testing.T) {
 		}
 	})
 }
+
+func TestDockref_String(t *testing.T) {
+
+	t.Run("String is equal to Original", func(t *testing.T) {
+		originals := []string{
+			"nginx",
+			"nginx:latest",
+			"docker.io/library/nginx",
+			"docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
+			"d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
+		}
+
+		for _, original := range originals {
+			t.Run(original, func(t *testing.T) {
+				ref := FromOriginalNoError(original)
+
+				formatted := ref.String()
+				assert.Equal(t, original, formatted)
+			})
+		}
+	})
+}

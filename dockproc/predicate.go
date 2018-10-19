@@ -3,6 +3,7 @@ package dockproc
 import (
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/docker/distribution/reference"
+	"github.com/hashicorp/go-multierror"
 	"regexp"
 	"strings"
 )
@@ -20,8 +21,8 @@ func (anyPredicate) Matches(ref dockref.Reference) bool {
 	return true
 }
 
-func AnyPredicateNew() Predicate {
-	return anyPredicate{}
+func AnyPredicateNew() (Predicate, error) {
+	return anyPredicate{}, nil
 }
 
 var _ Predicate = (*latestPredicate)(nil)
@@ -42,8 +43,8 @@ func (latestPredicate) Matches(ref dockref.Reference) bool {
 	return ref.Tag() == ""
 }
 
-func LatestPredicateNew() Predicate {
-	return latestPredicate{}
+func LatestPredicateNew() (Predicate, error) {
+	return latestPredicate{}, nil
 }
 
 var _ Predicate = (*unpinnedPredicate)(nil)
@@ -55,8 +56,8 @@ func (unpinnedPredicate) Matches(ref dockref.Reference) bool {
 	return ref.DigestString() == ""
 }
 
-func UnpinnedPredicateNew() Predicate {
-	return unpinnedPredicate{}
+func UnpinnedPredicateNew() (Predicate, error) {
+	return unpinnedPredicate{}, nil
 }
 
 //var _ Predicate = (*outdatedPredicate)(nil)
@@ -81,8 +82,8 @@ func (untaggedPredicate) Matches(ref dockref.Reference) bool {
 	return ref.Tag() == ""
 }
 
-func UntaggedPredicateNew() Predicate {
-	return untaggedPredicate{}
+func UntaggedPredicateNew() (Predicate, error) {
+	return untaggedPredicate{}, nil
 }
 
 var _ Predicate = (*domainsPredicate)(nil)
@@ -104,8 +105,24 @@ func (p domainsPredicate) Matches(ref dockref.Reference) bool {
 	return false
 }
 
-func DomainsPredicateNew(domains []string) Predicate {
-	return domainsPredicate{domains: domains}
+func vaildateRegex(regexs []string) error {
+	var result *multierror.Error
+	for _, v := range regexs {
+		if isRegex(v) {
+			_, e := regexp.Compile(trimRegexMarkers(v))
+			result = multierror.Append(result, e)
+		}
+	}
+	return result.ErrorOrNil()
+}
+
+func DomainsPredicateNew(domains []string) (Predicate, error) {
+	e := vaildateRegex(domains)
+	var predicate Predicate
+	if e == nil {
+		predicate = domainsPredicate{domains: domains}
+	}
+	return predicate, e
 }
 
 var _ Predicate = (*namesPredicate)(nil)
@@ -135,8 +152,13 @@ func (p namesPredicate) Matches(ref dockref.Reference) bool {
 	return false
 }
 
-func NamesPredicateNew(names []string) Predicate {
-	return namesPredicate{names: names}
+func NamesPredicateNew(names []string) (Predicate, error) {
+	e := vaildateRegex(names)
+	var predicate Predicate
+	if e == nil {
+		predicate = namesPredicate{names: names}
+	}
+	return predicate, e
 }
 
 var _ Predicate = (*familiarNamesPredicate)(nil)
@@ -172,8 +194,13 @@ func (p familiarNamesPredicate) Matches(ref dockref.Reference) bool {
 	return false
 }
 
-func FamiliarNamesPredicateNew(familiarNames []string) Predicate {
-	return familiarNamesPredicate{familiarNames: familiarNames}
+func FamiliarNamesPredicateNew(familiarNames []string) (Predicate, error) {
+	e := vaildateRegex(familiarNames)
+	var predicate Predicate
+	if e == nil {
+		predicate = familiarNamesPredicate{familiarNames: familiarNames}
+	}
+	return predicate, e
 }
 
 var _ Predicate = (*pathsPredicate)(nil)
@@ -202,8 +229,13 @@ func (p pathsPredicate) Matches(ref dockref.Reference) bool {
 	return false
 }
 
-func PathsPredicateNew(paths []string) Predicate {
-	return pathsPredicate{paths: paths}
+func PathsPredicateNew(paths []string) (Predicate, error) {
+	e := vaildateRegex(paths)
+	var predicate Predicate
+	if e == nil {
+		predicate = pathsPredicate{paths: paths}
+	}
+	return predicate, e
 }
 
 var _ Predicate = (*tagsPredicate)(nil)
@@ -225,8 +257,13 @@ func (p tagsPredicate) Matches(ref dockref.Reference) bool {
 	return false
 }
 
-func TagsPredicateNew(tags []string) Predicate {
-	return tagsPredicate{tags: tags}
+func TagsPredicateNew(tags []string) (Predicate, error) {
+	e := vaildateRegex(tags)
+	var predicate Predicate
+	if e == nil {
+		predicate = tagsPredicate{tags: tags}
+	}
+	return predicate, e
 }
 
 var _ Predicate = (*digestsPredicate)(nil)
@@ -244,8 +281,8 @@ func (p digestsPredicate) Matches(ref dockref.Reference) bool {
 	return false
 }
 
-func DigestsPredicateNew(digests []string) Predicate {
-	return digestsPredicate{digests: digests}
+func DigestsPredicateNew(digests []string) (Predicate, error) {
+	return digestsPredicate{digests: digests}, nil
 }
 
 type AndPredicate interface {
@@ -272,21 +309,26 @@ func (a andPredicate) Matches(ref dockref.Reference) bool {
 	return true
 }
 
-func AndPredicateNew(predicates []Predicate) Predicate {
-	return andPredicate{predicates: predicates}
+func AndPredicateNew(predicates []Predicate) (Predicate, error) {
+	return andPredicate{predicates: predicates}, nil
 }
 
 func isRegex(pattern string) bool {
+	if len(pattern) < 2 {
+		return false
+	}
 	if strings.HasPrefix(pattern, "/") && strings.HasSuffix(pattern, "/") {
 		return true
 	}
 	return false
 }
 
+func trimRegexMarkers(pattern string) string {
+	return pattern[1 : len(pattern)-1]
+}
+
 func regExpMatches(pattern string, ref string) bool {
-	matched, err := regexp.MatchString(pattern[1:len(pattern)-1], ref)
-	if err != nil {
-		return false
-	}
+	compiled := regexp.MustCompile(trimRegexMarkers(pattern))
+	matched := compiled.MatchString(ref)
 	return matched
 }

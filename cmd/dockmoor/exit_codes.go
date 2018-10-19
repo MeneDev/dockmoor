@@ -9,4 +9,5 @@ const (
 	ExitNotFound
 	ExitInvalidFormat
 	ExitCouldNotOpenFile
+	ExitPredicateInvalid
 )

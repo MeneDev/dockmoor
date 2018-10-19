@@ -10,7 +10,7 @@ type listOptions struct {
 	MatchingOptions
 }
 
-func ListOptionsNew(mainOptions *mainOptions) *listOptions {
+func listOptionsNew(mainOptions *mainOptions) *listOptions {
 	return &listOptions{
 		MatchingOptions{
 			mainOpts: mainOptions,
@@ -23,7 +23,7 @@ func ListOptionsNew(mainOptions *mainOptions) *listOptions {
 }
 
 func addListCommand(mainOptions *mainOptions, adder func(opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error) {
-	lo := ListOptionsNew(mainOptions)
+	lo := listOptionsNew(mainOptions)
 
 	return adder(mainOptions, "list",
 		"List image references with matching predicates.",

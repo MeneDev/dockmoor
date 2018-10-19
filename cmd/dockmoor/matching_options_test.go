@@ -209,63 +209,83 @@ func TestDigestPredicateCombinations(t *testing.T) {
 func TestAnyPredicateWhenNoFlagWithContains(t *testing.T) {
 	fo := &MatchingOptions{}
 
-	predicate := fo.getPredicate()
-
-	assert.IsType(t, dockproc.AnyPredicateNew(), predicate)
+	predicate, e := fo.getPredicate()
+	assert.Nil(t, e)
+	predicateNew, e2 := dockproc.AnyPredicateNew()
+	assert.Nil(t, e2)
+	assert.IsType(t, predicateNew, predicate)
 }
 
 func TestDomainsPredicateWhenDomainsSet(t *testing.T) {
 	fo := &MatchingOptions{}
 	fo.DomainPredicates.Domains = []string{"a", "b"}
 
-	predicate := fo.getPredicate()
+	predicate, e := fo.getPredicate()
+	assert.Nil(t, e)
 
-	assert.IsType(t, dockproc.DomainsPredicateNew([]string{"a", "b"}), predicate)
+	expected, e := dockproc.DomainsPredicateNew(nil)
+	assert.Nil(t, e)
+	assert.IsType(t, expected, predicate)
 }
 
 func TestNamesPredicateWhenNamesSet(t *testing.T) {
 	fo := &MatchingOptions{}
 	fo.NamePredicates.Names = []string{"a", "b"}
 
-	predicate := fo.getPredicate()
+	predicate, e := fo.getPredicate()
+	assert.Nil(t, e)
 
-	assert.IsType(t, dockproc.NamesPredicateNew([]string{"a", "b"}), predicate)
+	expected, e := dockproc.NamesPredicateNew([]string{"a", "b"})
+	assert.Nil(t, e)
+	assert.IsType(t, expected, predicate)
 }
 
 func TestFamiliarNamePredicateWhenFamiliarNameSet(t *testing.T) {
 	fo := &MatchingOptions{}
 	fo.NamePredicates.FamiliarNames = []string{"a", "b"}
 
-	predicate := fo.getPredicate()
+	predicate, e := fo.getPredicate()
+	assert.Nil(t, e)
 
-	assert.IsType(t, dockproc.FamiliarNamesPredicateNew(nil), predicate)
+	expected, e := dockproc.FamiliarNamesPredicateNew(nil)
+	assert.Nil(t, e)
+	assert.IsType(t, expected, predicate)
 }
 
 func TestPathsPredicateWhenPathsSet(t *testing.T) {
 	fo := &MatchingOptions{}
 	fo.NamePredicates.Paths = []string{"a", "b"}
 
-	predicate := fo.getPredicate()
+	predicate, e := fo.getPredicate()
+	assert.Nil(t, e)
 
-	assert.IsType(t, dockproc.PathsPredicateNew(nil), predicate)
+	expected, e := dockproc.PathsPredicateNew(nil)
+	assert.Nil(t, e)
+	assert.IsType(t, expected, predicate)
 }
 
 func TestTagsPredicateWhenTagsSet(t *testing.T) {
 	fo := &MatchingOptions{}
 	fo.TagPredicates.Tags = []string{"a", "b"}
 
-	predicate := fo.getPredicate()
+	predicate, e := fo.getPredicate()
+	assert.Nil(t, e)
 
-	assert.IsType(t, dockproc.TagsPredicateNew([]string{"a", "b"}), predicate)
+	expected, e := dockproc.TagsPredicateNew([]string{"a", "b"})
+	assert.Nil(t, e)
+	assert.IsType(t, expected, predicate)
 }
 
 func TestUntaggedPredicateWhenUntaggedSet(t *testing.T) {
 	fo := &MatchingOptions{}
 	fo.TagPredicates.Untagged = true
 
-	predicate := fo.getPredicate()
+	predicate, e := fo.getPredicate()
+	assert.Nil(t, e)
 
-	assert.IsType(t, dockproc.UntaggedPredicateNew(), predicate)
+	expected, e := dockproc.UntaggedPredicateNew()
+	assert.Nil(t, e)
+	assert.IsType(t, expected, predicate)
 }
 
 //func TestOutdatedPredicateWhenOutdatedSet(t *testing.T) {
@@ -281,27 +301,36 @@ func TestLatestPredicateWhenLatestSet(t *testing.T) {
 	fo := &MatchingOptions{}
 	fo.TagPredicates.Latest = true
 
-	predicate := fo.getPredicate()
+	predicate, e := fo.getPredicate()
+	assert.Nil(t, e)
 
-	assert.IsType(t, dockproc.LatestPredicateNew(), predicate)
+	expected, e := dockproc.LatestPredicateNew()
+	assert.Nil(t, e)
+	assert.IsType(t, expected, predicate)
 }
 
 func TestDigestsPredicateWhenDomainSet(t *testing.T) {
 	fo := &MatchingOptions{}
 	fo.DigestPredicates.Digests = []string{"a", "b"}
 
-	predicate := fo.getPredicate()
+	predicate, e := fo.getPredicate()
+	assert.Nil(t, e)
 
-	assert.IsType(t, dockproc.DigestsPredicateNew([]string{"a", "b"}), predicate)
+	expected, e := dockproc.DigestsPredicateNew([]string{"a", "b"})
+	assert.Nil(t, e)
+	assert.IsType(t, expected, predicate)
 }
 
 func TestUnpinnedPredicateWhenUnpinnedSet(t *testing.T) {
 	fo := &MatchingOptions{}
 	fo.DigestPredicates.Unpinned = true
 
-	predicate := fo.getPredicate()
+	predicate, e := fo.getPredicate()
+	assert.Nil(t, e)
 
-	assert.IsType(t, dockproc.UnpinnedPredicateNew(), predicate)
+	expected, e := dockproc.UnpinnedPredicateNew()
+	assert.Nil(t, e)
+	assert.IsType(t, expected, predicate)
 }
 
 func TestAndPredicateWhenUnpinnedAndLatestSet(t *testing.T) {
@@ -309,22 +338,31 @@ func TestAndPredicateWhenUnpinnedAndLatestSet(t *testing.T) {
 	fo.DigestPredicates.Unpinned = true
 	fo.TagPredicates.Latest = true
 
-	predicate := fo.getPredicate()
+	predicate, e := fo.getPredicate()
+	assert.Nil(t, e)
 
-	assert.IsType(t, dockproc.AndPredicateNew(nil), predicate)
+	expected, e := dockproc.AndPredicateNew(nil)
+	assert.Nil(t, e)
+	assert.IsType(t, expected, predicate)
 
 	andPredicate, _ := predicate.(dockproc.AndPredicate)
 	andPredicate.Predicates()
 
-	assert.IsType(t, dockproc.AndPredicateNew(nil), predicate)
+	expected, e = dockproc.AndPredicateNew(nil)
+	assert.Nil(t, e)
+	assert.IsType(t, expected, predicate)
 
 	matches := 0
 	for _, p := range andPredicate.Predicates() {
-		t := reflect.TypeOf(p)
-		switch t {
-		case reflect.TypeOf(dockproc.UnpinnedPredicateNew()):
+		typeOfP := reflect.TypeOf(p)
+		expectedUnpinned, e := dockproc.UnpinnedPredicateNew()
+		assert.Nil(t, e)
+		expectedLatest, e := dockproc.LatestPredicateNew()
+		assert.Nil(t, e)
+		switch typeOfP {
+		case reflect.TypeOf(expectedUnpinned):
 			fallthrough
-		case reflect.TypeOf(dockproc.LatestPredicateNew()):
+		case reflect.TypeOf(expectedLatest):
 			matches++
 		}
 	}
@@ -335,8 +373,8 @@ func TestAndPredicateWhenUnpinnedAndLatestSet(t *testing.T) {
 var unimplemented = []string{outdatedPred}
 
 func TestHelpContainsImplementedPredicates(t *testing.T) {
-
 	mo := MatchingOptions{}
+
 	parser := flags.NewParser(&mo, flags.HelpFlag)
 	buffer := bytes.NewBuffer(nil)
 	parser.WriteHelp(buffer)
@@ -352,4 +390,21 @@ func TestHelpContainsImplementedPredicates(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestMatchingOptions_matchAndProcessFormatProcessorReturnsErrorForErrorIn(t *testing.T) {
+	processorMock := &FormatProcessorMock{}
+	mo := MatchingOptions{
+		mainOpts: mainOptionsTestNew().mainOptions,
+	}
+
+	mo.NamePredicates.Names = []string{"/a(b/"}
+	predicate, e := mo.getPredicate()
+	assert.Error(t, e)
+	assert.Nil(t, predicate)
+
+	exitCode, err := mo.matchAndProcessFormatProcessor(processorMock)
+
+	assert.Error(t, err)
+	assert.Equal(t, ExitPredicateInvalid, exitCode)
 }

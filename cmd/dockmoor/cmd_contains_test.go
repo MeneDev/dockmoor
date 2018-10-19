@@ -28,7 +28,7 @@ func (fo *containsOptionsTest) MainOptions() *mainOptionsTest {
 func containsOptionsTestNew() *containsOptionsTest {
 	mainOptions := mainOptionsTestNew()
 	containsOptions := containsOptionsTest{
-		containsOptions: ContainsOptionsNew(mainOptions.mainOptions),
+		containsOptions: containsOptionsNew(mainOptions.mainOptions),
 		mainOptionsTest: mainOptions,
 	}
 

@@ -96,25 +96,25 @@ func errorFor(a, b string) error {
 
 type MatchingOptions struct {
 	DomainPredicates struct {
-		Domains []string `required:"no" long:"domain" description:"Matches all images matching one of the specified domains"`
+		Domains []string `required:"no" long:"domain" description:"Matches all images matching one of the specified domains. Surround with '/' for regex i.e. /regex/."`
 	} `group:"Domain Predicates" description:"Limit matched image references depending on their domain"`
 
 	NamePredicates struct {
-		Names         []string `required:"no" long:"name" description:"Matches all images matching one of the specified names (e.g. \"docker.io/library/nginx\")"`
-		FamiliarNames []string `required:"no" long:"familiar-name" short:"f" description:"Matches all images matching one of the specified familiar names (e.g. \"nginx\")"`
-		Paths         []string `required:"no" long:"path" description:"Matches all images matching one of the specified paths (e.g. \"library/nginx\")"`
+		Names         []string `required:"no" long:"name" description:"Matches all images matching one of the specified names (e.g. \"docker.io/library/nginx\"). Surround with '/' for regex i.e. /regex/."`
+		FamiliarNames []string `required:"no" long:"familiar-name" short:"f" description:"Matches all images matching one of the specified familiar names (e.g. \"nginx\"). Surround with '/' for regex i.e. /regex/."`
+		Paths         []string `required:"no" long:"path" description:"Matches all images matching one of the specified paths (e.g. \"library/nginx\"). Surround with '/' for regex i.e. /regex/."`
 	} `group:"Name Predicates" description:"Limit matched image references depending on their name"`
 
 	TagPredicates struct {
 		Untagged bool     `required:"no" long:"untagged" description:"Matches images with no tag"`
 		Latest   bool     `required:"no" long:"latest" description:"Matches images with latest or no tag. References with digest are only matched when explicit latest tag is present."`
 		Outdated bool     `required:"no" long:"outdated" description:"Matches all images with newer versions available" hidden:"true"`
-		Tags     []string `required:"no" long:"tag" description:"Matches all images matching one of the specified tag"`
+		Tags     []string `required:"no" long:"tag" description:"Matches all images matching one of the specified tag. Surround with '/' for regex i.e. /regex/."`
 	} `group:"Tag Predicates" description:"Limit matched image references depending on their tag"`
 
 	DigestPredicates struct {
 		Unpinned bool     `required:"no" long:"unpinned" description:"Matches unpinned image references, i.e. image references without digest."`
-		Digests  []string `required:"no" long:"digest" description:"Matches all image references with one of the provided digests"`
+		Digests  []string `required:"no" long:"digest" description:"Matches all image references with one of the provided digests."`
 	} `group:"Digest Predicates" description:"Limit matched image references depending on their digest"`
 
 	Positional struct {
@@ -213,7 +213,7 @@ func (mopts *MatchingOptions) ExecuteWithExitCode(args []string) (ExitCode, erro
 		_, err = parser.ParseArgs([]string{command.Name, "--help"})
 		result = multierror.Append(result, err)
 
-		parser.WriteHelp(mopts.mainOpts.stdout)
+		parser.WriteHelp(mopts.Stdout())
 		return ExitInvalidParams, result.ErrorOrNil()
 	}
 
@@ -223,68 +223,78 @@ func (mopts *MatchingOptions) ExecuteWithExitCode(args []string) (ExitCode, erro
 	return exitCode, result.ErrorOrNil()
 }
 
-var latestPredicateFactory = func() dockproc.Predicate {
+var latestPredicateFactory = func() (dockproc.Predicate, error) {
 	return dockproc.LatestPredicateNew()
 }
 
-var latestUnpinnedFactory = func() dockproc.Predicate {
+var latestUnpinnedFactory = func() (dockproc.Predicate, error) {
 	return dockproc.UnpinnedPredicateNew()
 }
 
-var anyPredicateFactory = func() dockproc.Predicate {
+var anyPredicateFactory = func() (dockproc.Predicate, error) {
 	return dockproc.AnyPredicateNew()
 }
 
-var domainsPredicateFactory = func(domains []string) dockproc.Predicate {
+var domainsPredicateFactory = func(domains []string) (dockproc.Predicate, error) {
 	return dockproc.DomainsPredicateNew(domains)
 }
-var namePredicateFactory = func(names []string) dockproc.Predicate {
+var namePredicateFactory = func(names []string) (dockproc.Predicate, error) {
 	return dockproc.NamesPredicateNew(names)
 }
-var familiarNamePredicateFactory = func(familiarNames []string) dockproc.Predicate {
+var familiarNamePredicateFactory = func(familiarNames []string) (dockproc.Predicate, error) {
 	return dockproc.FamiliarNamesPredicateNew(familiarNames)
 }
-var pathsPredicateFactory = func(paths []string) dockproc.Predicate {
+var pathsPredicateFactory = func(paths []string) (dockproc.Predicate, error) {
 	return dockproc.PathsPredicateNew(paths)
 }
 
-//var outdatedPredicateFactory = func() dockproc.Predicate {
+//var outdatedPredicateFactory = func() (dockproc.Predicate, error) {
 //	return dockproc.OutdatedPredicateNew()
 //}
-var untaggedPredicateFactory = func() dockproc.Predicate {
+var untaggedPredicateFactory = func() (dockproc.Predicate, error) {
 	return dockproc.UntaggedPredicateNew()
 }
-var tagsPredicateFactory = func(tags []string) dockproc.Predicate {
+var tagsPredicateFactory = func(tags []string) (dockproc.Predicate, error) {
 	return dockproc.TagsPredicateNew(tags)
 }
-var digestsPredicateFactory = func(digests []string) dockproc.Predicate {
+var digestsPredicateFactory = func(digests []string) (dockproc.Predicate, error) {
 	return dockproc.DigestsPredicateNew(digests)
 }
-var andPredicateFactory = func(predicates []dockproc.Predicate) dockproc.Predicate {
+var andPredicateFactory = func(predicates []dockproc.Predicate) (dockproc.Predicate, error) {
 	return dockproc.AndPredicateNew(predicates)
 }
 
-func (mopts *MatchingOptions) getPredicate() dockproc.Predicate {
-	anyPredicate := anyPredicateFactory()
+func (mopts *MatchingOptions) getPredicate() (dockproc.Predicate, error) {
+
+	anyPredicate, e := anyPredicateFactory()
+	if e != nil {
+		return nil, e
+	}
+
+	var err *multierror.Error
 	var predicates []dockproc.Predicate
 
 	if mopts.DomainPredicates.Domains != nil {
-		p := domainsPredicateFactory(mopts.DomainPredicates.Domains)
+		p, e := domainsPredicateFactory(mopts.DomainPredicates.Domains)
+		err = multierror.Append(err, e)
 		predicates = append(predicates, p)
 	}
 
 	if mopts.NamePredicates.Names != nil {
-		p := namePredicateFactory(mopts.NamePredicates.Names)
+		p, e := namePredicateFactory(mopts.NamePredicates.Names)
+		err = multierror.Append(err, e)
 		predicates = append(predicates, p)
 	}
 
 	if mopts.NamePredicates.FamiliarNames != nil {
-		p := familiarNamePredicateFactory(mopts.NamePredicates.FamiliarNames)
+		p, e := familiarNamePredicateFactory(mopts.NamePredicates.FamiliarNames)
+		err = multierror.Append(err, e)
 		predicates = append(predicates, p)
 	}
 
 	if mopts.NamePredicates.Paths != nil {
-		p := pathsPredicateFactory(mopts.NamePredicates.Paths)
+		p, e := pathsPredicateFactory(mopts.NamePredicates.Paths)
+		err = multierror.Append(err, e)
 		predicates = append(predicates, p)
 	}
 
@@ -294,37 +304,44 @@ func (mopts *MatchingOptions) getPredicate() dockproc.Predicate {
 	//}
 
 	if mopts.TagPredicates.Untagged {
-		p := untaggedPredicateFactory()
+		p, e := untaggedPredicateFactory()
+		err = multierror.Append(err, e)
 		predicates = append(predicates, p)
 	}
 
 	if mopts.TagPredicates.Tags != nil {
-		p := tagsPredicateFactory(mopts.TagPredicates.Tags)
+		p, e := tagsPredicateFactory(mopts.TagPredicates.Tags)
+		err = multierror.Append(err, e)
 		predicates = append(predicates, p)
 	}
 
 	if mopts.TagPredicates.Latest {
-		p := latestPredicateFactory()
+		p, e := latestPredicateFactory()
+		err = multierror.Append(err, e)
 		predicates = append(predicates, p)
 	}
 
 	if mopts.DigestPredicates.Unpinned {
-		p := latestUnpinnedFactory()
+		p, e := latestUnpinnedFactory()
+		err = multierror.Append(err, e)
 		predicates = append(predicates, p)
 	}
 
 	if mopts.DigestPredicates.Digests != nil {
-		p := digestsPredicateFactory(mopts.DigestPredicates.Digests)
+		p, e := digestsPredicateFactory(mopts.DigestPredicates.Digests)
+		err = multierror.Append(err, e)
 		predicates = append(predicates, p)
 	}
 
 	switch len(predicates) {
 	case 0:
-		return anyPredicate
+		return anyPredicate, err.ErrorOrNil()
 	case 1:
-		return predicates[0]
+		return predicates[0], err.ErrorOrNil()
 	default:
-		return andPredicateFactory(predicates)
+		predicate, e := andPredicateFactory(predicates)
+		err = multierror.Append(err, e)
+		return predicate, err.ErrorOrNil()
 	}
 }
 
@@ -371,7 +388,10 @@ func (mopts *MatchingOptions) matchAndProcessFormatProcessor(formatProcessor doc
 	log := mopts.Log()
 	var results *multierror.Error
 
-	predicate := mopts.getPredicate()
+	predicate, e := mopts.getPredicate()
+	if e != nil {
+		return ExitPredicateInvalid, e
+	}
 
 	matches := false
 	err = formatProcessor.Process(func(r dockref.Reference) (dockref.Reference, error) {

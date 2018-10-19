@@ -8,7 +8,8 @@ import (
 
 func TestAnyPredicate(t *testing.T) {
 
-	predicate := AnyPredicateNew()
+	predicate, e := AnyPredicateNew()
+	assert.Nil(t, e)
 
 	originals := []string{"nginx", "nginx:latest", "nginx:1.15.2-alpine-perl",
 		"mongo:3.4.16-windowsservercore-ltsc2016", "d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240"}
@@ -24,7 +25,8 @@ func TestAnyPredicate(t *testing.T) {
 
 func TestLatestPredicate(t *testing.T) {
 
-	predicate := LatestPredicateNew()
+	predicate, e := LatestPredicateNew()
+	assert.Nil(t, e)
 
 	shouldMatches := []string{"nginx", "nginx:latest"}
 
@@ -55,7 +57,8 @@ func TestLatestPredicate(t *testing.T) {
 
 func TestUnpinnedPredicate(t *testing.T) {
 
-	predicate := UnpinnedPredicateNew()
+	predicate, e := UnpinnedPredicateNew()
+	assert.Nil(t, e)
 
 	shouldMatches := []string{
 		"nginx",
@@ -93,7 +96,8 @@ func TestUnpinnedPredicate(t *testing.T) {
 
 func TestUntaggedPredicate(t *testing.T) {
 
-	predicate := UntaggedPredicateNew()
+	predicate, e := UntaggedPredicateNew()
+	assert.Nil(t, e)
 
 	shouldMatches := []string{"nginx", "d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
 		"nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
@@ -126,7 +130,8 @@ func TestUntaggedPredicate(t *testing.T) {
 
 func TestDomainsPredicate(t *testing.T) {
 
-	predicate := DomainsPredicateNew([]string{"my.com", "my2.com"})
+	predicate, e := DomainsPredicateNew([]string{"my.com", "my2.com"})
+	assert.Nil(t, e)
 
 	shouldMatches := []string{
 		"my.com/nginx",
@@ -170,7 +175,8 @@ func TestDomainsPredicate(t *testing.T) {
 
 func TestDomainsPredicateWithRegExp(t *testing.T) {
 
-	predicate := DomainsPredicateNew([]string{"/my\\./", "/my2\\./"})
+	predicate, e := DomainsPredicateNew([]string{"/my\\./", "/my2\\./"})
+	assert.Nil(t, e)
 
 	shouldMatches := []string{
 		"my.com/nginx",
@@ -214,7 +220,8 @@ func TestDomainsPredicateWithRegExp(t *testing.T) {
 
 func TestNamesPredicate(t *testing.T) {
 
-	predicate := NamesPredicateNew([]string{"nginx", "mongo"})
+	predicate, e := NamesPredicateNew([]string{"nginx", "mongo"})
+	assert.Nil(t, e)
 
 	shouldMatches := []string{
 		"nginx",
@@ -255,7 +262,8 @@ func TestNamesPredicate(t *testing.T) {
 
 func TestNamesPredicateWithRegExp(t *testing.T) {
 
-	predicate := NamesPredicateNew([]string{"/ngin/", "/mon/"})
+	predicate, e := NamesPredicateNew([]string{"/ngin/", "/mon/"})
+	assert.Nil(t, e)
 
 	shouldMatches := []string{
 		"nginx",
@@ -295,7 +303,8 @@ func TestNamesPredicateWithRegExp(t *testing.T) {
 
 func TestFamiliarNamesPredicate(t *testing.T) {
 
-	predicate := FamiliarNamesPredicateNew([]string{"nginx", "mongo"})
+	predicate, e := FamiliarNamesPredicateNew([]string{"nginx", "mongo"})
+	assert.Nil(t, e)
 
 	shouldMatches := []string{
 		"nginx",
@@ -337,7 +346,8 @@ func TestFamiliarNamesPredicate(t *testing.T) {
 
 func TestFamiliarNamesPredicateWithRegExp(t *testing.T) {
 
-	predicate := FamiliarNamesPredicateNew([]string{"/ngin/", "/mon/"})
+	predicate, e := FamiliarNamesPredicateNew([]string{"/ngin/", "/mon/"})
+	assert.Nil(t, e)
 
 	shouldMatches := []string{
 		"nginx",
@@ -378,7 +388,8 @@ func TestFamiliarNamesPredicateWithRegExp(t *testing.T) {
 
 func TestTagsPredicate(t *testing.T) {
 
-	predicate := TagsPredicateNew([]string{"1.2", "3.4.16-windowsservercore-ltsc2016"})
+	predicate, e := TagsPredicateNew([]string{"1.2", "3.4.16-windowsservercore-ltsc2016"})
+	assert.Nil(t, e)
 
 	shouldMatches := []string{
 		"mongo:3.4.16-windowsservercore-ltsc2016",
@@ -419,7 +430,8 @@ func TestTagsPredicate(t *testing.T) {
 
 func TestTagsPredicateWithRegExp(t *testing.T) {
 
-	predicate := TagsPredicateNew([]string{"/1.2/", "/3.4.16-windowsservercore/"})
+	predicate, e := TagsPredicateNew([]string{"/1.2/", "/3.4.16-windowsservercore/"})
+	assert.Nil(t, e)
 
 	shouldMatches := []string{
 		"mongo:3.4.16-windowsservercore-ltsc2016",
@@ -459,10 +471,11 @@ func TestTagsPredicateWithRegExp(t *testing.T) {
 
 func TestDigestsPredicate(t *testing.T) {
 
-	predicate := DigestsPredicateNew([]string{
+	predicate, e := DigestsPredicateNew([]string{
 		"d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
 		"d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b241",
 	})
+	assert.Nil(t, e)
 
 	shouldMatches := []string{
 		"d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
@@ -503,7 +516,7 @@ func TestDigestsPredicate(t *testing.T) {
 
 func TestPathsPredicate(t *testing.T) {
 
-	predicate := PathsPredicateNew([]string{
+	predicate, _ := PathsPredicateNew([]string{
 		"library/nginx",
 		"mongo",
 	})
@@ -547,10 +560,11 @@ func TestPathsPredicate(t *testing.T) {
 
 func TestPathsPredicateWithRegExp(t *testing.T) {
 
-	predicate := PathsPredicateNew([]string{
+	predicate, e := PathsPredicateNew([]string{
 		"/library/ngin/",
 		"/mon/",
 	})
+	assert.Nil(t, e)
 
 	shouldMatches := []string{
 		"nginx",
@@ -608,7 +622,10 @@ func TestAndPredicate_Matches(t *testing.T) {
 			predicates = append(predicates, mockPredicate{v})
 		}
 
-		return AndPredicateNew(predicates)
+		predicate, e := AndPredicateNew(predicates)
+		assert.Nil(t, e)
+
+		return predicate
 	}
 
 	t.Run("Matches when only predicate matches", func(t *testing.T) {
@@ -643,7 +660,8 @@ func TestAndPredicate_Predicates(t *testing.T) {
 	p2 := mockPredicate{false}
 	p3 := mockPredicate{true}
 
-	p := AndPredicateNew([]Predicate{p1, p2, p3})
+	p, e := AndPredicateNew([]Predicate{p1, p2, p3})
+	assert.Nil(t, e)
 
 	a, ok := p.(andPredicate)
 	assert.True(t, ok)
@@ -653,4 +671,34 @@ func TestAndPredicate_Predicates(t *testing.T) {
 	assert.Contains(t, ps, p1)
 	assert.Contains(t, ps, p2)
 	assert.Contains(t, ps, p3)
+}
+
+func TestDomainsPredicate_returnsErrorForInvalidRegex(t *testing.T) {
+	predicateNew, err := DomainsPredicateNew([]string{"/", "/a(b/"})
+	assert.Nil(t, predicateNew)
+	assert.Error(t, err)
+}
+
+func TestNamesPredicate_returnsErrorForInvalidRegex(t *testing.T) {
+	predicateNew, err := NamesPredicateNew([]string{"/a(b/"})
+	assert.Nil(t, predicateNew)
+	assert.Error(t, err)
+}
+
+func TestFamiliarNamesPredicate_returnsErrorForInvalidRegex(t *testing.T) {
+	predicateNew, err := FamiliarNamesPredicateNew([]string{"/a(b/"})
+	assert.Nil(t, predicateNew)
+	assert.Error(t, err)
+}
+
+func TestPathPredicate_returnsErrorForInvalidRegex(t *testing.T) {
+	predicateNew, err := PathsPredicateNew([]string{"/a(b/"})
+	assert.Nil(t, predicateNew)
+	assert.Error(t, err)
+}
+
+func TestTagsPredicate_returnsErrorForInvalidRegex(t *testing.T) {
+	predicateNew, err := TagsPredicateNew([]string{"/a(b/"})
+	assert.Nil(t, predicateNew)
+	assert.Error(t, err)
 }

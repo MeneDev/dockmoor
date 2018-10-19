@@ -20,7 +20,7 @@ type listOptionsTest struct {
 func listOptionsTestNew() *listOptionsTest {
 	mainOptions := mainOptionsTestNew()
 	lot := listOptionsTest{
-		listOptions:     ListOptionsNew(mainOptions.mainOptions),
+		listOptions:     listOptionsNew(mainOptions.mainOptions),
 		mainOptionsTest: mainOptions,
 	}
 

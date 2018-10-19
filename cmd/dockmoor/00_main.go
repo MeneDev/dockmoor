@@ -196,9 +196,8 @@ func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.
 			log.Errorf("Error parsing log-level '%s': %s", mainOptions.LogLevel, err.Error())
 			exitCode = ExitInvalidParams
 			return
-		} else {
-			log.SetLevel(level)
 		}
+		log.SetLevel(level)
 	}
 
 	if optsErr != nil {

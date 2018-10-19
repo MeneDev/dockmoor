@@ -5,7 +5,6 @@
 Huge thank's to the first code contributor: [Subhobrata Dey aka sbcd90](https://github.com/sbcd90) :clap:
 
 #### Regular expressions for predicates
-#### Regular expressions for predicates
 * domain
 * name
 * familiar-name

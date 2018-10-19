@@ -203,7 +203,7 @@ func TestDomainsPredicateWithRegExp(t *testing.T) {
 	}
 
 	for _, original := range shouldNotMatches {
-		t.Run("Not matching " + original, func(t *testing.T) {
+		t.Run("Not matching "+original, func(t *testing.T) {
 			ref, e := dockref.FromOriginal(original)
 
 			assert.Nil(t, e)
@@ -334,7 +334,6 @@ func TestFamiliarNamesPredicate(t *testing.T) {
 	}
 
 }
-
 
 func TestFamiliarNamesPredicateWithRegExp(t *testing.T) {
 

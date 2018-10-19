@@ -12,13 +12,6 @@ import (
 	"io"
 )
 
-type MatchingMode int
-
-const (
-	matchOnly     MatchingMode = iota
-	matchAndPrint MatchingMode = iota
-)
-
 const (
 	domainPred       = "domain"
 	namePred         = "name"
@@ -383,8 +376,8 @@ func (mopts *MatchingOptions) matchAndProcessFormatProcessor(formatProcessor doc
 	matches := false
 	err = formatProcessor.Process(func(r dockref.Reference) (string, error) {
 		if predicate.Matches(r) {
-			mopts.matchHandler(r)
 			matches = true
+			return mopts.matchHandler(r)
 		}
 		return "", nil
 	})
@@ -400,11 +393,5 @@ func (mopts *MatchingOptions) matchAndProcessFormatProcessor(formatProcessor doc
 		exitCode = ExitNotFound
 	}
 
-	//if mopts.mode == matchAndPrint {
-	//	for _, r := range matches {
-	//		_, err = fmt.Fprintf(mopts.Stdout(), "%s\n", r.Original())
-	//		results = multierror.Append(results, err)
-	//	}
-	//}
 	return exitCode, results.ErrorOrNil()
 }

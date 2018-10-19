@@ -45,8 +45,9 @@ func (ma *matchesAccumulator) Accumulate(format dockfmt.FormatProcessor, handler
 
 	var processor dockfmt.ImageNameProcessor = func(r dockref.Reference) (string, error) {
 		if ma.predicate.Matches(r) {
-			handler(r)
 			matches = append(matches, r)
+			e := handler(r)
+			return "", e
 		}
 		return "", nil
 	}

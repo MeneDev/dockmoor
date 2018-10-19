@@ -94,7 +94,7 @@ type domainsPredicate struct {
 func (p domainsPredicate) Matches(ref dockref.Reference) bool {
 	for _, v := range p.domains {
 		if isRegex(v) {
-			if RegExpMatches(v, ref.Domain()) {
+			if regExpMatches(v, ref.Domain()) {
 				return true
 			}
 		} else if v == ref.Domain() {
@@ -124,7 +124,7 @@ func (p namesPredicate) Matches(ref dockref.Reference) bool {
 		ref2 := dockref.FromOriginalNoError(v)
 
 		if isRegex(v) {
-			if RegExpMatches(v, ref.Name()) {
+			if regExpMatches(v, ref.Name()) {
 				return true
 			}
 		} else if ref.Name() == ref2.Name() {
@@ -156,7 +156,7 @@ func (p familiarNamesPredicate) Matches(ref dockref.Reference) bool {
 	for _, v := range p.familiarNames {
 
 		if isRegex(v) {
-			if RegExpMatches(v, fam1) {
+			if regExpMatches(v, fam1) {
 				return true
 			}
 		} else {
@@ -191,7 +191,7 @@ func (p pathsPredicate) Matches(ref dockref.Reference) bool {
 	path := reference.Path(named)
 	for _, v := range p.paths {
 		if isRegex(v) {
-			if RegExpMatches(v, path) {
+			if regExpMatches(v, path) {
 				return true
 			}
 		} else if path == v {
@@ -215,7 +215,7 @@ type tagsPredicate struct {
 func (p tagsPredicate) Matches(ref dockref.Reference) bool {
 	for _, tag := range p.tags {
 		if isRegex(tag) {
-			if RegExpMatches(tag, ref.Tag()) {
+			if regExpMatches(tag, ref.Tag()) {
 				return true
 			}
 		} else if tag == ref.Tag() {
@@ -283,8 +283,8 @@ func isRegex(pattern string) bool {
 	return false
 }
 
-func RegExpMatches(pattern string, ref string) bool {
-	matched, err := regexp.MatchString(pattern[1: len(pattern) - 1], ref)
+func regExpMatches(pattern string, ref string) bool {
+	matched, err := regexp.MatchString(pattern[1:len(pattern)-1], ref)
 	if err != nil {
 		return false
 	}

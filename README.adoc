@@ -1,5 +1,5 @@
 
-:branch: develop
+:branch: master
 
 == dockmoor
 image:https://img.shields.io/circleci/project/github/MeneDev/dockmoor/{branch}.svg[Build Status (Circle CI), link=https://circleci.com/gh/MeneDev/dockmoor]
@@ -33,7 +33,7 @@ Examples
 list command
 ~~~~~~~~~~~~
 
-The single file examples all refer to https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[a multi-stage build Dockerfile]
+All single file examples all refer to https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[a multi-stage build Dockerfile]
 
 [[_list_all_image_references_where_the_tag_ends_in_test]]
 List all image references where the tag ends in `-test`
@@ -257,8 +257,8 @@ stdout:
 [subs=+macros]
 ....
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
 ....
 
@@ -279,8 +279,8 @@ stdout:
 [subs=+macros]
 ....
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 ....
 
 stderr is empty +
@@ -299,11 +299,11 @@ stdout:
 
 [subs=+macros]
 ....
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-digest[some-folder/Dockerfile-nginx-digest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-tagged-digest[some-folder/Dockerfile-nginx-tagged-digest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-digest[some-folder/Dockerfile-nginx-digest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-tagged-digest[some-folder/Dockerfile-nginx-tagged-digest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
 ....
 
@@ -352,7 +352,7 @@ ________________________________________________________________________________
 Application Options
 -------------------
 
-*-l*, *--log-level* Sets the log-level (one of `NONE`, `ERROR`, `WARN`, `INFO`, `DEBUG`)
+**-l**, *--log-level* Sets the log-level (one of `NONE`, `ERROR`, `WARN`, `INFO`, `DEBUG`)
 
 *--version* Show version and exit
 
@@ -389,7 +389,7 @@ Limit matched image references depending on their name
 
 *--name* Matches all images matching one of the specified names (e.g. "docker.io/library/nginx"). Surround with '/' for regex i.e. /regex/.
 
-*-f*, *--familiar-name* Matches all images matching one of the specified familiar names (e.g. "nginx"). Surround with '/' for regex i.e. /regex/.
+**-f**, *--familiar-name* Matches all images matching one of the specified familiar names (e.g. "nginx"). Surround with '/' for regex i.e. /regex/.
 
 *--path* Matches all images matching one of the specified paths (e.g. "library/nginx"). Surround with '/' for regex i.e. /regex/.
 
@@ -441,7 +441,7 @@ Limit matched image references depending on their name
 
 *--name* Matches all images matching one of the specified names (e.g. "docker.io/library/nginx"). Surround with '/' for regex i.e. /regex/.
 
-*-f*, *--familiar-name* Matches all images matching one of the specified familiar names (e.g. "nginx"). Surround with '/' for regex i.e. /regex/.
+**-f**, *--familiar-name* Matches all images matching one of the specified familiar names (e.g. "nginx"). Surround with '/' for regex i.e. /regex/.
 
 *--path* Matches all images matching one of the specified paths (e.g. "library/nginx"). Surround with '/' for regex i.e. /regex/.
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/MeneDev/dockmoor/dockfmt"
 	_ "github.com/MeneDev/dockmoor/dockfmt/dockerfile"
+	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/jessevdk/go-flags"
 	"github.com/sirupsen/logrus"
 	"io"
@@ -36,6 +37,8 @@ type mainOptions struct {
 	formatProvider dockfmt.FormatProvider
 	stdout         io.Writer
 	stdin          io.ReadCloser
+
+	repositoryFactory func() dockref.Repository
 }
 
 var osStdout io.Writer = os.Stdout
@@ -54,6 +57,7 @@ func mainOptionsNew() *mainOptions {
 	mainOptions.stdin = osStdin
 	log.SetOutput(osStdout)
 
+	mainOptions.repositoryFactory = mainOptions.DefaultRepositoryFactory
 	return mainOptions
 }
 
@@ -103,8 +107,9 @@ var osExitInternal = os.Exit
 
 func osExit(exitCode ExitCode) { osExitInternal(int(exitCode)) }
 
-var AddCommand = func(opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error) {
-	return opts.Parser().AddCommand(command, shortDescription, longDescription, data)
+var AddCommand = func(mo *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error) {
+	parser := mo.Parser()
+	return parser.AddCommand(command, shortDescription, longDescription, data)
 }
 
 func main() {
@@ -238,4 +243,8 @@ func fmtFprintf(log *logrus.Logger, w io.Writer, format string, a ...interface{}
 	if err != nil {
 		log.Errorf("Error printing: %s", err.Error())
 	}
+}
+
+func (options *mainOptions) DefaultRepositoryFactory() dockref.Repository {
+	return nil
 }

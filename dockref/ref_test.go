@@ -322,3 +322,49 @@ func TestDockref_String(t *testing.T) {
 		}
 	})
 }
+
+func TestDockref_WithRequestedFormat(t *testing.T) {
+	t.Run("invalid returns error", func(t *testing.T) {
+		r := FromOriginalNoError("docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		_, e := r.WithRequestedFormat(FormatHasName | FormatHasDigest | FormatHasTag | FormatHasDomain + 1)
+		assert.Error(t, e)
+	})
+
+	t.Run("well known nmae only", func(t *testing.T) {
+		r := FromOriginalNoError("docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		rName, e := r.WithRequestedFormat(FormatHasName)
+		assert.Nil(t, e)
+		assert.Equal(t, "nginx", rName.String())
+	})
+
+	t.Run("well known digest only", func(t *testing.T) {
+		r := FromOriginalNoError("docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		rName, e := r.WithRequestedFormat(FormatHasDigest)
+		assert.Nil(t, e)
+		assert.Equal(t, "d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", rName.String())
+	})
+
+	t.Run("well known tag and digest only", func(t *testing.T) {
+		r := FromOriginalNoError("docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		rName, e := r.WithRequestedFormat(FormatHasTag | FormatHasDigest)
+		assert.Nil(t, e)
+		assert.Equal(t, "nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", rName.String())
+	})
+
+	t.Run("own-domain", func(t *testing.T) {
+		r := FromOriginalNoError("example.com/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+
+		rNameOwn, e := r.WithRequestedFormat(FormatHasName)
+		assert.Nil(t, e)
+		assert.Equal(t, "example.com/library/nginx", rNameOwn.String())
+	})
+
+	t.Run("own-domain digest-only", func(t *testing.T) {
+		r := FromOriginalNoError("example.com/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+
+		rNameOwn, e := r.WithRequestedFormat(FormatHasDigest)
+		assert.Nil(t, e)
+		assert.Equal(t, "example.com/library/nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", rNameOwn.String())
+	})
+
+}

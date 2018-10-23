@@ -2,8 +2,11 @@ package dockref
 
 import (
 	_ "crypto/sha256" // side effect: register sha256
+	"fmt"
 	"github.com/docker/distribution/reference"
 	"github.com/opencontainers/go-digest"
+	"github.com/pkg/errors"
+	"strings"
 )
 
 func deliberatelyUnsued(err error) {
@@ -54,7 +57,9 @@ func FromOriginal(original string) (ref Reference, e error) {
 		digest:   dig,
 		path:     path,
 		named:    named,
+		format:   findDockrefFormat(named, original, name, tag, dig),
 	}
+
 	return
 }
 
@@ -70,9 +75,10 @@ type Reference interface {
 	Format() Format
 	Formatted(format Format) string
 	String() string
+	WithRequestedFormat(format Format) (Reference, error)
 }
 
-type Format int
+type Format uint
 
 const (
 	FormatHasName   Format = 1 << iota
@@ -94,6 +100,17 @@ func (format Format) hasDigest() bool {
 	return format&FormatHasDigest != 0
 }
 
+func (format Format) Valid() (bool, error) {
+	f := format
+	f &= ^(FormatHasName | FormatHasTag | FormatHasDomain | FormatHasDigest)
+	valid := f == 0
+	var err error
+	if !valid {
+		err = errors.New(fmt.Sprintf("Invalid format, %d", format))
+	}
+	return valid, err
+}
+
 var _ Reference = (*dockref)(nil)
 
 type dockref struct {
@@ -104,29 +121,34 @@ type dockref struct {
 	domain   string
 	path     string
 	named    reference.Named
+	format   Format
 }
 
-func (r dockref) Format() Format {
+func findDockrefFormat(named reference.Named, original, name, tag, digestString string) Format {
 	var format Format
 
-	if r.named != nil {
-		fn := reference.FamiliarString(r.named)
-		if fn != r.original {
+	if named != nil {
+		fn := reference.FamiliarString(named)
+		if fn != original {
 			format |= FormatHasDomain
 		}
 	}
 
-	if r.name != "" {
+	if name != "" {
 		format |= FormatHasName
 	}
-	if r.tag != "" {
+	if tag != "" {
 		format |= FormatHasTag
 	}
-	if r.DigestString() != "" {
+	if digestString != "" {
 		format |= FormatHasDigest
 	}
 
 	return format
+}
+
+func (r dockref) Format() Format {
+	return r.format
 }
 
 func (r dockref) Formatted(format Format) string {
@@ -193,4 +215,23 @@ func (r dockref) Path() string {
 
 func (r dockref) String() string {
 	return r.Formatted(r.Format())
+}
+
+func (r dockref) WithRequestedFormat(format Format) (Reference, error) {
+	if ok, err := format.Valid(); !ok {
+		return nil, err
+	}
+	var required Format
+
+	if r.Domain() != "docker.io" || !strings.HasPrefix(r.Path(), "library/") {
+		required |= FormatHasDomain | FormatHasName
+	}
+
+	if format.hasTag() {
+		required |= FormatHasName
+	}
+
+	cpy := r
+	cpy.format = format | required
+	return cpy, nil
 }

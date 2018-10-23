@@ -13,7 +13,7 @@ function hasLine {
     return 1
 }
 
-function hasNotLine {
+function hasNoLine {
     local file="$1"
     local line="$2"
     [[ ! -z $(echo "$file" | grep -Fx "$line") ]] || return 0
@@ -60,9 +60,9 @@ stdout="$(cat $RESULTS/listLatestInFolder.stdout)"
 stderr="$(cat $RESULTS/listLatestInFolder.stderr)"
 hasLine "$stdout" "nginx" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "nginx:latest" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "nginx:1.15.3" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "nginx:1.15.3-alpine@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "nginx@sha256:db5acc22920799fe387a903437eb89387607e5b3f63cf0f4472ac182d7bad644" || fail ${CASE_ID} "Unexpected stdout: $stdout"
+hasNoLine "$stdout" "nginx:1.15.3" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "nginx:1.15.3-alpine@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "nginx@sha256:db5acc22920799fe387a903437eb89387607e5b3f63cf0f4472ac182d7bad644" || fail ${CASE_ID} "Unexpected stdout: $stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
 echo $exitCode >$RESULTS/listLatestInFolder.exitCode
 
@@ -79,8 +79,8 @@ stderr="$(cat $RESULTS/listUnpinnedInFolder.stderr)"
 hasLine "$stdout" "nginx" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "nginx:latest" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "nginx:1.15.3" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "nginx:1.15.3-alpine@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "nginx@sha256:db5acc22920799fe387a903437eb89387607e5b3f63cf0f4472ac182d7bad644" || fail ${CASE_ID} "Unexpected stdout: $stdout"
+hasNoLine "$stdout" "nginx:1.15.3-alpine@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "nginx@sha256:db5acc22920799fe387a903437eb89387607e5b3f63cf0f4472ac182d7bad644" || fail ${CASE_ID} "Unexpected stdout: $stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
 echo $exitCode >$RESULTS/listUnpinnedInFolder.exitCode
 
@@ -121,14 +121,14 @@ stdout="$(cat $RESULTS/listLatestInFile.stdout)"
 stderr="$(cat $RESULTS/listLatestInFile.stderr)"
 hasLine "$stdout" "image-name" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "docker.io/library/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "docker.io/library/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "docker.io/library/image-name" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "docker.io/library/image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "example.com/image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "example.com/image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "example.com/other-image" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "example.com/other-image:latest" || fail ${CASE_ID} "Unexpected stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
@@ -147,13 +147,13 @@ stderr="$(cat $RESULTS/listUnpinnedInFile.stderr)"
 hasLine "$stdout" "image-name" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "docker.io/library/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "docker.io/library/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "docker.io/library/image-name" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "docker.io/library/image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "example.com/image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "example.com/other-image" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "example.com/other-image:latest" || fail ${CASE_ID} "Unexpected stdout"
 echo $exitCode >$RESULTS/listUnpinnedInFile.exitCode
@@ -180,23 +180,24 @@ hasLine "$stdout" "some-folder/Dockerfile-nginx-tagged-digest" || fail ${CASE_ID
 echo $exitCode >$RESULTS/containsAnyInFolder.exitCode
 
 CASE_ID=8
+CASE_NAME=containsLatestInFolder
 ( # find any file with latest/no tag and no digest
 #tag::containsLatestInFolder[]
 find some-folder/ -type f -exec dockmoor contains --latest {} \; -print
 #end::containsLatestInFolder[]
-) >$RESULTS/containsLatestInFolder.stdout 2>$RESULTS/containsLatestInFolder.stderr
+) >$RESULTS/$CASE_NAME.stdout 2>$RESULTS/$CASE_NAME.stderr
 exitCode=$?
 [ $exitCode -eq 0 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
-stdout="$(cat $RESULTS/containsLatestInFolder.stdout)"
-stderr="$(cat $RESULTS/containsLatestInFolder.stderr)"
+stdout="$(cat $RESULTS/$CASE_NAME.stdout)"
+stderr="$(cat $RESULTS/$CASE_NAME.stderr)"
 hasLine "$stdout" "some-folder/Dockerfile-nginx-latest" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "some-folder/Dockerfile-nginx-untagged" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "some-folder/subfolder/Dockerfile-nginx-latest" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "some-folder/subfolder/Dockerfile-nginx-digest" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "some-folder/Dockerfile-nginx-tagged-digest" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "some-folder/Dockerfile-nginx-1.15.3" || fail ${CASE_ID} "Unexpected stdout: $stdout"
+hasNoLine "$stdout" "some-folder/subfolder/Dockerfile-nginx-digest" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "some-folder/Dockerfile-nginx-tagged-digest" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "some-folder/Dockerfile-nginx-1.15.3" || fail ${CASE_ID} "Unexpected stdout: $stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
-echo $exitCode >$RESULTS/containsLatestInFolder.exitCode
+echo $exitCode >$RESULTS/CASE_NAME.exitCode
 
 CASE_ID=9
 ( # find any file with latest/no tag
@@ -211,8 +212,8 @@ stderr="$(cat $RESULTS/containsUnpinnedInFolder.stderr)"
 hasLine "$stdout" "some-folder/Dockerfile-nginx-latest" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "some-folder/Dockerfile-nginx-untagged" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "some-folder/subfolder/Dockerfile-nginx-latest" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "some-folder/subfolder/Dockerfile-nginx-digest" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "some-folder/Dockerfile-nginx-tagged-digest" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "some-folder/subfolder/Dockerfile-nginx-digest" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "some-folder/Dockerfile-nginx-tagged-digest" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "some-folder/Dockerfile-nginx-1.15.3" || fail ${CASE_ID} "Unexpected stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
 echo $exitCode >$RESULTS/containsUnpinnedInFolder.exitCode
@@ -248,45 +249,25 @@ exitCode=$?
 echo $exitCode >$RESULTS/containsAnyNonExisting.exitCode
 [ $exitCode -eq 5 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
 
-CASE_ID=13
-CASE_NAME=listDomainInFile
-( # list image references from example.com
-#tag::listDomainInFile[]
-dockmoor list --domain=example.com Dockerfile
-#end::listDomainInFile[]
-) >$RESULTS/${CASE_NAME}.stdout 2>$RESULTS/${CASE_NAME}.stderr
-exitCode=$?
-[ $exitCode -eq 0 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
-stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
-stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
-
-hasNotLine "$stdout" "image-name" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "docker.io/library/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "docker.io/library/image-name" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "docker.io/library/image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
-hasLine "$stdout" "example.com/image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
-hasLine "$stdout" "example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasLine "$stdout" "example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasLine "$stdout" "example.com/other-image" || fail ${CASE_ID} "Unexpected stdout"
-hasLine "$stdout" "example.com/other-image:latest" || fail ${CASE_ID} "Unexpected stdout"
-
-hasNotLine "$stdout" "image-name" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "docker.io/library/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "docker.io/library/image-name" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "docker.io/library/image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
-hasLine "$stdout" "example.com/image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
-hasLine "$stdout" "example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasLine "$stdout" "example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasLine "$stdout" "example.com/other-image" || fail ${CASE_ID} "Unexpected stdout"
-hasLine "$stdout" "example.com/other-image:latest" || fail ${CASE_ID} "Unexpected stdout"
-[[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
-echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
+    CASE_ID=13
+    CASE_NAME=listDomainInFile
+    ( # list image references from example.com
+    #tag::listDomainInFile[]
+    dockmoor list --domain=example.com Dockerfile
+    #end::listDomainInFile[]
+    ) >$RESULTS/${CASE_NAME}.stdout 2>$RESULTS/${CASE_NAME}.stderr
+    exitCode=$?
+    [ $exitCode -eq 0 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
+    stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
+    stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
+    hasNoLine "$stdout" "image-name" || fail ${CASE_ID} "Unexpected stdout"
+    hasNoLine "$stdout" "image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
+    hasNoLine "$stdout" "image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
+    hasLine "$stdout" "example.com/image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
+    hasLine "$stdout" "example.com/other-image" || fail ${CASE_ID} "Unexpected stdout"
+    hasLine "$stdout" "example.com/other-image:latest" || fail ${CASE_ID} "Unexpected stdout"
+    [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
+    echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
 
 CASE_ID=14
 CASE_NAME=listDomainWithLatestInFile
@@ -300,16 +281,16 @@ exitCode=$?
 stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
 stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
 
-hasNotLine "$stdout" "image-name" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "docker.io/library/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "docker.io/library/image-name" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "docker.io/library/image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "example.com/image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "image-name" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "docker.io/library/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "docker.io/library/image-name" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "docker.io/library/image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "example.com/image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "example.com/other-image" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "example.com/other-image:latest" || fail ${CASE_ID} "Unexpected stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
@@ -328,14 +309,14 @@ stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
 stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
 hasLine "$stdout" "image-name" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "docker.io/library/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "docker.io/library/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "docker.io/library/image-name" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "docker.io/library/image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "example.com/image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout""example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "example.com/image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout""example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "example.com/other-image" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "example.com/other-image:latest" || fail ${CASE_ID} "Unexpected stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
@@ -352,24 +333,24 @@ exitCode=$?
 [ $exitCode -eq 0 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
 stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
 stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
-hasNotLine "$stdout" "image-name" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "image-name" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "image-name:1.12-test" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "image-name:1.11-test" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "docker.io/library/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "docker.io/library/image-name" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "docker.io/library/image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "docker.io/library/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "docker.io/library/image-name" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "docker.io/library/image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "docker.io/library/image-name:latest-test" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "example.com/image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "example.com/image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "example.com/image-name:1.12-test" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "example.com/image-name:1.12-testing" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "example.com/image-name:1.12-testing" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "example.com/image-name:latest-test@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "example.com/other-image" || fail ${CASE_ID} "Unexpected stdout"
-hasNotLine "$stdout" "example.com/other-image:latest" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "example.com/other-image" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "example.com/other-image:latest" || fail ${CASE_ID} "Unexpected stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
 echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
 

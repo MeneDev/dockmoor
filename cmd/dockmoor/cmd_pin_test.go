@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockref"
-	"github.com/MeneDev/dockmoor/docktest/dockreftest"
+	"github.com/MeneDev/dockmoor/docktst/dockreftst"
 	"github.com/jessevdk/go-flags"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -17,7 +17,7 @@ type pinOptionsTest struct {
 	*pinOptions
 
 	mainOptionsTest *mainOptionsTest
-	mockRepo        *dockreftest.MockRepository
+	mockRepo        *dockreftst.MockRepository
 }
 
 func (fo *pinOptionsTest) MainOptions() *mainOptionsTest {
@@ -27,7 +27,7 @@ func (fo *pinOptionsTest) MainOptions() *mainOptionsTest {
 func pinOptionsTestNew() *pinOptionsTest {
 	mainOptions := mainOptionsTestNew()
 
-	repo := dockreftest.MockRepositoryNew()
+	repo := dockreftst.MockRepositoryNew()
 
 	pinOptions := &pinOptionsTest{
 		pinOptions:      pinOptionsNew(mainOptions.mainOptions, repo),
@@ -189,4 +189,18 @@ func TestPinCommandPins(t *testing.T) {
 		pin("d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 	})
 
+}
+
+func TestFilenameRequiredWithPin(t *testing.T) {
+	_, _, exitCode, stdout := testMain([]string{"pin"}, addPinCommand)
+	assert.NotEqual(t, 0, exitCode)
+	assert.Contains(t, stdout.String(), "level=error")
+	assert.Contains(t, stdout.String(), "the required argument `InputFile` was not provided")
+}
+
+func TestPinCallsFindExecuteWithPin(t *testing.T) {
+	cmd, _, _, _ := testMain([]string{"pin", "fileName"}, addPinCommand)
+
+	_, ok := cmd.(*pinOptions)
+	assert.True(t, ok)
 }

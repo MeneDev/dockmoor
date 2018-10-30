@@ -1,4 +1,4 @@
-package dockreftest
+package dockreftst
 
 import (
 	"github.com/MeneDev/dockmoor/dockref"

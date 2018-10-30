@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/MeneDev/dockmoor/dockref"
+	"github.com/hashicorp/go-multierror"
 	"github.com/jessevdk/go-flags"
 )
 
@@ -18,8 +19,29 @@ type pinOptions struct {
 	repo dockref.Repository
 }
 
-func (po *pinOptions) ExecuteWithExitCode(args []string) (exitCode int, err error) {
-	panic("implement me")
+func (po *pinOptions) ExecuteWithExitCode(args []string) (ExitCode, error) {
+	var result *multierror.Error
+
+	errVerify := verifyMatchOptions(&po.MatchingOptions)
+	if errVerify != nil {
+		result = multierror.Append(result, errVerify)
+		po.Log().Errorf("Invalid options: %s\n", errVerify.Error())
+
+		parser := flags.NewParser(&struct{}{}, flags.HelpFlag)
+		command, err := addContainsCommand(po.mainOpts, AddCommand)
+		result = multierror.Append(result, err)
+
+		_, err = parser.ParseArgs([]string{command.Name, "--help"})
+		result = multierror.Append(result, err)
+
+		parser.WriteHelp(po.Stdout())
+		return ExitInvalidParams, result.ErrorOrNil()
+	}
+
+	exitCode, err := po.matchAndProcess()
+	result = multierror.Append(result, err)
+
+	return exitCode, result.ErrorOrNil()
 }
 
 func (po *pinOptions) Repo() dockref.Repository {

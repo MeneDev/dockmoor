@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"github.com/MeneDev/dockmoor/dockref"
-	"github.com/MeneDev/dockmoor/docktest/dockreftest"
+	"github.com/MeneDev/dockmoor/docktst/dockreftst"
 	"github.com/jessevdk/go-flags"
 	"github.com/mattn/go-shellwords"
 	"github.com/stretchr/testify/assert"
@@ -38,7 +38,7 @@ func mainOptionsACNew(commandAdders ...func(mainOptions *mainOptions, adder func
 
 	mainOptions.SetStdout(bytes.NewBuffer(nil))
 	mainOptions.repositoryFactory = func() dockref.Repository {
-		return dockreftest.MockRepositoryNew()
+		return dockreftst.MockRepositoryNew()
 	}
 
 	for _, adder := range commandAdders {

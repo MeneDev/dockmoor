@@ -22,6 +22,23 @@ func FromOriginalNoError(original string) Reference {
 	return ref
 }
 
+func MustParseAlgoDigest(algoDigest string) Reference {
+	ref, e := ParseAlgoDigest(algoDigest)
+	deliberatelyUnsued(e)
+	return ref
+}
+
+func ParseAlgoDigest(algoDigest string) (ref Reference, e error) {
+	dig := digest.Digest(algoDigest)
+	err := dig.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	hex := dig.Hex()
+	return FromOriginalNoError(hex), nil
+}
+
 func FromOriginal(original string) (ref Reference, e error) {
 	r, e := reference.ParseAnyReference(original)
 	if e != nil {
@@ -73,7 +90,7 @@ type Reference interface {
 	Path() string
 	Named() reference.Named
 	Format() Format
-	Formatted(format Format) string
+	Formatted() string
 	String() string
 	WithRequestedFormat(format Format) (Reference, error)
 	WithDigest(dig string) Reference
@@ -153,11 +170,13 @@ func (r dockref) Format() Format {
 	return r.format
 }
 
-func (r dockref) Formatted(format Format) string {
+func (r dockref) Formatted() string {
 
 	s := ""
 
 	var name string
+
+	format := r.Format()
 
 	if format.hasName() {
 		if format.hasDomain() {
@@ -216,7 +235,7 @@ func (r dockref) Path() string {
 }
 
 func (r dockref) String() string {
-	return r.Formatted(r.Format())
+	return r.Formatted()
 }
 
 func (r dockref) WithRequestedFormat(format Format) (Reference, error) {
@@ -225,7 +244,7 @@ func (r dockref) WithRequestedFormat(format Format) (Reference, error) {
 	}
 	var required Format
 
-	if r.Domain() != "docker.io" || !strings.HasPrefix(r.Path(), "library/") {
+	if r.Domain() != "" && r.Domain() != "docker.io" || !strings.HasPrefix(r.Path(), "library/") {
 		required |= FormatHasDomain | FormatHasName
 	}
 
@@ -235,6 +254,11 @@ func (r dockref) WithRequestedFormat(format Format) (Reference, error) {
 
 	cpy := r
 	cpy.format = format | required
+
+	if r.Format() == FormatHasDigest { // digest-only
+		cpy.format = FormatHasDigest
+	}
+
 	return cpy, nil
 }
 

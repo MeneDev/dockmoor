@@ -294,7 +294,10 @@ func TestDockref_Formatted(t *testing.T) {
 				ref := FromOriginalNoError(original)
 				format := ref.Format()
 
-				formatted := ref.Formatted(format)
+				reference, err := ref.WithRequestedFormat(format)
+				assert.Nil(t, err)
+
+				formatted := reference.Formatted()
 				assert.Equal(t, original, formatted)
 			})
 		}
@@ -330,7 +333,7 @@ func TestDockref_WithRequestedFormat(t *testing.T) {
 		assert.Error(t, e)
 	})
 
-	t.Run("well known nmae only", func(t *testing.T) {
+	t.Run("well known name only", func(t *testing.T) {
 		r := FromOriginalNoError("docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 		rName, e := r.WithRequestedFormat(FormatHasName)
 		assert.Nil(t, e)
@@ -365,6 +368,34 @@ func TestDockref_WithRequestedFormat(t *testing.T) {
 		rNameOwn, e := r.WithRequestedFormat(FormatHasDigest)
 		assert.Nil(t, e)
 		assert.Equal(t, "example.com/library/nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", rNameOwn.String())
+	})
+
+	t.Run("digest-only remains digest-only", func(t *testing.T) {
+		r := FromOriginalNoError("d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+
+		r, e := r.WithRequestedFormat(FormatHasName)
+		assert.Nil(t, e)
+		assert.Equal(t, r.Format(), FormatHasDigest)
+		//assert.Equal(t, "d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", r.String())
+
+	})
+}
+
+func TestFromAlgoDigest(t *testing.T) {
+	t.Run("Invalid algorithm", func(t *testing.T) {
+		ref, e := ParseAlgoDigest("invalid:3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58")
+		assert.Nil(t, ref)
+		assert.Error(t, e)
+	})
+	t.Run("Invalid hex", func(t *testing.T) {
+		ref, e := ParseAlgoDigest("sha256:0000")
+		assert.Nil(t, ref)
+		assert.Error(t, e)
+	})
+	t.Run("Valid algo digest", func(t *testing.T) {
+		ref, e := ParseAlgoDigest("sha256:3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58")
+		assert.NotNil(t, ref)
+		assert.Nil(t, e)
 	})
 
 }

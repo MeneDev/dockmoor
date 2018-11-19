@@ -76,6 +76,8 @@ type Reference interface {
 	Formatted(format Format) string
 	String() string
 	WithRequestedFormat(format Format) (Reference, error)
+	WithDigest(dig string) Reference
+	WithTag(tag string) Reference
 }
 
 type Format uint
@@ -234,4 +236,16 @@ func (r dockref) WithRequestedFormat(format Format) (Reference, error) {
 	cpy := r
 	cpy.format = format | required
 	return cpy, nil
+}
+
+func (r dockref) WithDigest(dig string) Reference {
+	cpy := r
+	cpy.digest = dig
+	return cpy
+}
+
+func (r dockref) WithTag(tag string) Reference {
+	cpy := r
+	cpy.tag = tag
+	return cpy
 }

@@ -58,7 +58,8 @@ func pinOptionsNew(mainOptions *mainOptions, repository dockref.Repository) *pin
 
 	po.matchHandler = func(r dockref.Reference) (dockref.Reference, error) {
 		repo := po.Repo()
-		resolved, e := repo.Resolve(r)
+		resolvedArr, e := repo.Resolve(r)
+		resolved := resolvedArr[0]
 		if e != nil {
 			return resolved, e
 		}

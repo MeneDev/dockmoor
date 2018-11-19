@@ -11,12 +11,12 @@ type MockRepository struct {
 	mock.Mock
 }
 
-func (m *MockRepository) Resolve(reference dockref.Reference) (dockref.Reference, error) {
+func (m *MockRepository) Resolve(reference dockref.Reference) ([]dockref.Reference, error) {
 	called := m.Called(reference)
 	i := called.Get(0)
 	ref := i.(dockref.Reference)
 	e := called.Error(1)
-	return ref, e
+	return []dockref.Reference{ref}, e
 }
 
 func (m *MockRepository) OnResolve(reference dockref.Reference) *mock.Call {

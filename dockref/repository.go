@@ -49,22 +49,11 @@ func (dockerDaemonRepository) Resolve(reference Reference) ([]Reference, error) 
 			r = r.WithTag(tagRef.Tag())
 			refs = append(refs, r)
 		}
-	}
-	dig := digs[0]
-	digRef, e := FromOriginal(dig)
-	if e != nil {
-		return nil, e
-	}
-	reference = reference.WithDigest(digRef.DigestString())
-	if len(tags) > 0 {
-		tag := tags[0]
-		tagRef, e := FromOriginal(tag)
-		if e != nil {
-			return nil, e
+
+		if len(tags) == 0 {
+			refs = append(refs, r)
 		}
-		reference = reference.WithTag(tagRef.Tag())
 	}
 
-	return []Reference{reference}, nil
-	// npipe:////./pipe/docker_engine ?
+	return refs, nil
 }

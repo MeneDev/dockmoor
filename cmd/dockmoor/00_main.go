@@ -96,7 +96,7 @@ func doMain(mainOptions *mainOptions) (exitCode ExitCode) {
 		exitCode = eC
 		if err != nil {
 			// This is only debug level because the loging should take place at a more informed place
-			mainOptions.Log().Debug("Error: %s", err.Error())
+			mainOptions.Log().Debugf("Error: %s", err.Error())
 		}
 	}
 

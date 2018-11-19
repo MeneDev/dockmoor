@@ -79,7 +79,7 @@ func (format *dockerfileFormat) ValidateInput(log logrus.FieldLogger, reader io.
 	// the parser will just ignore "unknown" commands in the Dockerfile but not report any error
 	for _, cmd := range result.AST.Children {
 		if _, ok := command.Commands[cmd.Value]; !ok {
-			return errors.Errorf("Unknown command %s", cmd)
+			return errors.Errorf("Unknown command %s", cmd.Value)
 		}
 	}
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"html"
@@ -30,7 +31,8 @@ func mdPrintf(writer io.Writer, format string, a ...interface{}) (n int, err err
 }
 
 func WriteMarkdown(parser *flags.Parser, writer io.Writer) {
-	mdPrintf(writer, "# %s [![CircleCI](https://img.shields.io/circleci/project/github/MeneDev/dockmoor/master.svg)](https://circleci.com/gh/MeneDev/dockmoor) [![Coverage Status](https://img.shields.io/coveralls/github/MeneDev/dockmoor/master.svg)](https://coveralls.io/github/MeneDev/dockmoor) [![Follow MeneDev on Twitter](https://img.shields.io/twitter/follow/MeneDev.svg?style=social&label=%40MeneDev)](https://twitter.com/MeneDev)\n", parser.Name)
+	writer.Write(bytes.NewBufferString("[![CircleCI](https://img.shields.io/circleci/project/github/MeneDev/dockmoor/master.svg)](https://circleci.com/gh/MeneDev/dockmoor) [![Coverage Status](https://img.shields.io/coveralls/github/MeneDev/dockmoor/master.svg)](https://coveralls.io/github/MeneDev/dockmoor) [![Follow MeneDev on Twitter](https://img.shields.io/twitter/follow/MeneDev.svg?style=social&label=%40MeneDev)](https://twitter.com/MeneDev)\n").Bytes())
+	mdPrintf(writer, "# %s ", parser.Name)
 	mdPrintf(writer, "%s Version %s\n\n", parser.Name, Version)
 	mdPrintf(writer, "%s\n\n", parser.LongDescription)
 	mdPrintf(writer, "## Usage\n")

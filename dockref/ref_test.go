@@ -3,6 +3,7 @@ package dockref
 import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"strings"
 	"testing"
 )
 
@@ -398,4 +399,56 @@ func TestFromAlgoDigest(t *testing.T) {
 		assert.Nil(t, e)
 	})
 
+}
+
+func TestMostPreciseTag(t *testing.T) {
+	type TestCase struct {
+		list     []string
+		expected string
+	}
+
+	t.Run("Nil returns nil", func(t *testing.T) {
+		result, err := MostPreciseTag(nil)
+		assert.Nil(t, result)
+		assert.Error(t, err)
+	})
+	t.Run("Invalid returns nil", func(t *testing.T) {
+		result, err := MostPreciseTag([]Reference{FromOriginalNoError(":::"), FromOriginalNoError("nginx")})
+		assert.Nil(t, result)
+		assert.Error(t, err)
+	})
+
+	cases := []TestCase{
+		{list: []string{"nginx:latest"}, expected: "nginx:latest"},
+		{list: []string{"nginx:latest", "nginx"}, expected: "nginx:latest"},
+		{list: []string{"nginx", "nginx:latest"}, expected: "nginx:latest"},
+		{list: []string{"nginx:latest", "nginx:latest"}, expected: "nginx:latest"},
+		{list: []string{"nginx:latest", "nginx:notlatest", "nginx:latest"}, expected: "nginx:notlatest"},
+		{list: []string{"nginx:latest", "nginx:notlatest", "nginx:1", "nginx:latest"}, expected: "nginx:1"},
+		{list: []string{"nginx:1", "nginx:1.1"}, expected: "nginx:1.1"},
+		{list: []string{"nginx:1", "nginx:1.1", "nginx:2"}, expected: "nginx:2"},
+		{list: []string{"nginx:1", "nginx:1.1", "nginx:2", "nginx:2.1"}, expected: "nginx:2.1"},
+		{list: []string{"nginx:1", "nginx:1.1", "nginx:1.1-rc1"}, expected: "nginx:1.1"},
+		{list: []string{"nginx:1.1-rc1", "nginx:1.1-beta"}, expected: "nginx:1.1-rc1"},
+		{list: []string{"nginx:1.1-beta", "nginx:1.1-alpha"}, expected: "nginx:1.1-beta"},
+		{list: []string{"nginx:latest", "nginx:1.1-alpha"}, expected: "nginx:1.1-alpha"},
+		{list: []string{"img:20181120", "img:20181121", "img:20181119"}, expected: "img:20181121"},
+		{list: []string{"img:a", "img:aaa", "img:bb"}, expected: "img:aaa"},
+		{list: []string{"img:aaa", "img:aab"}, expected: "img:aab"},
+	}
+
+	for _, c := range cases {
+		t.Run(strings.Join(c.list, ", ")+" to "+c.expected, func(t *testing.T) {
+			refs := make([]Reference, 0)
+			for _, refStr := range c.list {
+				ref := FromOriginalNoError(refStr)
+				refs = append(refs, ref)
+			}
+			expected := FromOriginalNoError(c.expected)
+			result, err := MostPreciseTag(refs)
+			assert.Equal(t, expected, result)
+			assert.Nil(t, err)
+		})
+
+	}
 }

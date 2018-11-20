@@ -3,9 +3,11 @@ package dockref
 import (
 	_ "crypto/sha256" // side effect: register sha256
 	"fmt"
+	"github.com/blang/semver"
 	"github.com/docker/distribution/reference"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
+	"sort"
 	"strings"
 )
 
@@ -272,4 +274,126 @@ func (r dockref) WithTag(tag string) Reference {
 	cpy := r
 	cpy.tag = tag
 	return cpy
+}
+
+func MostPreciseTag(refs []Reference) (Reference, error) {
+	if refs == nil {
+		return nil, errors.New("refs is nil")
+	}
+	seen := make(map[string]struct{}, len(refs))
+	unique := make([]Reference, 0)
+	for _, r := range refs {
+		if r == nil {
+			return nil, errors.New("refs contains nil element")
+		}
+
+		tag := r.Tag()
+		if _, ok := seen[tag]; !ok {
+			seen[tag] = struct{}{}
+			unique = append(unique, r)
+		}
+	}
+	refs = unique
+
+	var best Reference
+	var bestSemver semver.Version
+
+	if len(refs) == 1 {
+		return refs[0], nil
+	}
+
+	nonSemVer := make([]Reference, 0)
+
+	// look for semver first, semver wins
+	for _, r := range refs {
+		tag := r.Tag()
+		version, e := parseVeryTolerant(tag)
+		if e != nil {
+			nonSemVer = append(nonSemVer, r)
+			continue
+		}
+		if version.Compare(bestSemver) >= 0 {
+			bestSemver = version
+			best = r
+		}
+	}
+
+	if best != nil {
+		return best, nil
+	}
+
+	// look for best non semver
+
+	// remove empty tag
+	nonEmpty := make([]Reference, 0)
+	for _, r := range refs {
+		if r.Tag() == "" {
+			continue
+		}
+		nonEmpty = append(nonEmpty, r)
+	}
+
+	if len(nonEmpty) == 1 {
+		return nonEmpty[0], nil
+	}
+
+	nonLatest := make([]Reference, 0)
+	for _, r := range refs {
+		if r.Tag() == "latest" {
+			continue
+		}
+		nonLatest = append(nonLatest, r)
+	}
+
+	if len(nonLatest) == 1 {
+		return nonLatest[0], nil
+	}
+
+	// take longest
+
+	sort.Slice(nonLatest, func(i, j int) bool {
+		a := nonLatest[i]
+		b := nonLatest[j]
+
+		return len(a.Tag()) > len(b.Tag())
+	})
+
+	maxLen := len(nonLatest[0].Tag())
+
+	longest := make([]Reference, 0)
+	for _, r := range nonLatest {
+		if len(r.Tag()) == maxLen {
+			longest = append(longest, r)
+		}
+	}
+
+	// alphabetic
+	sort.Slice(longest, func(i, j int) bool {
+		a := longest[i]
+		b := longest[j]
+		return strings.Compare(a.Tag(), b.Tag()) > 0
+	})
+
+	best = longest[0]
+	return best, nil
+}
+
+func parseVeryTolerant(tag string) (semver.Version, error) {
+	lastIndex := strings.LastIndex(tag, "-")
+	version := tag
+	meta := ""
+	if lastIndex > 0 {
+		version = tag[0:lastIndex]
+		meta = tag[lastIndex:]
+	}
+	parsed, e := semver.ParseTolerant(version)
+	if e != nil {
+		return parsed, e
+	}
+	if meta != "" {
+		str := parsed.String()
+		version = str + meta
+	}
+
+	return semver.ParseTolerant(version)
 }

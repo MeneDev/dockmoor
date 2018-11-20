@@ -48,6 +48,14 @@
   revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
+  digest = "1:79421244ba5848aae4b0a5c41e633a04e4894cb0b164a219dc8c15ec7facb7f1"
+  name = "github.com/blang/semver"
+  packages = ["."]
+  pruneopts = ""
+  revision = "2ee87856327ba09384cabd113bc6b5d174e9ec0f"
+  version = "v3.5.1"
+
+[[projects]]
   branch = "master"
   digest = "1:93ea6605ec4141eb1af12d328efe34547f4b4f0a4690d15b38a51840e99238ef"
   name = "github.com/containerd/continuity"
@@ -496,9 +504,11 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/blang/semver",
     "github.com/docker/cli/cli/command",
     "github.com/docker/cli/cli/flags",
     "github.com/docker/distribution/reference",
+    "github.com/docker/docker/api/types",
     "github.com/hashicorp/go-multierror",
     "github.com/jessevdk/go-flags",
     "github.com/mattn/go-shellwords",

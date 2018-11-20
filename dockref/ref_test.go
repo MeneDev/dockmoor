@@ -1,7 +1,9 @@
 package dockref
 
 import (
+	"bytes"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
@@ -407,13 +409,13 @@ func TestMostPreciseTag(t *testing.T) {
 		expected string
 	}
 
-	t.Run("Nil returns nil", func(t *testing.T) {
-		result, err := MostPreciseTag(nil)
+	t.Run("Nil slice returns nil", func(t *testing.T) {
+		result, err := MostPreciseTag(nil, nil)
 		assert.Nil(t, result)
 		assert.Error(t, err)
 	})
-	t.Run("Invalid returns nil", func(t *testing.T) {
-		result, err := MostPreciseTag([]Reference{FromOriginalNoError(":::"), FromOriginalNoError("nginx")})
+	t.Run("Nil element returns nil", func(t *testing.T) {
+		result, err := MostPreciseTag([]Reference{nil, FromOriginalNoError("nginx")}, nil)
 		assert.Nil(t, result)
 		assert.Error(t, err)
 	})
@@ -445,10 +447,70 @@ func TestMostPreciseTag(t *testing.T) {
 				refs = append(refs, ref)
 			}
 			expected := FromOriginalNoError(c.expected)
-			result, err := MostPreciseTag(refs)
+			result, err := MostPreciseTag(refs, nil)
 			assert.Equal(t, expected, result)
 			assert.Nil(t, err)
 		})
 
 	}
+
+	cases = []TestCase{
+		{list: []string{"nginx:latest"}, expected: "nginx:latest"},
+		{list: []string{"nginx:latest", "nginx"}, expected: "nginx:latest"},
+		{list: []string{"nginx", "nginx:latest"}, expected: "nginx:latest"},
+		{list: []string{"nginx:latest", "nginx:latest"}, expected: "nginx:latest"},
+		{list: []string{"nginx:latest", "nginx:notlatest", "nginx:latest"}, expected: "nginx:notlatest"},
+		{list: []string{"nginx:notlatest", "nginx:1"}, expected: "nginx:1"},
+		{list: []string{"nginx:1", "nginx:1.1"}, expected: "nginx:1.1"},
+	}
+
+	for _, c := range cases {
+		t.Run("Not warning for "+strings.Join(c.list, ", "), func(t *testing.T) {
+			refs := make([]Reference, 0)
+			for _, refStr := range c.list {
+				ref := FromOriginalNoError(refStr)
+				refs = append(refs, ref)
+			}
+
+			log := logrus.New()
+			stdout := bytes.NewBuffer(nil)
+			log.SetOutput(stdout)
+
+			reference, err := MostPreciseTag(refs, log)
+
+			assert.NotNil(t, reference)
+			assert.Nil(t, err)
+
+			str := stdout.String()
+			assert.Empty(t, str)
+		})
+	}
+
+	cases = []TestCase{
+		{list: []string{"img:a", "img:aaa", "img:bb"}, expected: "img:aaa"},
+		{list: []string{"img:aaa", "img:aab"}, expected: "img:aab"},
+	}
+
+	for _, c := range cases {
+		t.Run("Warning for "+strings.Join(c.list, ", "), func(t *testing.T) {
+			refs := make([]Reference, 0)
+			for _, refStr := range c.list {
+				ref := FromOriginalNoError(refStr)
+				refs = append(refs, ref)
+			}
+
+			log := logrus.New()
+			stdout := bytes.NewBuffer(nil)
+			log.SetOutput(stdout)
+
+			reference, err := MostPreciseTag(refs, log)
+
+			assert.NotNil(t, reference)
+			assert.Nil(t, err)
+
+			str := stdout.String()
+			assert.NotEmpty(t, str)
+		})
+	}
+
 }

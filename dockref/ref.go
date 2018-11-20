@@ -7,6 +7,7 @@ import (
 	"github.com/docker/distribution/reference"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"sort"
 	"strings"
 )
@@ -276,7 +277,7 @@ func (r dockref) WithTag(tag string) Reference {
 	return cpy
 }
 
-func MostPreciseTag(refs []Reference) (Reference, error) {
+func MostPreciseTag(refs []Reference, log *logrus.Logger) (Reference, error) {
 	if refs == nil {
 		return nil, errors.New("refs is nil")
 	}
@@ -347,6 +348,10 @@ func MostPreciseTag(refs []Reference) (Reference, error) {
 
 	if len(nonLatest) == 1 {
 		return nonLatest[0], nil
+	}
+
+	if log != nil {
+		log.Warnf("Didn't find semantic versioning tags, still trying to choose best tag but your mileage might vary")
 	}
 
 	// take longest

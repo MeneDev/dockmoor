@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"io"
+	"os"
 	"testing"
 )
 
@@ -124,6 +125,73 @@ func TestDockerDaemonRegistry_Resolve(t *testing.T) {
 		//{name: "nginx:1.14.0-perl", digest: "nginx@sha256:032acb6025fa581888812e79f4efcd32d008e0ce3dfe56c65f9c1011d93ce920"},
 		//{name: "nginx:1.14.0-alpine", digest: "nginx@sha256:8976218be775f4244df2a60a169d44606b6978bac4375192074cefc0c7824ddf"},
 		//{name: "nginx:1.14.0-alpine-perl", digest: "nginx@sha256:c3d6f9a179ba365ab4b41e176623a6fc9cfc2121567131127e43f5660e0c4767"},
+	}
+
+	for _, tst := range tests {
+		t.Run("Resolves name "+tst.name, func(t *testing.T) {
+			ref, e := FromOriginal(tst.name)
+			assert.Nil(t, e)
+
+			resolve, e := repo.Resolve(ref)
+			assert.Nil(t, e)
+
+			assert.NotNil(t, resolve)
+			if resolve != nil {
+				reference, err := resolve[0].WithRequestedFormat(FormatHasName | FormatHasDigest)
+				assert.Nil(t, err)
+				assert.Equal(t, tst.digest, reference.Formatted())
+			}
+		})
+	}
+
+	for _, tst := range tests {
+		dig := FromOriginalNoError(tst.digest).Formatted()
+		//dig = strings.SplitAfter(dig, ":")[1]
+		t.Run("Resolves digest "+dig, func(t *testing.T) {
+			ref := FromOriginalNoError(dig)
+
+			resolve, e := repo.Resolve(ref)
+			assert.Nil(t, e)
+
+			assert.NotNil(t, resolve)
+
+			formatted := make([]string, 0)
+
+			for _, res := range resolve {
+				reference, err := res.WithRequestedFormat(FormatHasName | FormatHasTag)
+				assert.Nil(t, err)
+				f := reference.Formatted()
+				formatted = append(formatted, f)
+			}
+
+			assert.Contains(t, formatted, tst.name)
+		})
+	}
+}
+
+func TestDockerDaemonRegistry_Resolve_IT(t *testing.T) {
+	// integration tests
+	// require pulled nginx images
+	repo := DockerDaemonRepositoryNew()
+
+	println("DOCKER_CERT_PATH " + os.Getenv("DOCKER_CERT_PATH"))
+	println("DOCKER_TLS " + os.Getenv("DOCKER_TLS"))
+	println("DOCKER_TLS_VERIFY " + os.Getenv("DOCKER_TLS_VERIFY"))
+
+	t.Run("invalid", func(t *testing.T) {
+		references, e := repo.Resolve(FromOriginalNoError("unknown:unknown"))
+		assert.Error(t, e)
+		assert.Nil(t, references)
+	})
+
+	type T struct {
+		name, digest string
+	}
+
+	tests := []T{
+		{name: "nginx:1.15.5", digest: "nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e"},
+		{name: "nginx:1.15.6", digest: "nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"},
+		{name: "nginx:latest", digest: "nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"},
 	}
 
 	for _, tst := range tests {

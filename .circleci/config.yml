@@ -109,11 +109,30 @@ jobs:
               - ./vendor
               - /tmp/go/cache
 
-#      - setup_remote_docker
+      - setup_remote_docker
+
+      - run:
+          name: docker pull
+          command: |
+            docker pull nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e
+            docker pull nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991
+            docker tag nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e nginx:1.15.5
+            docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:1.15.6
+            docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:latest
+
+      - run:
+          name: docker images
+          command: |
+            docker images
 
       - run:
           name: Test
           command: |
+            echo "DOCKER_CERT_PATH: $DOCKER_CERT_PATH"
+            echo "DOCKER_TLS: $DOCKER_TLS"
+            echo "DOCKER_TLS_VERIFY: $DOCKER_TLS_VERIFY"
+
+            ls $DOCKER_CERT_PATH
             go test -v ./... -cover -race -coverprofile=/tmp/coverage.out
             $GOPATH/bin/goveralls -coverprofile=/tmp/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
 

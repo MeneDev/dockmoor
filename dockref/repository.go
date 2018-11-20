@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"github.com/docker/docker/api/types"
+	"github.com/spf13/pflag"
 	"io"
 	"io/ioutil"
 
@@ -49,6 +50,8 @@ func (repo dockerDaemonRepository) newClient() (dockerApiClient, error) {
 	isTrusted := false
 	cli := repo.NewCli(in, out, errWriter, isTrusted)
 	opts := flags.NewClientOptions()
+	flags := pflag.NewFlagSet("testing", pflag.ContinueOnError)
+	opts.Common.InstallFlags(flags)
 	err := cli.Initialize(opts)
 	if err != nil {
 		return nil, err

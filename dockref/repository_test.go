@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-func DockerDaemonRepositoryNewTest() *dockerDaemonRepository {
+func dockerDaemonRepositoryNewTest() *dockerDaemonRepository {
 	repo := DockerDaemonRepositoryNew()
 	repository := repo.(*dockerDaemonRepository)
 	return repository
@@ -30,20 +30,20 @@ func (m *mockDockerCli) Initialize(options *flags.ClientOptions) error {
 	return called.Error(0)
 }
 
-func (m *mockDockerCli) Client() dockerApiClient {
+func (m *mockDockerCli) Client() dockerAPIClient {
 	called := m.Called()
 	obj := called.Get(0)
-	apiClient := obj.(dockerApiClient)
+	apiClient := obj.(dockerAPIClient)
 	return apiClient
 }
 
-var _ dockerApiClient = (*mockDockerApiClient)(nil)
+var _ dockerAPIClient = (*mockDockerAPIClient)(nil)
 
-type mockDockerApiClient struct {
+type mockDockerAPIClient struct {
 	mock.Mock
 }
 
-func (m *mockDockerApiClient) ImageInspectWithRaw(ctx context.Context, image string) (types.ImageInspect, []byte, error) {
+func (m *mockDockerAPIClient) ImageInspectWithRaw(ctx context.Context, image string) (types.ImageInspect, []byte, error) {
 	called := m.Called(ctx, image)
 	ii := called.Get(0)
 	imageInspect := ii.(types.ImageInspect)
@@ -60,13 +60,13 @@ func (m *mockDockerApiClient) ImageInspectWithRaw(ctx context.Context, image str
 }
 
 func TestDockerDaemonRegistry_Resolve(t *testing.T) {
-	repo := DockerDaemonRepositoryNewTest()
+	repo := dockerDaemonRepositoryNewTest()
 	mockCli := &mockDockerCli{}
 	repo.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
 		return mockCli
 	}
 
-	mockClient := &mockDockerApiClient{}
+	mockClient := &mockDockerAPIClient{}
 
 	mockCli.On("Initialize", mock.Anything).Return(nil)
 	mockCli.On("Client").Return(mockClient)
@@ -237,13 +237,13 @@ func TestDockerDaemonRegistry_Resolve_IT(t *testing.T) {
 }
 
 func TestDockerDaemonRegistry_Resolve_Error_in_Initialize(t *testing.T) {
-	repo := DockerDaemonRepositoryNewTest()
+	repo := dockerDaemonRepositoryNewTest()
 	mockCli := &mockDockerCli{}
 	repo.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
 		return mockCli
 	}
 
-	mockClient := &mockDockerApiClient{}
+	mockClient := &mockDockerAPIClient{}
 
 	expected := errors.New("Initialize error")
 	mockCli.On("Initialize", mock.Anything).Return(expected)
@@ -256,13 +256,13 @@ func TestDockerDaemonRegistry_Resolve_Error_in_Initialize(t *testing.T) {
 }
 
 func TestDockerDaemonRepository_Resolve_DigestOnly(t *testing.T) {
-	repo := DockerDaemonRepositoryNewTest()
+	repo := dockerDaemonRepositoryNewTest()
 	mockCli := &mockDockerCli{}
 	repo.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
 		return mockCli
 	}
 
-	mockClient := &mockDockerApiClient{}
+	mockClient := &mockDockerAPIClient{}
 
 	mockCli.On("Initialize", mock.Anything).Return(nil)
 	mockCli.On("Client").Return(mockClient)
@@ -283,13 +283,13 @@ func TestDockerDaemonRepository_Resolve_DigestOnly(t *testing.T) {
 }
 
 func TestDockerDaemonRepository_Resolve_LocalOnly_but_tagged(t *testing.T) {
-	repo := DockerDaemonRepositoryNewTest()
+	repo := dockerDaemonRepositoryNewTest()
 	mockCli := &mockDockerCli{}
 	repo.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
 		return mockCli
 	}
 
-	mockClient := &mockDockerApiClient{}
+	mockClient := &mockDockerAPIClient{}
 
 	mockCli.On("Initialize", mock.Anything).Return(nil)
 	mockCli.On("Client").Return(mockClient)

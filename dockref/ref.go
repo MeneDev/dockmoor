@@ -128,7 +128,7 @@ func (format Format) Valid() (bool, error) {
 	valid := f == 0
 	var err error
 	if !valid {
-		err = errors.New(fmt.Sprintf("Invalid format, %d", format))
+		err = fmt.Errorf("Invalid format, %d", format)
 	}
 	return valid, err
 }
@@ -146,7 +146,7 @@ type dockref struct {
 	format   Format
 }
 
-func findDockrefFormat(named reference.Named, original, name, tag, digestString string) Format {
+func findDockrefFormat(named reference.Reference, original, name, tag, digestString string) Format {
 	var format Format
 
 	if named != nil {
@@ -296,15 +296,91 @@ func MostPreciseTag(refs []Reference, log *logrus.Logger) (Reference, error) {
 	}
 	refs = unique
 
-	var best Reference
-	var bestSemver semver.Version
-
 	if len(refs) == 1 {
 		return refs[0], nil
 	}
 
-	nonSemVer := make([]Reference, 0)
+	nonSemVer, best := bestSemVer(refs)
 
+	if best != nil {
+		return best, nil
+	}
+
+	// look for best non semver
+
+	// remove empty tag
+	nonEmpty := removeEmpty(nonSemVer)
+	if len(nonEmpty) == 1 {
+		return nonEmpty[0], nil
+	}
+
+	nonLatest := removeLatest(nonEmpty)
+	if len(nonLatest) == 1 {
+		return nonLatest[0], nil
+	}
+
+	if log != nil {
+		log.Warnf("Didn't find semantic versioning tags, still trying to choose best tag but your mileage might vary")
+	}
+
+	// take longest
+
+	longest := filterNonLongest(nonLatest)
+
+	// alphabetic
+	sort.Slice(longest, func(i, j int) bool {
+		a := longest[i]
+		b := longest[j]
+		return strings.Compare(a.Tag(), b.Tag()) > 0
+	})
+
+	best = longest[0]
+	return best, nil
+}
+
+func filterNonLongest(nonLatest []Reference) []Reference {
+	sort.Slice(nonLatest, func(i, j int) bool {
+		a := nonLatest[i]
+		b := nonLatest[j]
+
+		return len(a.Tag()) > len(b.Tag())
+	})
+	maxLen := len(nonLatest[0].Tag())
+	longest := make([]Reference, 0)
+	for _, r := range nonLatest {
+		if len(r.Tag()) == maxLen {
+			longest = append(longest, r)
+		}
+	}
+	return longest
+}
+
+func removeLatest(refs []Reference) []Reference {
+	nonLatest := make([]Reference, 0)
+	for _, r := range refs {
+		if r.Tag() == "latest" {
+			continue
+		}
+		nonLatest = append(nonLatest, r)
+	}
+	return nonLatest
+}
+
+func removeEmpty(refs []Reference) []Reference {
+	nonEmpty := make([]Reference, 0)
+	for _, r := range refs {
+		if r.Tag() == "" {
+			continue
+		}
+		nonEmpty = append(nonEmpty, r)
+	}
+	return nonEmpty
+}
+
+func bestSemVer(refs []Reference) ([]Reference, Reference) {
+	var best Reference
+	var bestSemver semver.Version
+	nonSemVer := make([]Reference, 0)
 	// look for semver first, semver wins
 	for _, r := range refs {
 		tag := r.Tag()
@@ -318,69 +394,7 @@ func MostPreciseTag(refs []Reference, log *logrus.Logger) (Reference, error) {
 			best = r
 		}
 	}
-
-	if best != nil {
-		return best, nil
-	}
-
-	// look for best non semver
-
-	// remove empty tag
-	nonEmpty := make([]Reference, 0)
-	for _, r := range refs {
-		if r.Tag() == "" {
-			continue
-		}
-		nonEmpty = append(nonEmpty, r)
-	}
-
-	if len(nonEmpty) == 1 {
-		return nonEmpty[0], nil
-	}
-
-	nonLatest := make([]Reference, 0)
-	for _, r := range refs {
-		if r.Tag() == "latest" {
-			continue
-		}
-		nonLatest = append(nonLatest, r)
-	}
-
-	if len(nonLatest) == 1 {
-		return nonLatest[0], nil
-	}
-
-	if log != nil {
-		log.Warnf("Didn't find semantic versioning tags, still trying to choose best tag but your mileage might vary")
-	}
-
-	// take longest
-
-	sort.Slice(nonLatest, func(i, j int) bool {
-		a := nonLatest[i]
-		b := nonLatest[j]
-
-		return len(a.Tag()) > len(b.Tag())
-	})
-
-	maxLen := len(nonLatest[0].Tag())
-
-	longest := make([]Reference, 0)
-	for _, r := range nonLatest {
-		if len(r.Tag()) == maxLen {
-			longest = append(longest, r)
-		}
-	}
-
-	// alphabetic
-	sort.Slice(longest, func(i, j int) bool {
-		a := longest[i]
-		b := longest[j]
-		return strings.Compare(a.Tag(), b.Tag()) > 0
-	})
-
-	best = longest[0]
-	return best, nil
+	return nonSemVer, best
 }
 
 func parseVeryTolerant(tag string) (semver.Version, error) {

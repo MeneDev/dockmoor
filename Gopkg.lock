@@ -517,6 +517,7 @@
     "github.com/opencontainers/go-digest",
     "github.com/pkg/errors",
     "github.com/sirupsen/logrus",
+    "github.com/spf13/pflag",
     "github.com/stretchr/testify/assert",
     "github.com/stretchr/testify/mock",
   ]

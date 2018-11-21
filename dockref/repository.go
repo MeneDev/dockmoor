@@ -43,7 +43,7 @@ func (repo dockerDaemonRepository) imageInspect(reference Reference) (types.Imag
 	return imageInspect, err
 }
 
-func (repo dockerDaemonRepository) newClient() (dockerApiClient, error) {
+func (repo dockerDaemonRepository) newClient() (dockerAPIClient, error) {
 	in := ioutil.NopCloser(bytes.NewBuffer(nil))
 	out := bytes.NewBuffer(nil)
 	errWriter := bytes.NewBuffer(nil)
@@ -51,7 +51,7 @@ func (repo dockerDaemonRepository) newClient() (dockerApiClient, error) {
 	cli := repo.NewCli(in, out, errWriter, isTrusted)
 	opts := flags.NewClientOptions()
 	flags := pflag.NewFlagSet("testing", pflag.ContinueOnError)
-	opts.Common.InstallFlags(flags)
+	opts.Common.SetDefaultOptions(flags)
 	err := cli.Initialize(opts)
 	if err != nil {
 		return nil, err
@@ -60,13 +60,13 @@ func (repo dockerDaemonRepository) newClient() (dockerApiClient, error) {
 	return client, nil
 }
 
-type dockerApiClient interface {
+type dockerAPIClient interface {
 	ImageInspectWithRaw(ctx context.Context, image string) (types.ImageInspect, []byte, error)
 }
 
 type dockerCliInterface interface {
 	Initialize(options *flags.ClientOptions) error
-	Client() dockerApiClient
+	Client() dockerAPIClient
 }
 
 type dockerCli struct {
@@ -77,7 +77,7 @@ func (d dockerCli) Initialize(options *flags.ClientOptions) error {
 	return d.cli.Initialize(options)
 }
 
-func (d dockerCli) Client() dockerApiClient {
+func (d dockerCli) Client() dockerAPIClient {
 	return d.cli.Client()
 }
 

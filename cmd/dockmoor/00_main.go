@@ -125,6 +125,10 @@ func main() {
 		log.Errorf("Could not add list command: %s", err)
 	}
 
+	if _, err := addPinCommand(mainOptions, AddCommand); err != nil {
+		log.Errorf("Could not add pin command: %s", err)
+	}
+
 	exitCode := doMain(mainOptions)
 	osExit(exitCode)
 }

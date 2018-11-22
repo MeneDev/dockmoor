@@ -40,7 +40,6 @@ func pinOptionsTestNew() *pinOptionsTest {
 }
 
 func TestMainAsciiDocWithPin(t *testing.T) {
-	t.SkipNow()
 	os.Args = []string{"exe", "--asciidoc-usage"}
 
 	mainOptions := mainOptionsACNew(addPinCommand)
@@ -55,7 +54,6 @@ func TestMainAsciiDocWithPin(t *testing.T) {
 }
 
 func TestMainMarkdownWithPin(t *testing.T) {
-	t.SkipNow()
 	os.Args = []string{"exe", "--markdown"}
 
 	mainOptions := mainOptionsACNew(addPinCommand)
@@ -70,8 +68,6 @@ func TestMainMarkdownWithPin(t *testing.T) {
 }
 
 func TestPinHelpIsNotAnError(t *testing.T) {
-	t.SkipNow()
-
 	os.Args = []string{"exe", "pin", "--help"}
 
 	mainOptions := mainOptionsACNew(addPinCommand)
@@ -143,15 +139,15 @@ func TestPinOptions_RefFormat(t *testing.T) {
 func TestPinCommandPins(t *testing.T) {
 	po := pinOptionsTestNew()
 	po.mockRepo.OnResolve(dockref.FromOriginalNoError("nginx")).
-		Return([]dockref.Reference {dockref.FromOriginalNoError("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")} , nil)
+		Return([]dockref.Reference{dockref.FromOriginalNoError("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")}, nil)
 
 	po.mockRepo.OnResolve(dockref.FromOriginalNoError("nginx:latest")).
-		Return([]dockref.Reference {
+		Return([]dockref.Reference{
 			dockref.FromOriginalNoError("nginx:1@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
 			dockref.FromOriginalNoError("nginx:1.15@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
 			dockref.FromOriginalNoError("nginx:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
 			dockref.FromOriginalNoError("nginx:latest@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
-		} , nil)
+		}, nil)
 
 	processorMock := &FormatProcessorMock{}
 
@@ -217,12 +213,13 @@ func TestFilenameRequiredWithPin(t *testing.T) {
 	_, _, exitCode, stdout := testMain([]string{"pin"}, addPinCommand)
 	assert.NotEqual(t, 0, exitCode)
 	assert.Contains(t, stdout.String(), "level=error")
-	assert.Contains(t, stdout.String(), "the required argument `InputFile` was not provided")
+	assert.Contains(t, stdout.String(), "the required argument `InputFile`")
 }
 
 func TestPinCallsFindExecuteWithPin(t *testing.T) {
-	cmd, _, _, _ := testMain([]string{"pin", "fileName"}, addPinCommand)
+	cmd, _, _, stdout := testMain([]string{"pin", "fileName"}, addPinCommand)
 
 	_, ok := cmd.(*pinOptions)
 	assert.True(t, ok)
+	assert.Empty(t, stdout)
 }

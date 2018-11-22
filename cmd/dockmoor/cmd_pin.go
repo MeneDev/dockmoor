@@ -16,6 +16,10 @@ type pinOptions struct {
 		NoDigest    bool `required:"no" long:"no-digest" description:"Don't include the digest in the reference'"`
 	} `group:"Reference format" description:"Control the format of references, defaults are sensible, changes are not recommended"`
 
+	Output struct {
+		OutputFile flags.Filename `required:"no" short:"o" long:"output" description:"Output file to write to. If empty, input file will be used."`
+	} `group:"Output parameters" description:"Output parameters"`
+
 	repoFactory func() dockref.Repository
 }
 
@@ -28,7 +32,7 @@ func (po *pinOptions) ExecuteWithExitCode(args []string) (ExitCode, error) {
 		po.Log().Errorf("Invalid options: %s\n", errVerify.Error())
 
 		parser := flags.NewParser(&struct{}{}, flags.HelpFlag)
-		command, err := addContainsCommand(po.mainOpts, AddCommand)
+		command, err := addPinCommand(po.mainOpts, AddCommand)
 		result = multierror.Append(result, err)
 
 		_, err = parser.ParseArgs([]string{command.Name, "--help"})
@@ -93,7 +97,6 @@ func addPinCommand(mainOptions *mainOptions, adder func(opts *mainOptions, comma
 		return nil, e
 
 	}
-	command.Hidden = true
 	return command, e
 }
 

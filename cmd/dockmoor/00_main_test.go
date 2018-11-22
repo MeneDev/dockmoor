@@ -162,6 +162,7 @@ func TestMainReportsAddingListCommandErrors(t *testing.T) {
 	assert.Contains(t, stdoutBuf.String(), "level=error")
 	assert.Contains(t, stdoutBuf.String(), "Could not add list command")
 	assert.Contains(t, stdoutBuf.String(), "Could not add contains command")
+	assert.Contains(t, stdoutBuf.String(), "Could not add pin command")
 }
 
 func TestInvalidFlagIsReportedByName(t *testing.T) {
@@ -174,18 +175,18 @@ func TestInvalidFlagIsReportedByName(t *testing.T) {
 }
 
 func TestInvalidSolverIsNil(t *testing.T) {
-	cmd, _, _, _ := testMain([]string{"--resolver", "dockerd", "pin", "fileName"}, addPinCommand)
+	cmd, _, _, _ := testMain([]string{"--resolver", "dockerd", "pin", "fileNameIn", "fileNameOut"}, addPinCommand)
 
 	po, _ := cmd.(*pinOptions)
 
 	po.mainOptions().Resolver = "Invalid"
 
-	solver := po.mainOptions().repositoryFactory()()
-	assert.Nil(t, solver)
+	solverFactory := po.mainOptions().repositoryFactory()()
+	assert.Nil(t, solverFactory)
 }
 
 func TestUsesDockerdSolver(t *testing.T) {
-	cmd, _, _, _ := testMain([]string{"--resolver", "dockerd", "pin", "fileName"}, addPinCommand)
+	cmd, _, _, _ := testMain([]string{"--resolver", "dockerd", "pin", "fileNameIn"}, addPinCommand)
 
 	po, _ := cmd.(*pinOptions)
 	assert.Equal(t, po.mainOptions().Resolver, "dockerd")

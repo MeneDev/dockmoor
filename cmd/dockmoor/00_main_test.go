@@ -125,20 +125,6 @@ func Test_fmtFprintf_reportsWriteErrors(t *testing.T) {
 	assert.Contains(t, buffer.String(), "level=error")
 }
 
-func TestCommandFromArgs_failsOnWrongLogLevel(t *testing.T) {
-	opts := mainOptionsTestNew()
-	buffer := bytes.NewBuffer(nil)
-	opts.SetStdout(buffer)
-
-	addListCommand(opts.mainOptions, AddCommand)
-
-	_, _, exitCode := CommandFromArgs(opts.mainOptions, []string{"--log-level=panda", "list", "file"})
-
-	assert.Equal(t, ExitInvalidParams, exitCode)
-	assert.Contains(t, buffer.String(), "level=error")
-	assert.Contains(t, buffer.String(), "Error parsing log-level")
-}
-
 func TestMainReportsAddingListCommandErrors(t *testing.T) {
 	org := AddCommand
 	defer func() {
@@ -175,4 +161,13 @@ func TestMainReportsAddingListCommandErrors(t *testing.T) {
 	assert.Contains(t, stdoutBuf.String(), "level=error")
 	assert.Contains(t, stdoutBuf.String(), "Could not add list command")
 	assert.Contains(t, stdoutBuf.String(), "Could not add contains command")
+}
+
+func TestInvalidFlagIsReportedByName(t *testing.T) {
+	_, _, exitCode, buf := testMain([]string{"--myInvalidFlag", "pin", "fileName"}, addPinCommand)
+
+	s := buf.String()
+	assert.Equal(t, ExitInvalidParams, exitCode)
+	assert.Contains(t, s, "level=error")
+	assert.Contains(t, s, "myInvalidFlag")
 }

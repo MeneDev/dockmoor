@@ -193,6 +193,12 @@ func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.
 		return
 	}
 
+	if optsErr != nil {
+		log.Errorf("Error in parameters: %s", optsErr)
+		exitCode = ExitInvalidParams
+		return
+	}
+
 	level := logrus.WarnLevel
 	log.SetLevel(level)
 	if mainOptions.LogLevel == "NONE" {
@@ -205,12 +211,6 @@ func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.
 			return
 		}
 		log.SetLevel(level)
-	}
-
-	if optsErr != nil {
-		log.Errorf("Error in parameters: %s", optsErr)
-		exitCode = ExitInvalidParams
-		return
 	}
 
 	if len(parser.Commands()) == 0 {

@@ -14,9 +14,9 @@ type MockRepository struct {
 func (m *MockRepository) Resolve(reference dockref.Reference) ([]dockref.Reference, error) {
 	called := m.Called(reference)
 	i := called.Get(0)
-	ref := i.(dockref.Reference)
+	refs := i.([]dockref.Reference)
 	e := called.Error(1)
-	return []dockref.Reference{ref}, e
+	return refs, e
 }
 
 func (m *MockRepository) OnResolve(reference dockref.Reference) *mock.Call {

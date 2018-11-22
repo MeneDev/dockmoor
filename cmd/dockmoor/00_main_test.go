@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -170,4 +171,23 @@ func TestInvalidFlagIsReportedByName(t *testing.T) {
 	assert.Equal(t, ExitInvalidParams, exitCode)
 	assert.Contains(t, s, "level=error")
 	assert.Contains(t, s, "myInvalidFlag")
+}
+
+func TestInvalidSolverIsNil(t *testing.T) {
+	cmd, _, _, _ := testMain([]string{"--resolver", "dockerd", "pin", "fileName"}, addPinCommand)
+
+	po, _ := cmd.(*pinOptions)
+
+	po.mainOptions().Resolver = "Invalid"
+
+	solver := po.mainOptions().repositoryFactory()()
+	assert.Nil(t, solver)
+}
+
+func TestUsesDockerdSolver(t *testing.T) {
+	cmd, _, _, _ := testMain([]string{"--resolver", "dockerd", "pin", "fileName"}, addPinCommand)
+
+	po, _ := cmd.(*pinOptions)
+	assert.Equal(t, po.mainOptions().Resolver, "dockerd")
+	assert.IsType(t, dockref.DockerDaemonRepositoryNew(), po.mainOptions().repositoryFactory()())
 }

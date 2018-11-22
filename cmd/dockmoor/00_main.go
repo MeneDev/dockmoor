@@ -249,6 +249,11 @@ func fmtFprintf(log *logrus.Logger, w io.Writer, format string, a ...interface{}
 
 func (options *mainOptions) DefaultRepositoryFactory() func() dockref.Repository {
 	return func() dockref.Repository {
+		switch options.Resolver {
+		case "dockerd":
+			return dockref.DockerDaemonRepositoryNew()
+		}
+
 		return nil
 	}
 }

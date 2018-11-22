@@ -143,7 +143,7 @@ func TestPinOptions_RefFormat(t *testing.T) {
 func TestPinCommandPins(t *testing.T) {
 	po := pinOptionsTestNew()
 	po.mockRepo.OnResolve(dockref.FromOriginalNoError("nginx")).
-		Return(dockref.FromOriginalNoError("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240"), nil)
+		Return([]dockref.Reference {dockref.FromOriginalNoError("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")} , nil)
 
 	processorMock := &FormatProcessorMock{}
 
@@ -205,11 +205,4 @@ func TestPinCallsFindExecuteWithPin(t *testing.T) {
 
 	_, ok := cmd.(*pinOptions)
 	assert.True(t, ok)
-}
-
-func TestPinUsesDockerdRepository(t *testing.T) {
-	cmd, _, _, _ := testMain([]string{"--resolver", "dockerd", "pin", "fileName"}, addPinCommand)
-
-	po, _ := cmd.(*pinOptions)
-	assert.Equal(t, po.mainOptions().Resolver, "dockerd")
 }

@@ -49,6 +49,8 @@ func (po *pinOptions) Repo() dockref.Repository {
 }
 
 func pinOptionsNew(mainOptions *mainOptions, repositoryFactory func() dockref.Repository) *pinOptions {
+	log := mainOptions.Log()
+
 	po := pinOptions{
 		MatchingOptions: MatchingOptions{
 			mainOpts: mainOptions,
@@ -59,7 +61,10 @@ func pinOptionsNew(mainOptions *mainOptions, repositoryFactory func() dockref.Re
 	po.matchHandler = func(r dockref.Reference) (dockref.Reference, error) {
 		repo := po.Repo()
 		resolvedArr, e := repo.Resolve(r)
-		resolved := resolvedArr[0]
+		if e != nil {
+			return nil, e
+		}
+		resolved, e := dockref.MostPreciseTag(resolvedArr, log)
 		if e != nil {
 			return resolved, e
 		}

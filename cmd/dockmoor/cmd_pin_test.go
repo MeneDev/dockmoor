@@ -145,11 +145,19 @@ func TestPinCommandPins(t *testing.T) {
 	po.mockRepo.OnResolve(dockref.FromOriginalNoError("nginx")).
 		Return([]dockref.Reference {dockref.FromOriginalNoError("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")} , nil)
 
+	po.mockRepo.OnResolve(dockref.FromOriginalNoError("nginx:latest")).
+		Return([]dockref.Reference {
+			dockref.FromOriginalNoError("nginx:1@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
+			dockref.FromOriginalNoError("nginx:1.15@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
+			dockref.FromOriginalNoError("nginx:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
+			dockref.FromOriginalNoError("nginx:latest@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
+		} , nil)
+
 	processorMock := &FormatProcessorMock{}
 
-	pin := func(expected string) {
+	pin := func(refStr, expected string) {
 		processorMock.process = func(imageNameProcessor dockfmt.ImageNameProcessor) error {
-			ref, e := imageNameProcessor(dockref.FromOriginalNoError("nginx"))
+			ref, e := imageNameProcessor(dockref.FromOriginalNoError(refStr))
 			assert.Nil(t, e)
 			str := ref.String()
 			assert.Equal(t, expected, str)
@@ -158,13 +166,17 @@ func TestPinCommandPins(t *testing.T) {
 		po.matchAndProcessFormatProcessor(processorMock)
 	}
 
+	pinNginx := func(expected string) {
+		pin("nginx", expected)
+	}
+
 	t.Run("tag and sha", func(t *testing.T) {
 		po.ReferenceFormat.ForceDomain = false
 		po.ReferenceFormat.NoName = false
 		po.ReferenceFormat.NoTag = false
 		po.ReferenceFormat.NoDigest = false
 
-		pin("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		pinNginx("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 	})
 	t.Run("tag only", func(t *testing.T) {
 		po.ReferenceFormat.ForceDomain = false
@@ -172,7 +184,7 @@ func TestPinCommandPins(t *testing.T) {
 		po.ReferenceFormat.NoTag = false
 		po.ReferenceFormat.NoDigest = true
 
-		pin("nginx:tag")
+		pinNginx("nginx:tag")
 	})
 	t.Run("sha and name", func(t *testing.T) {
 		po.ReferenceFormat.ForceDomain = false
@@ -180,7 +192,7 @@ func TestPinCommandPins(t *testing.T) {
 		po.ReferenceFormat.NoTag = true
 		po.ReferenceFormat.NoDigest = false
 
-		pin("nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		pinNginx("nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 	})
 	t.Run("sha only", func(t *testing.T) {
 		po.ReferenceFormat.ForceDomain = false
@@ -188,9 +200,17 @@ func TestPinCommandPins(t *testing.T) {
 		po.ReferenceFormat.NoTag = true
 		po.ReferenceFormat.NoDigest = false
 
-		pin("d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		pinNginx("d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 	})
 
+	t.Run("Resolve to most precise tag", func(t *testing.T) {
+		po.ReferenceFormat.ForceDomain = false
+		po.ReferenceFormat.NoName = false
+		po.ReferenceFormat.NoTag = false
+		po.ReferenceFormat.NoDigest = false
+
+		pin("nginx:latest", "nginx:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991")
+	})
 }
 
 func TestFilenameRequiredWithPin(t *testing.T) {

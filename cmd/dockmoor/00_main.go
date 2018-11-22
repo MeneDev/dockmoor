@@ -24,6 +24,8 @@ type mainOptions struct {
 	LogLevel    string `required:"no" short:"l" long:"log-level" description:"Sets the log-level" choice:"NONE" choice:"ERROR" choice:"WARN" choice:"INFO" choice:"DEBUG" default:"WARN"`
 	ShowVersion bool   `required:"no" long:"version" description:"Show version and exit"`
 
+	Resolver string `required:"no" short:"r" long:"resolver" description:"Strategy to resolve image references" choice:"dockerd" default:"dockerd"`
+
 	Help struct {
 		Help          bool `short:"h" long:"help" description:"Show help and exit"`
 		Manpage       bool `required:"no" long:"manpage" description:"Show man page and exit"`
@@ -38,7 +40,7 @@ type mainOptions struct {
 	stdout         io.Writer
 	stdin          io.ReadCloser
 
-	repositoryFactory func() dockref.Repository
+	repositoryFactory func() func() dockref.Repository
 }
 
 var osStdout io.Writer = os.Stdout
@@ -245,6 +247,8 @@ func fmtFprintf(log *logrus.Logger, w io.Writer, format string, a ...interface{}
 	}
 }
 
-func (options *mainOptions) DefaultRepositoryFactory() dockref.Repository {
-	return nil
+func (options *mainOptions) DefaultRepositoryFactory() func() dockref.Repository {
+	return func() dockref.Repository {
+		return nil
+	}
 }

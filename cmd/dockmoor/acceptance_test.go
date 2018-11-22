@@ -37,8 +37,10 @@ func mainOptionsACNew(commandAdders ...func(mainOptions *mainOptions, adder func
 	mainOptions := mainOptionsNew()
 
 	mainOptions.SetStdout(bytes.NewBuffer(nil))
-	mainOptions.repositoryFactory = func() dockref.Repository {
-		return dockreftst.MockRepositoryNew()
+	mainOptions.repositoryFactory = func() func() dockref.Repository {
+		return func() dockref.Repository {
+			return dockreftst.MockRepositoryNew()
+		}
 	}
 
 	for _, adder := range commandAdders {

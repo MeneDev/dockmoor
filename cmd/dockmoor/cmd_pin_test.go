@@ -30,7 +30,9 @@ func pinOptionsTestNew() *pinOptionsTest {
 	repo := dockreftst.MockRepositoryNew()
 
 	pinOptions := &pinOptionsTest{
-		pinOptions:      pinOptionsNew(mainOptions.mainOptions, repo),
+		pinOptions: pinOptionsNew(mainOptions.mainOptions, func() dockref.Repository {
+			return repo
+		}),
 		mainOptionsTest: mainOptions,
 		mockRepo:        repo,
 	}
@@ -203,4 +205,11 @@ func TestPinCallsFindExecuteWithPin(t *testing.T) {
 
 	_, ok := cmd.(*pinOptions)
 	assert.True(t, ok)
+}
+
+func TestPinUsesDockerdRepository(t *testing.T) {
+	cmd, _, _, _ := testMain([]string{"--resolver", "dockerd", "pin", "fileName"}, addPinCommand)
+
+	po, _ := cmd.(*pinOptions)
+	assert.Equal(t, po.mainOptions().Resolver, "dockerd")
 }

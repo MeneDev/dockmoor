@@ -16,7 +16,7 @@ type pinOptions struct {
 		NoDigest    bool `required:"no" long:"no-digest" description:"Don't include the digest in the reference'"`
 	} `group:"Reference format" description:"Control the format of references, defaults are sensible, changes are not recommended"`
 
-	repo dockref.Repository
+	repoFactory func() dockref.Repository
 }
 
 func (po *pinOptions) ExecuteWithExitCode(args []string) (ExitCode, error) {
@@ -45,15 +45,15 @@ func (po *pinOptions) ExecuteWithExitCode(args []string) (ExitCode, error) {
 }
 
 func (po *pinOptions) Repo() dockref.Repository {
-	return po.repo
+	return po.repoFactory()
 }
 
-func pinOptionsNew(mainOptions *mainOptions, repository dockref.Repository) *pinOptions {
+func pinOptionsNew(mainOptions *mainOptions, repositoryFactory func() dockref.Repository) *pinOptions {
 	po := pinOptions{
 		MatchingOptions: MatchingOptions{
 			mainOpts: mainOptions,
 		},
-		repo: repository,
+		repoFactory: repositoryFactory,
 	}
 
 	po.matchHandler = func(r dockref.Reference) (dockref.Reference, error) {
@@ -77,8 +77,8 @@ func pinOptionsNew(mainOptions *mainOptions, repository dockref.Repository) *pin
 }
 
 func addPinCommand(mainOptions *mainOptions, adder func(opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error) {
-	repo := mainOptions.repositoryFactory()
-	pinOptions := pinOptionsNew(mainOptions, repo)
+	repoFactory := mainOptions.repositoryFactory()
+	pinOptions := pinOptionsNew(mainOptions, repoFactory)
 
 	command, e := adder(mainOptions, "pin",
 		"Change image references to a more reproducible format",

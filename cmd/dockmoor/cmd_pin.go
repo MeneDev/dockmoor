@@ -1,9 +1,15 @@
 package main
 
 import (
+	"bytes"
+	"errors"
+	"github.com/MeneDev/dockmoor/dockfmt"
+	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/MeneDev/dockmoor/dockref"
-	"github.com/hashicorp/go-multierror"
 	"github.com/jessevdk/go-flags"
+	"io"
+	"io/ioutil"
+	"os"
 )
 
 type pinOptions struct {
@@ -21,32 +27,99 @@ type pinOptions struct {
 	} `group:"Output parameters" description:"Output parameters"`
 
 	repoFactory func() dockref.Repository
+	matches     bool
 }
 
-func (po *pinOptions) ExecuteWithExitCode(args []string) (ExitCode, error) {
-	var result *multierror.Error
+func (po *pinOptions) Execute(args []string) error {
+	return errors.New("Use ExecuteWithExitCode instead")
+}
 
-	errVerify := verifyMatchOptions(&po.MatchingOptions)
-	if errVerify != nil {
-		result = multierror.Append(result, errVerify)
-		po.Log().Errorf("Invalid options: %s\n", errVerify.Error())
+func (po *pinOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err error) {
+	// TODO code is redundant to other commands
+	mopts := po.MatchingOptions
 
-		parser := flags.NewParser(&struct{}{}, flags.HelpFlag)
-		command, err := addPinCommand(po.mainOpts, AddCommand)
-		result = multierror.Append(result, err)
-
-		_, err = parser.ParseArgs([]string{command.Name, "--help"})
-		result = multierror.Append(result, err)
-
-		parser.WriteHelp(po.Stdout())
-		return ExitInvalidParams, result.ErrorOrNil()
+	exitCode, err = mopts.Verify()
+	if err != nil {
+		return
 	}
 
-	exitCode, err := po.matchAndProcess()
-	result = multierror.Append(result, err)
+	predicate, err := mopts.getPredicate()
+	buffer := bytes.NewBuffer(nil)
 
-	return exitCode, result.ErrorOrNil()
+	err = mopts.WithInputDo(func(inputPath string, inputReader io.Reader) error {
+
+		err := mopts.WithFormatProcessorDo(inputReader, func(processor dockfmt.FormatProcessor) error {
+			processor = processor.WithWriter(buffer)
+			return po.applyFormatProcessor(predicate, processor)
+		})
+
+		if err != nil {
+			exitCode = ExitInvalidFormat
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		switch {
+		case contains(err, func(err error) bool { _, ok := err.(dockfmt.UnknownFormatError); return ok }) ||
+			contains(err, func(err error) bool { _, ok := err.(dockfmt.AmbiguousFormatError); return ok }) ||
+			contains(err, func(err error) bool { _, ok := err.(dockfmt.FormatError); return ok }):
+			exitCode = ExitInvalidFormat
+		case contains(err, func(err error) bool { _, ok := err.(error); return ok }):
+			exitCode = ExitCouldNotOpenFile
+		}
+		return
+	} else {
+		err = mopts.WithOutputDo(func (outputPath string) error {
+
+			mode := os.FileMode(0660)
+
+			info, e := os.Stat(outputPath)
+			if e == nil {
+				mode = info.Mode()
+			}
+
+			err := ioutil.WriteFile(outputPath, buffer.Bytes(), mode)
+			return err
+		})
+	}
+
+	if po.matches {
+		exitCode = ExitSuccess
+	} else {
+		exitCode = ExitNotFound
+	}
+
+	return exitCode, err
 }
+
+func (po *pinOptions) applyFormatProcessor(predicate dockproc.Predicate, processor dockfmt.FormatProcessor) error {
+
+	processor.Process(func(original dockref.Reference) (dockref.Reference, error) {
+		if predicate.Matches(original) {
+			repo := po.Repo()
+			rs, err := repo.Resolve(original)
+			if err != nil {
+				return nil, err
+			}
+			mostPrecise, err := dockref.MostPreciseTag(rs, po.Log())
+			if err != nil {
+				return nil, err
+			}
+
+			po.matches = true
+			if err != nil {
+				return mostPrecise, err
+			}
+			return mostPrecise, err
+		}
+		return original, nil
+	})
+
+	return nil
+}
+
 
 func (po *pinOptions) Repo() dockref.Repository {
 	return po.repoFactory()
@@ -60,6 +133,7 @@ func pinOptionsNew(mainOptions *mainOptions, repositoryFactory func() dockref.Re
 			mainOpts: mainOptions,
 		},
 		repoFactory: repositoryFactory,
+		matches: false,
 	}
 
 	po.matchHandler = func(r dockref.Reference) (dockref.Reference, error) {

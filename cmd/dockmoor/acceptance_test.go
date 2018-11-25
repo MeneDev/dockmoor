@@ -37,9 +37,10 @@ func mainOptionsACNew(commandAdders ...func(mainOptions *mainOptions, adder func
 	mainOptions := mainOptionsNew()
 
 	mainOptions.SetStdout(bytes.NewBuffer(nil))
+	mockRepository := dockreftst.MockRepositoryNew()
 	mainOptions.repositoryFactory = func() func() dockref.Repository {
 		return func() dockref.Repository {
-			return dockreftst.MockRepositoryNew()
+			return mockRepository
 		}
 	}
 
@@ -164,14 +165,13 @@ func TestMainMarkdown(t *testing.T) {
 }
 
 func TestMainLoglevelNone(t *testing.T) {
-
 	os.Args = []string{"exe", "--log-level=NONE", "contains", "/notExistingFile"}
 	buffer := bytes.NewBuffer(nil)
 	mainOptions := mainOptionsACNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
 
 	assert.Empty(t, buffer.String())
-	assert.NotEqual(t, ExitSuccess, exitCode)
+	assert.Equal(t, ExitCouldNotOpenFile, exitCode)
 }
 
 func TestExitCodeIsZeroForDockerfile(t *testing.T) {
@@ -234,7 +234,7 @@ func TestExitCodeIsZeroForListLatestAndDockerfile(t *testing.T) {
 	assert.Equal(t, ExitSuccess, code, "Exits with code 0")
 }
 
-func TestExitCodeIsNotZeroForInvalidDockerfile(t *testing.T) {
+func TestExitCodeIs_ExitInvalidFormat_ForInvalidDockerfile(t *testing.T) {
 	dir, _ := ioutil.TempDir("", "dockmoor")
 	defer os.RemoveAll(dir)
 

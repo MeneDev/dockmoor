@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"github.com/MeneDev/dockmoor/dockfmt"
+	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -110,7 +111,9 @@ func TestListCommandPrints(t *testing.T) {
 	stdout := test.MainOptions().Stdout()
 
 	processorMock := &FormatProcessorMock{}
+	ran := false
 	processorMock.process = func(imageNameProcessor dockfmt.ImageNameProcessor) error {
+		ran = true
 		r, _ := dockref.FromOriginal("nginx")
 		imageNameProcessor(r)
 		r, _ = dockref.FromOriginal("nginx:latest")
@@ -120,8 +123,12 @@ func TestListCommandPrints(t *testing.T) {
 		return nil
 	}
 
-	test.matchAndProcessFormatProcessor(processorMock)
+	predicate, e := dockproc.AnyPredicateNew()
+	assert.Nil(t, e)
 
+	test.applyFormatProcessor(predicate, processorMock)
+
+	assert.True(t, ran)
 	s := stdout.String()
 	assert.Contains(t, s, "nginx")
 	assert.Contains(t, s, "nginx:latest")

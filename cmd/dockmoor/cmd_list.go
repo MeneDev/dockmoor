@@ -1,24 +1,30 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"github.com/MeneDev/dockmoor/dockfmt"
+	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/jessevdk/go-flags"
+	"io"
 )
 
 type listOptions struct {
 	MatchingOptions
+	matches bool
 }
 
 func listOptionsNew(mainOptions *mainOptions) *listOptions {
 	return &listOptions{
-		MatchingOptions{
+		MatchingOptions: MatchingOptions{
 			mainOpts: mainOptions,
 			matchHandler: func(r dockref.Reference) (dockref.Reference, error) {
 				_, err := fmt.Fprintf(mainOptions.stdout, "%s\n", r.Original())
 				return r, err
 			},
 		},
+		matches: false,
 	}
 }
 
@@ -29,4 +35,67 @@ func addListCommand(mainOptions *mainOptions, adder func(opts *mainOptions, comm
 		"List image references with matching predicates.",
 		"List image references with matching predicates. Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions and is of valid format, non-null otherwise",
 		lo)
+}
+
+func (lo *listOptions) Execute(args []string) error {
+	return errors.New("Use ExecuteWithExitCode instead")
+}
+
+func (lo *listOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err error) {
+	// TODO code is redundant to other commands
+	mopts := lo.MatchingOptions
+
+	exitCode, err = mopts.Verify()
+	if err != nil {
+		return
+	}
+
+	predicate, err := mopts.getPredicate()
+
+	err = mopts.WithInputDo(func(inputPath string, inputReader io.Reader) error {
+		err := mopts.WithFormatProcessorDo(inputReader, func(processor dockfmt.FormatProcessor) error {
+			return lo.applyFormatProcessor(predicate, processor)
+		})
+		if err != nil {
+			exitCode = ExitInvalidFormat
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		switch {
+		case contains(err, func(err error) bool { _, ok := err.(dockfmt.UnknownFormatError); return ok }) ||
+			contains(err, func(err error) bool { _, ok := err.(dockfmt.AmbiguousFormatError); return ok }) ||
+			contains(err, func(err error) bool { _, ok := err.(dockfmt.FormatError); return ok }):
+			exitCode = ExitInvalidFormat
+		case contains(err, func(err error) bool { _, ok := err.(error); return ok }):
+			exitCode = ExitCouldNotOpenFile
+		}
+		return
+	}
+
+	if lo.matches {
+		exitCode = ExitSuccess
+	} else {
+		exitCode = ExitNotFound
+	}
+
+	return exitCode, err
+}
+
+func (lo *listOptions) applyFormatProcessor(predicate dockproc.Predicate, processor dockfmt.FormatProcessor) error {
+
+	processor.Process(func(r dockref.Reference) (dockref.Reference, error) {
+		if predicate.Matches(r) {
+			lo.matches = true
+			_, err := fmt.Fprintf(lo.Stdout(), "%s\n", r.Original())
+			if err != nil {
+				return r, err
+			}
+		}
+		return r, nil
+	})
+
+	return nil
 }

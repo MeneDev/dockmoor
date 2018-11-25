@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockproc"
-	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/hashicorp/go-multierror"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
@@ -194,33 +193,20 @@ func verifyMatchOptions(mo *MatchingOptions) error {
 	return err
 }
 
-func (mopts *MatchingOptions) Execute(args []string) error {
-	return errors.New("Use ExecuteWithExitCode instead")
-}
 
-func (mopts *MatchingOptions) ExecuteWithExitCode(args []string) (ExitCode, error) {
+func (mopts *MatchingOptions) Verify() (ExitCode, error) {
 	var result *multierror.Error
 
 	errVerify := verifyMatchOptions(mopts)
 	if errVerify != nil {
 		result = multierror.Append(result, errVerify)
 		mopts.Log().Errorf("Invalid options: %s\n", errVerify.Error())
-
-		parser := flags.NewParser(&struct{}{}, flags.HelpFlag)
-		command, err := addContainsCommand(mopts.mainOpts, AddCommand)
-		result = multierror.Append(result, err)
-
-		_, err = parser.ParseArgs([]string{command.Name, "--help"})
-		result = multierror.Append(result, err)
-
+		parser := flags.NewParser(mopts, flags.HelpFlag)
 		parser.WriteHelp(mopts.Stdout())
 		return ExitInvalidParams, result.ErrorOrNil()
 	}
 
-	exitCode, err := mopts.matchAndProcess()
-	result = multierror.Append(result, err)
-
-	return exitCode, result.ErrorOrNil()
+	return ExitSuccess, result.ErrorOrNil()
 }
 
 var latestPredicateFactory = func() (dockproc.Predicate, error) {
@@ -358,60 +344,39 @@ func saveClose(log *logrus.Logger, readCloser io.Closer) {
 	}
 }
 
-func (mopts *MatchingOptions) matchAndProcess() (exitCode ExitCode, err error) {
+func (mopts *MatchingOptions) WithInputDo(action func(filePathInput string, fpInput io.Reader) error) error {
 	log := mopts.Log()
 
 	filePathInput := string(mopts.Positional.InputFile)
-
 	fpInput, err := mopts.open(filePathInput)
 	defer saveClose(log, fpInput)
 
 	if err != nil {
-		log.Errorf("Could not open file: %s", err.Error())
-		exitCode = ExitCouldNotOpenFile
-		return
+		return err
 	}
 
+	err = action(filePathInput, fpInput)
+
+	return err
+}
+
+func (mopts *MatchingOptions) WithFormatProcessorDo(fpInput io.Reader, action func(processor dockfmt.FormatProcessor) error) error {
+	log := mopts.Log()
+
 	formatProvider := mopts.mainOptions().FormatProvider()
-	fileFormat, formatError := dockfmt.IdentifyFormat(log, formatProvider, fpInput, filePathInput)
-	if fileFormat == nil {
-		return ExitInvalidFormat, formatError
+	filename := string(mopts.Positional.InputFile)
+	fileFormat, formatError := dockfmt.IdentifyFormat(log, formatProvider, fpInput, filename)
+
+	if formatError != nil {
+		return formatError
 	}
 
 	formatProcessor := dockfmt.FormatProcessorNew(fileFormat, log, fpInput)
 
-	exitCode, err = mopts.matchAndProcessFormatProcessor(formatProcessor)
-	return
+	return action(formatProcessor)
 }
 
-func (mopts *MatchingOptions) matchAndProcessFormatProcessor(formatProcessor dockfmt.FormatProcessor) (exitCode ExitCode, err error) {
-	log := mopts.Log()
-	var results *multierror.Error
-
-	predicate, e := mopts.getPredicate()
-	if e != nil {
-		return ExitPredicateInvalid, e
-	}
-
-	matches := false
-	err = formatProcessor.Process(func(r dockref.Reference) (dockref.Reference, error) {
-		if predicate.Matches(r) {
-			matches = true
-			return mopts.matchHandler(r)
-		}
-		return r, nil
-	})
-
-	if err != nil {
-		log.Errorf("Error during accumulation: %s", err.Error())
-		results = multierror.Append(results, err)
-	}
-
-	if matches {
-		exitCode = ExitSuccess
-	} else {
-		exitCode = ExitNotFound
-	}
-
-	return exitCode, results.ErrorOrNil()
+func (mopts *MatchingOptions) WithOutputDo(action func(outputPath string) error) error {
+	filename := string(mopts.Positional.InputFile)
+	return action(filename)
 }

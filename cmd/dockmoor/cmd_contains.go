@@ -47,14 +47,16 @@ func (co *containsOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode
 	}
 
 	predicate, err := mopts.getPredicate()
+	if err != nil {
+		return ExitPredicateInvalid, err
+	}
 
 	err = mopts.WithInputDo(func(inputPath string, inputReader io.Reader) error {
-		err := mopts.WithFormatProcessorDo(inputReader, func(processor dockfmt.FormatProcessor) error {
+		errFormat := mopts.WithFormatProcessorDo(inputReader, func(processor dockfmt.FormatProcessor) error {
 			return co.applyFormatProcessor(predicate, processor)
 		})
-		if err != nil {
-			exitCode = ExitInvalidFormat
-			return err
+		if errFormat != nil {
+			return errFormat
 		}
 		return nil
 	})
@@ -100,12 +102,10 @@ func contains(err error, predicate func(err error) bool) bool {
 
 func (co *containsOptions) applyFormatProcessor(predicate dockproc.Predicate, processor dockfmt.FormatProcessor) error {
 
-	processor.Process(func(r dockref.Reference) (dockref.Reference, error) {
+	return processor.Process(func(r dockref.Reference) (dockref.Reference, error) {
 		if predicate.Matches(r) {
 			co.matches = true
 		}
 		return r, nil
 	})
-
-	return nil
 }

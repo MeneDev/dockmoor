@@ -118,10 +118,10 @@ func TestPinOptions_RefFormat(t *testing.T) {
 	t.Run("all unset", func(t *testing.T) {
 		format, e := po.RefFormat()
 		assert.Nil(t, e)
-		assert.False(t, (format & dockref.FormatHasDomain) != 0)
-		assert.True(t, (format & dockref.FormatHasName) != 0)
-		assert.True(t, (format & dockref.FormatHasTag) != 0)
-		assert.True(t, (format & dockref.FormatHasDigest) != 0)
+		assert.False(t, (format&dockref.FormatHasDomain) != 0)
+		assert.True(t, (format&dockref.FormatHasName) != 0)
+		assert.True(t, (format&dockref.FormatHasTag) != 0)
+		assert.True(t, (format&dockref.FormatHasDigest) != 0)
 	})
 	po.ReferenceFormat.ForceDomain = true
 	po.ReferenceFormat.NoName = true
@@ -130,10 +130,10 @@ func TestPinOptions_RefFormat(t *testing.T) {
 	t.Run("all set", func(t *testing.T) {
 		format, e := po.RefFormat()
 		assert.Nil(t, e)
-		assert.True(t, (format & dockref.FormatHasDomain) != 0)
-		assert.False(t, (format & dockref.FormatHasName) != 0)
-		assert.False(t, (format & dockref.FormatHasTag) != 0)
-		assert.False(t, (format & dockref.FormatHasDigest) != 0)
+		assert.True(t, (format&dockref.FormatHasDomain) != 0)
+		assert.False(t, (format&dockref.FormatHasName) != 0)
+		assert.False(t, (format&dockref.FormatHasTag) != 0)
+		assert.False(t, (format&dockref.FormatHasDigest) != 0)
 	})
 }
 

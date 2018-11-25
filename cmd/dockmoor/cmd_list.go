@@ -47,14 +47,17 @@ func (lo *listOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, er
 	}
 
 	predicate, err := mopts.getPredicate()
+	if err != nil {
+		return ExitPredicateInvalid, err
+	}
 
 	err = mopts.WithInputDo(func(inputPath string, inputReader io.Reader) error {
-		err := mopts.WithFormatProcessorDo(inputReader, func(processor dockfmt.FormatProcessor) error {
+		errFormat := mopts.WithFormatProcessorDo(inputReader, func(processor dockfmt.FormatProcessor) error {
 			return lo.applyFormatProcessor(predicate, processor)
 		})
-		if err != nil {
+		if errFormat != nil {
 			exitCode = ExitInvalidFormat
-			return err
+			return errFormat
 		}
 		return nil
 	})
@@ -82,7 +85,7 @@ func (lo *listOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, er
 
 func (lo *listOptions) applyFormatProcessor(predicate dockproc.Predicate, processor dockfmt.FormatProcessor) error {
 
-	processor.Process(func(r dockref.Reference) (dockref.Reference, error) {
+	return processor.Process(func(r dockref.Reference) (dockref.Reference, error) {
 		if predicate.Matches(r) {
 			lo.matches = true
 			_, err := fmt.Fprintf(lo.Stdout(), "%s\n", r.Original())
@@ -92,6 +95,4 @@ func (lo *listOptions) applyFormatProcessor(predicate dockproc.Predicate, proces
 		}
 		return r, nil
 	})
-
-	return nil
 }

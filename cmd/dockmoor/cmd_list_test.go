@@ -134,3 +134,18 @@ func TestListCommandPrints(t *testing.T) {
 	assert.Contains(t, s, "nginx:latest")
 	assert.Contains(t, s, "nginx:1.2")
 }
+
+func TestListOptions_ExecuteWithExitCode(t *testing.T) {
+	lo := listOptionsTestNew()
+	lo.NamePredicates.Names = []string{"/a(b/"}
+
+	predicate, e := lo.getPredicate()
+
+	assert.Error(t, e)
+	assert.Nil(t, predicate)
+
+	exitCode, err := lo.ExecuteWithExitCode(nil)
+
+	assert.Error(t, err)
+	assert.Equal(t, ExitPredicateInvalid, exitCode)
+}

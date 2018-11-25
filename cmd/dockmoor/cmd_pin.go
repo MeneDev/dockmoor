@@ -48,14 +48,14 @@ func (po *pinOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err
 
 	err = mopts.WithInputDo(func(inputPath string, inputReader io.Reader) error {
 
-		err := mopts.WithFormatProcessorDo(inputReader, func(processor dockfmt.FormatProcessor) error {
+		errFormat := mopts.WithFormatProcessorDo(inputReader, func(processor dockfmt.FormatProcessor) error {
 			processor = processor.WithWriter(buffer)
 			return po.applyFormatProcessor(predicate, processor)
 		})
 
-		if err != nil {
+		if errFormat != nil {
 			exitCode = ExitInvalidFormat
-			return err
+			return errFormat
 		}
 		return nil
 	})
@@ -70,20 +70,19 @@ func (po *pinOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err
 			exitCode = ExitCouldNotOpenFile
 		}
 		return
-	} else {
-		err = po.WithOutputDo(func (outputPath string) error {
-
-			mode := os.FileMode(0660)
-
-			info, e := os.Stat(outputPath)
-			if e == nil {
-				mode = info.Mode()
-			}
-
-			err := ioutil.WriteFile(outputPath, buffer.Bytes(), mode)
-			return err
-		})
 	}
+	err = po.WithOutputDo(func(outputPath string) error {
+
+		mode := os.FileMode(0660)
+
+		info, e := os.Stat(outputPath)
+		if e == nil {
+			mode = info.Mode()
+		}
+
+		errWriteFile := ioutil.WriteFile(outputPath, buffer.Bytes(), mode)
+		return errWriteFile
+	})
 
 	if po.matches {
 		exitCode = ExitSuccess
@@ -120,7 +119,6 @@ func (po *pinOptions) applyFormatProcessor(predicate dockproc.Predicate, process
 	return nil
 }
 
-
 func (po *pinOptions) Repo() dockref.Repository {
 	return po.repoFactory()
 }
@@ -131,7 +129,7 @@ func pinOptionsNew(mainOptions *mainOptions, repositoryFactory func() dockref.Re
 			mainOpts: mainOptions,
 		},
 		repoFactory: repositoryFactory,
-		matches: false,
+		matches:     false,
 	}
 
 	return &po

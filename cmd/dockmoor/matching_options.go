@@ -193,7 +193,6 @@ func verifyMatchOptions(mo *MatchingOptions) error {
 	return err
 }
 
-
 func (mopts *MatchingOptions) Verify() (ExitCode, error) {
 	var result *multierror.Error
 

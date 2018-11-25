@@ -70,6 +70,7 @@ func (repo dockerDaemonRepository) newClient() (dockerAPIClient, error) {
 		flags := pflag.NewFlagSet("testing", pflag.ContinueOnError)
 		cliOpts.Common.InstallFlags(flags)
 	}
+
 	err := cli.Initialize(cliOpts)
 	if err != nil {
 		return nil, err

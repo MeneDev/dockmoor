@@ -19,9 +19,6 @@ func containsOptionsNew(mainOptions *mainOptions) *containsOptions {
 	return &containsOptions{
 		MatchingOptions: MatchingOptions{
 			mainOpts: mainOptions,
-			matchHandler: func(r dockref.Reference) (dockref.Reference, error) {
-				return r, nil
-			},
 		},
 		matches: false,
 	}
@@ -63,10 +60,12 @@ func (co *containsOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode
 	})
 
 	if err != nil {
+		_, isUnknownFormatError := err.(dockfmt.UnknownFormatError)
+		_, isAmbiguousFormatError := err.(dockfmt.AmbiguousFormatError)
+		_, isFormatError := err.(dockfmt.FormatError)
+
 		switch {
-		case contains(err, func(err error) bool { _, ok := err.(dockfmt.UnknownFormatError); return ok }) ||
-			contains(err, func(err error) bool { _, ok := err.(dockfmt.AmbiguousFormatError); return ok }) ||
-			contains(err, func(err error) bool { _, ok := err.(dockfmt.FormatError); return ok }):
+		case isUnknownFormatError, isAmbiguousFormatError, isFormatError:
 			exitCode = ExitInvalidFormat
 		case contains(err, func(err error) bool { _, ok := err.(error); return ok }):
 			exitCode = ExitCouldNotOpenFile

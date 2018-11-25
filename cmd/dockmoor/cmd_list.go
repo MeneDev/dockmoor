@@ -19,10 +19,6 @@ func listOptionsNew(mainOptions *mainOptions) *listOptions {
 	return &listOptions{
 		MatchingOptions: MatchingOptions{
 			mainOpts: mainOptions,
-			matchHandler: func(r dockref.Reference) (dockref.Reference, error) {
-				_, err := fmt.Fprintf(mainOptions.stdout, "%s\n", r.Original())
-				return r, err
-			},
 		},
 		matches: false,
 	}

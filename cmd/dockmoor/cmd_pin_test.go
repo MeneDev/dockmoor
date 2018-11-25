@@ -118,10 +118,10 @@ func TestPinOptions_RefFormat(t *testing.T) {
 	t.Run("all unset", func(t *testing.T) {
 		format, e := po.RefFormat()
 		assert.Nil(t, e)
-		assert.False(t, (format&dockref.FormatHasDomain) != 0)
-		assert.True(t, (format&dockref.FormatHasName) != 0)
-		assert.True(t, (format&dockref.FormatHasTag) != 0)
-		assert.True(t, (format&dockref.FormatHasDigest) != 0)
+		assert.False(t, (format & dockref.FormatHasDomain) != 0)
+		assert.True(t, (format & dockref.FormatHasName) != 0)
+		assert.True(t, (format & dockref.FormatHasTag) != 0)
+		assert.True(t, (format & dockref.FormatHasDigest) != 0)
 	})
 	po.ReferenceFormat.ForceDomain = true
 	po.ReferenceFormat.NoName = true
@@ -130,10 +130,10 @@ func TestPinOptions_RefFormat(t *testing.T) {
 	t.Run("all set", func(t *testing.T) {
 		format, e := po.RefFormat()
 		assert.Nil(t, e)
-		assert.True(t, (format&dockref.FormatHasDomain) != 0)
-		assert.False(t, (format&dockref.FormatHasName) != 0)
-		assert.False(t, (format&dockref.FormatHasTag) != 0)
-		assert.False(t, (format&dockref.FormatHasDigest) != 0)
+		assert.True(t, (format & dockref.FormatHasDomain) != 0)
+		assert.False(t, (format & dockref.FormatHasName) != 0)
+		assert.False(t, (format & dockref.FormatHasTag) != 0)
+		assert.False(t, (format & dockref.FormatHasDigest) != 0)
 	})
 }
 
@@ -237,7 +237,7 @@ func TestPinWritesToInputFile(t *testing.T) {
 	repository := factory()
 	repo := repository.(*dockreftst.MockRepository)
 
-	repo.OnResolve(dockref.FromOriginalNoError("img")).Return([]dockref.Reference {
+	repo.OnResolve(dockref.FromOriginalNoError("img")).Return([]dockref.Reference{
 		dockref.FromOriginalNoError("img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf"),
 	}, nil)
 
@@ -251,4 +251,42 @@ func TestPinWritesToInputFile(t *testing.T) {
 	s := string(bytes)
 
 	assert.Equal(t, `FROM img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf`, s)
+}
+
+func TestPinWritesToOutputFileAndNotToInputfile(t *testing.T) {
+	df1 := dockerfile(`FROM img`)
+	defer os.Remove(df1)
+
+	df2 := tmpFile().Name()
+	defer os.Remove(df2)
+
+	os.Args = []string{"exe", "pin", "--output", df2, df1}
+	mainOptions := mainOptionsACNew(addPinCommand)
+
+	factory := mainOptions.repositoryFactory()
+	repository := factory()
+	repo := repository.(*dockreftst.MockRepository)
+
+	repo.OnResolve(dockref.FromOriginalNoError("img")).Return([]dockref.Reference{
+		dockref.FromOriginalNoError("img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf"),
+	}, nil)
+
+	exitCode := doMain(mainOptions)
+
+	assert.Equal(t, ExitSuccess, exitCode)
+
+	bytes, e := ioutil.ReadFile(df1)
+	assert.Nil(t, e)
+
+	s := string(bytes)
+
+	assert.Equal(t, `FROM img`, s)
+
+	bytes, e = ioutil.ReadFile(df2)
+	assert.Nil(t, e)
+
+	s = string(bytes)
+
+	assert.Equal(t, `FROM img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf`, s)
+
 }

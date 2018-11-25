@@ -71,7 +71,7 @@ func (po *pinOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err
 		}
 		return
 	} else {
-		err = mopts.WithOutputDo(func (outputPath string) error {
+		err = po.WithOutputDo(func (outputPath string) error {
 
 			mode := os.FileMode(0660)
 
@@ -192,4 +192,13 @@ func (po *pinOptions) RefFormat() (dockref.Format, error) {
 	}
 
 	return format, nil
+}
+
+func (po *pinOptions) WithOutputDo(action func(outputPath string) error) error {
+	filename := string(po.Output.OutputFile)
+	if filename != "" {
+		return action(filename)
+	}
+
+	return po.MatchingOptions.WithOutputDo(action)
 }

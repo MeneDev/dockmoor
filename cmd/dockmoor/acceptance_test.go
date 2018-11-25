@@ -16,12 +16,10 @@ import (
 	"testing"
 )
 
+
 func dockerfile(content string) (fileName string) {
 	contentBytes := []byte(content)
-	tmpfile, err := ioutil.TempFile("", "example")
-	if err != nil {
-		log.Fatal(err)
-	}
+	tmpfile := tmpFile()
 
 	if _, err := tmpfile.Write(contentBytes); err != nil {
 		log.Fatal(err)
@@ -31,6 +29,14 @@ func dockerfile(content string) (fileName string) {
 	}
 
 	return tmpfile.Name()
+}
+
+func tmpFile() *os.File {
+	tmpfile, err := ioutil.TempFile("", "example")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return tmpfile
 }
 
 func mainOptionsACNew(commandAdders ...func(mainOptions *mainOptions, adder func(opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error)) *mainOptions {

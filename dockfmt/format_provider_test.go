@@ -29,6 +29,8 @@ func TestIdentifyFormatWithSingleNonMatchingFormat(t *testing.T) {
 
 	formatMock := new(FormatMock)
 	formatMock.On("ValidateInput", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("error"))
+	formatMock.On("Name").Return("mockFormat")
+
 	formatProviderMock := new(FormatProviderMock)
 	formatProviderMock.On("Formats").Return([]Format{
 		formatMock,
@@ -67,10 +69,14 @@ func TestIdentifyFormatWithSingleMatchingAndSeveralNonMatchingFormats(t *testing
 
 	matchingFormatMock := new(FormatMock)
 	matchingFormatMock.On("ValidateInput", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	matchingFormatMock.On("Name").Return("matchingFormatMock")
 	nonMatchingFormatMock1 := new(FormatMock)
 	nonMatchingFormatMock1.On("ValidateInput", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("error"))
+	nonMatchingFormatMock1.On("Name").Return("nonMatchingFormatMock1")
 	nonMatchingFormatMock2 := new(FormatMock)
 	nonMatchingFormatMock2.On("ValidateInput", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("error"))
+	nonMatchingFormatMock2.On("Name").Return("nonMatchingFormatMock2")
+
 	formatProviderMock := new(FormatProviderMock)
 	formatProviderMock.On("Formats").Return([]Format{
 		nonMatchingFormatMock1,
@@ -93,12 +99,20 @@ func TestIdentifyFormatWithSingleMatchingAndSeveralNonMatchingFormats(t *testing
 func TestIdentifyFormatWithSeveralMatchingAndSeveralNonMatchingFormats(t *testing.T) {
 	matchingFormatMock1 := new(FormatMock)
 	matchingFormatMock1.On("ValidateInput", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	matchingFormatMock1.On("Name").Return("matchingFormatMock1")
+
 	matchingFormatMock2 := new(FormatMock)
 	matchingFormatMock2.On("ValidateInput", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	matchingFormatMock2.On("Name").Return("matchingFormatMock2")
+
 	nonMatchingFormatMock1 := new(FormatMock)
 	nonMatchingFormatMock1.On("ValidateInput", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("error"))
+	nonMatchingFormatMock1.On("Name").Return("nonMatchingFormatMock1")
+
 	nonMatchingFormatMock2 := new(FormatMock)
 	nonMatchingFormatMock2.On("ValidateInput", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("error"))
+	nonMatchingFormatMock2.On("Name").Return("nonMatchingFormatMock2")
+
 	formatProviderMock := new(FormatProviderMock)
 	formatProviderMock.On("Formats").Return([]Format{
 		nonMatchingFormatMock1,

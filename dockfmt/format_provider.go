@@ -56,7 +56,7 @@ func IdentifyFormat(log logrus.FieldLogger, formatProvider FormatProvider, reade
 		if validationErr != nil {
 			pinnerErrors = multierror.Append(pinnerErrors, validationErr)
 			log.WithFields(logrus.Fields{
-				"format": p,
+				"format": p.Name(),
 				"error":  validationErr,
 			}).Debug("Tried incompatible format")
 		} else {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"github.com/MeneDev/dockmoor/dockfmt"
+	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/MeneDev/dockmoor/docktst/dockreftst"
 	"github.com/jessevdk/go-flags"
@@ -100,13 +101,15 @@ func TestInvalidDockerfileWithPin(t *testing.T) {
 	po.Positional.InputFile = flags.Filename(NotADockerfile)
 
 	// when
-	//_, err := po.matchAndProcess()
-	// TODO
+	err := po.WithFormatProcessorDo(nil, func(processor dockfmt.FormatProcessor) error {
+		return nil
+	})
+
 	// then
-	//assert.NotNil(t, err)
-	//
-	//_, ok := err.(dockfmt.UnknownFormatError)
-	//assert.True(t, ok)
+	assert.NotNil(t, err)
+
+	_, ok := err.(dockfmt.UnknownFormatError)
+	assert.True(t, ok)
 }
 
 func TestPinOptions_RefFormat(t *testing.T) {
@@ -153,15 +156,22 @@ func TestPinCommandPins(t *testing.T) {
 	processorMock := &FormatProcessorMock{}
 
 	pin := func(refStr, expected string) {
+		ran := false
 		processorMock.process = func(imageNameProcessor dockfmt.ImageNameProcessor) error {
 			ref, e := imageNameProcessor(dockref.FromOriginalNoError(refStr))
 			assert.Nil(t, e)
 			str := ref.String()
 			assert.Equal(t, expected, str)
+			ran = true
 			return nil
 		}
+		predicate, e := dockproc.AnyPredicateNew()
+		assert.Nil(t, e)
+
+		po.applyFormatProcessor(predicate, processorMock)
 		//po.matchAndProcessFormatProcessor(processorMock)
 		// TODO
+		assert.True(t, ran)
 	}
 
 	pinNginx := func(expected string) {

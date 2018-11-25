@@ -102,13 +102,21 @@ func (po *pinOptions) applyFormatProcessor(predicate dockproc.Predicate, process
 			if err != nil {
 				return nil, err
 			}
-			mostPrecise, err := dockref.MostPreciseTag(rs, po.Log())
+
+			format, err := po.RefFormat()
 			if err != nil {
 				return nil, err
 			}
 
-			po.matches = true
-			if err != nil {
+			mostPrecise, err := dockref.MostPreciseTag(rs, po.Log())
+
+			if err == nil {
+				po.matches = true
+				reference, e := mostPrecise.WithRequestedFormat(format)
+				if e != nil {
+					return nil, e
+				}
+				mostPrecise = reference
 				return mostPrecise, err
 			}
 			return mostPrecise, err

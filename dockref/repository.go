@@ -3,13 +3,14 @@ package dockref
 import (
 	"bytes"
 	"context"
+	"github.com/docker/cli/cli/command"
+	"github.com/docker/cli/cli/flags"
+	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
 	"github.com/spf13/pflag"
 	"io"
 	"io/ioutil"
-
-	"github.com/docker/cli/cli/command"
-	"github.com/docker/cli/cli/flags"
+	"os"
 )
 
 type Repository interface {
@@ -43,16 +44,33 @@ func (repo dockerDaemonRepository) imageInspect(reference Reference) (types.Imag
 	return imageInspect, err
 }
 
+var (
+	dockerTLSVerify = os.Getenv("DOCKER_TLS_VERIFY") != ""
+	dockerTLS       = os.Getenv("DOCKER_TLS") != ""
+)
+
 func (repo dockerDaemonRepository) newClient() (dockerAPIClient, error) {
 	in := ioutil.NopCloser(bytes.NewBuffer(nil))
 	out := bytes.NewBuffer(nil)
 	errWriter := bytes.NewBuffer(nil)
 	isTrusted := false
 	cli := repo.NewCli(in, out, errWriter, isTrusted)
-	opts := flags.NewClientOptions()
-	flags := pflag.NewFlagSet("testing", pflag.ContinueOnError)
-	opts.Common.SetDefaultOptions(flags)
-	err := cli.Initialize(opts)
+	cliOpts := flags.NewClientOptions()
+
+	tls := dockerTLS || dockerTLSVerify
+	host, e := opts.ParseHost(tls, os.Getenv("DOCKER_HOST"))
+	if e != nil {
+		return nil, e
+	}
+	cliOpts.Common.TLS = tls
+	cliOpts.Common.TLSVerify = dockerTLSVerify
+	cliOpts.Common.Hosts = []string{host}
+
+	if tls {
+		flags := pflag.NewFlagSet("testing", pflag.ContinueOnError)
+		cliOpts.Common.InstallFlags(flags)
+	}
+	err := cli.Initialize(cliOpts)
 	if err != nil {
 		return nil, err
 	}

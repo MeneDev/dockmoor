@@ -59,6 +59,15 @@ func dockerfileFormatSplitFunc(data []byte, atEOF bool) (advance int, token []by
 }
 
 func (format *dockerfileFormat) ValidateInput(log logrus.FieldLogger, reader io.Reader, filename string) error {
+	err := format.validateInput(log, reader, filename)
+	if err != nil {
+		return dockfmt.FormatErrorNew(err)
+	}
+
+	return nil
+}
+
+func (format *dockerfileFormat) validateInput(log logrus.FieldLogger, reader io.Reader, filename string) error {
 	scanner := bufio.NewScanner(reader)
 	var split bufio.SplitFunc = dockerfileFormatSplitFunc
 
@@ -113,6 +122,15 @@ func saveFlush(log logrus.FieldLogger, writer *bufio.Writer) {
 }
 
 func (format *dockerfileFormat) Process(log logrus.FieldLogger, reader io.Reader, w io.Writer, imageNameProcessor dockfmt.ImageNameProcessor) error {
+	err := format.process(log, reader, w, imageNameProcessor)
+	if err != nil {
+		return dockfmt.FormatErrorNew(err)
+	}
+
+	return nil
+}
+
+func (format *dockerfileFormat) process(log logrus.FieldLogger, reader io.Reader, w io.Writer, imageNameProcessor dockfmt.ImageNameProcessor) error {
 	result := new(multierror.Error)
 	writer := bufio.NewWriter(w)
 
@@ -201,7 +219,9 @@ func (format *dockerfileFormat) processNode(log logrus.FieldLogger, node *parser
 		start := node.StartLine
 
 		for i := start; i <= end; i++ {
-			_, err := writer.WriteString(strings.Replace(format.lines[i-1], from, processed.String(), 1))
+			line := format.lines[i-1]
+			formattedImageReference := processed.String()
+			_, err := writer.WriteString(strings.Replace(line, from, formattedImageReference, 1))
 			result = multierror.Append(result, err)
 		}
 		return true, result.ErrorOrNil()

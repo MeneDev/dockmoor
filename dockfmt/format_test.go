@@ -3,7 +3,9 @@ package dockfmt
 import (
 	"bytes"
 	"github.com/MeneDev/dockmoor/dockref"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"strings"
 	"testing"
@@ -42,4 +44,14 @@ func TestFormatProcessor_ProcessPassesLogAndReaderAndImageProcessorAndWriter(t *
 	processor.Process(processorFx)
 
 	formatMock.Mock.AssertNumberOfCalls(t, "Process", 1)
+}
+
+func TestFormatError(t *testing.T) {
+	err := errors.New("test")
+	formatError := FormatErrorNew(err)
+
+	assert.Error(t, formatError)
+	assert.Error(t, formatError.reason)
+
+	assert.Equal(t, "FormatError: test", formatError.Error())
 }

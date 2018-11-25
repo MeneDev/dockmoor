@@ -2,6 +2,7 @@ package dockerfile
 
 import (
 	"bytes"
+	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 	"github.com/pkg/errors"
@@ -129,7 +130,7 @@ func TestDockerfilePassProcessorErrors(t *testing.T) {
 		return r, expected
 	})
 
-	assert.Equal(t, expected, err)
+	assert.Equal(t, dockfmt.FormatErrorNew(expected), err)
 }
 
 func TestDockerfilePassMultiLineAndMultistage(t *testing.T) {
@@ -178,7 +179,7 @@ func TestParserErrorsAreReported(t *testing.T) {
 
 	err := format.ValidateInput(log, strings.NewReader(file), "anything")
 
-	assert.Equal(t, expected, err)
+	assert.Equal(t, dockfmt.FormatErrorNew(expected), err)
 }
 
 func TestParserSha256(t *testing.T) {

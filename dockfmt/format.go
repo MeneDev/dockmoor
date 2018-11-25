@@ -47,3 +47,17 @@ func FormatProcessorNew(format Format,
 		writer: bytes.NewBuffer(nil),
 	}
 }
+
+type FormatError struct {
+	reason error
+}
+
+func (e FormatError) Error() string {
+	return "FormatError: " + e.reason.Error()
+}
+
+func FormatErrorNew(err error) FormatError {
+	return FormatError{
+		reason: err,
+	}
+}

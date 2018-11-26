@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+set -e
 set -v
 ROOT=$(git rev-parse --show-toplevel)
 
@@ -37,3 +38,5 @@ do
     perl -pi -e "s/(^| )(${path})( |\n)/\$1$prefix\$2\[\$2\]\$3/g" "${ROOT}/README.adoc"
 done <<< "$(find . -mindepth 1 ! -name '*.sh' ! -name 'dockmoor')"
 )
+
+perl -pi -e "s/sha256:([a-f0-9]{3})[a-f0-9]{59}([a-f0-9]{2})/sha256:\$1..\$2/g" "${ROOT}/README.adoc"

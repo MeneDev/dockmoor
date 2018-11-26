@@ -1,4 +1,6 @@
 == Examples
+Note: all digests are abbreviated for better readability
+
 include::cmdList.adoc[]
 include::cmdContains.adoc[]
 

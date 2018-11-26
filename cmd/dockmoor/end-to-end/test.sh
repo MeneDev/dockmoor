@@ -364,12 +364,14 @@ cp pin-tests/Dockerfile-testimagea.org pin-tests/Dockerfile-testimagea
 dockmoor pin pin-tests/Dockerfile-testimagea
 #end::pinWithDockerd[]
 ) >$RESULTS/${CASE_NAME}.stdout 2>$RESULTS/${CASE_NAME}.stderr
+exitCode=$?
 [ $exitCode -eq 0 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
 stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
 stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
 [[ -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
 cmp --silent pin-tests/Dockerfile-testimagea-any.expected pin-tests/Dockerfile-testimagea || fail ${CASE_ID} "unexpected result"
+echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
 # cleanup
 rm -f pin-tests/Dockerfile-testimagea
 cp pin-tests/Dockerfile-testimagea.org pin-tests/Dockerfile-testimagea
@@ -385,12 +387,14 @@ cp pin-tests/Dockerfile-testimagea.org pin-tests/Dockerfile-testimagea
 dockmoor pin --output pin-tests/Dockerfile-testimagea.out pin-tests/Dockerfile-testimagea
 #end::pinWithDockerdToOtherFile[]
 ) >$RESULTS/${CASE_NAME}.stdout 2>$RESULTS/${CASE_NAME}.stderr
+exitCode=$?
 [ $exitCode -eq 0 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
 stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
 stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
 [[ -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
 cmp --silent pin-tests/Dockerfile-testimagea-any.expected pin-tests/Dockerfile-testimagea.out || fail ${CASE_ID} "unexpected result"
+echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
 # cleanup
 rm -f pin-tests/Dockerfile-testimagea
 rm -f pin-tests/Dockerfile-testimagea.out
@@ -406,12 +410,14 @@ cp pin-tests/Dockerfile-testimagea.org pin-tests/Dockerfile-testimagea
 dockmoor pin --latest pin-tests/Dockerfile-testimagea
 #end::pinLatestWithDockerd[]
 ) >$RESULTS/${CASE_NAME}.stdout 2>$RESULTS/${CASE_NAME}.stderr
+exitCode=$?
 [ $exitCode -eq 0 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
 stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
 stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
 [[ -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
 cmp --silent pin-tests/Dockerfile-testimagea-latest.expected pin-tests/Dockerfile-testimagea || fail ${CASE_ID} "unexpected result"
+echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
 # cleanup
 rm -f pin-tests/Dockerfile-testimagea
 cp pin-tests/Dockerfile-testimagea.org pin-tests/Dockerfile-testimagea

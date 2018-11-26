@@ -1,0 +1,40 @@
+[#pin-command-examples]
+=== pin command
+
+==== Pin all image references in a dockerfile
+
+[subs=+macros]
+----
+include::../end-to-end/test.sh[tag=pinWithDockerd]
+----
+File before execution:
+----
+include::../end-to-end/pin-tests/Dockerfile-testimagea[]
+----
+File after execution:
+----
+include::../end-to-end/pin-tests/Dockerfile-testimagea-any.expected[]
+----
+stdout is empty +
+stderr is empty +
+exit code:
+include::../end-to-end/results/pinWithDockerd.exitCode[]
+
+==== Pin image references with latest or no tag in a dockerfile
+
+[subs=+macros]
+----
+include::../end-to-end/test.sh[tag=pinLatestWithDockerd]
+----
+File before execution:
+----
+include::../end-to-end/pin-tests/Dockerfile-testimagea[]
+----
+File after execution:
+----
+include::../end-to-end/pin-tests/Dockerfile-testimagea-latest.expected[]
+----
+stdout is empty +
+stderr is empty +
+exit code:
+include::../end-to-end/results/pinLatestWithDockerd.exitCode[]

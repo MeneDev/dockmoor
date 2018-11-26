@@ -14,10 +14,10 @@ Manage docker image references.
 * find Dockerfiles
 * list image references
 * filter by various predicates, e.g. untagged, `latest`, RegEx-match
+* pin used image references to currently used version to make builds reproducible
 
 *Upcomming*
 
-* Pin used image references to currently used version to make builds reproducible
-* Find outdated image references
-* Update to newer major, minor or patch version respecting SemVer
-* Other formats: docker-compose, GitLab CI, Circle CI, Travis CI, ...
+* find outdated image references
+* update to newer major, minor or patch version respecting SemVer
+* other formats: docker-compose, GitLab CI, Circle CI, Travis CI, ...

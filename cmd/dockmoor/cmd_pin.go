@@ -18,8 +18,8 @@ type pinOptions struct {
 	ReferenceFormat struct {
 		ForceDomain bool `required:"no" long:"force-domain" description:"Includes domain even in well-known references"`
 		NoName      bool `required:"no" long:"no-name" description:"Formats well-known references as digest only"`
-		NoTag       bool `required:"no" long:"no-tag" description:"Don't include the tag in the reference'"`
-		NoDigest    bool `required:"no" long:"no-digest" description:"Don't include the digest in the reference'"`
+		NoTag       bool `required:"no" long:"no-tag" description:"Don't include the tag in the reference"`
+		NoDigest    bool `required:"no" long:"no-digest" description:"Don't include the digest in the reference"`
 	} `group:"Reference format" description:"Control the format of references, defaults are sensible, changes are not recommended"`
 
 	Output struct {

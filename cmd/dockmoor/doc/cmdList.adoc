@@ -1,6 +1,6 @@
 [#list-command-examples]
 === list command
-All single file examples all refer to https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[a multi-stage build Dockerfile]
+All single file examples refer to https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[a multi-stage build Dockerfile]
 
 ==== List all image references where the tag ends in `-test`
 

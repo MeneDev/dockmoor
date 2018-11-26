@@ -1,5 +1,5 @@
 
-:branch: master
+:branch: develop
 
 == dockmoor
 image:https://img.shields.io/circleci/project/github/MeneDev/dockmoor/{branch}.svg[Build Status (Circle CI), link=https://circleci.com/gh/MeneDev/dockmoor]
@@ -17,27 +17,129 @@ Manage docker image references.
 * find Dockerfiles
 * list image references
 * filter by various predicates, e.g. untagged, `latest`, RegEx-match
+* pin used image references to currently used version to make builds reproducible
 
 *Upcomming*
 
-* Pin used image references to currently used version to make builds reproducible
-* Find outdated image references
-* Update to newer major, minor or patch version respecting SemVer
-* Other formats: docker-compose, GitLab CI, Circle CI, Travis CI, ...
+* find outdated image references
+* update to newer major, minor or patch version respecting SemVer
+* other formats: docker-compose, GitLab CI, Circle CI, Travis CI, ...
 
 [[_examples]]
-Examples
---------
+== Examples
+
+Note: all digests are abbreviated for better readability
+
+[[pin-command-examples]]
+=== pin command
+
+[[_pin_all_image_references_in_a_dockerfile]]
+==== Pin all image references in a dockerfile
+
+[subs=+macros]
+....
+dockmoor pin https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-tests/Dockerfile-testimagea[pin-tests/Dockerfile-testimagea]
+....
+
+File before execution:
+
+[subs=+macros]
+....
+FROM menedev/testimagea:1
+FROM menedev/testimagea:1.0
+FROM menedev/testimagea:1.0.0
+FROM menedev/testimagea:1.0.1
+FROM menedev/testimagea:1.1.0
+FROM menedev/testimagea:1.1.1
+FROM menedev/testimagea:2
+FROM menedev/testimagea:2.0
+FROM menedev/testimagea:2.0.0
+FROM menedev/testimagea:latest
+FROM menedev/testimagea
+
+RUN something
+....
+
+File after execution:
+
+[subs=+macros]
+....
+FROM docker.io/menedev/testimagea:1.1.1@sha256:1e2..24
+FROM docker.io/menedev/testimagea:1.0.1@sha256:c27..4b
+FROM docker.io/menedev/testimagea:1.0.0@sha256:f38..df
+FROM docker.io/menedev/testimagea:1.0.1@sha256:c27..4b
+FROM docker.io/menedev/testimagea:1.1.0@sha256:bf1..96
+FROM docker.io/menedev/testimagea:1.1.1@sha256:1e2..24
+FROM docker.io/menedev/testimagea:2.0.0@sha256:3d4..a1
+FROM docker.io/menedev/testimagea:2.0.0@sha256:3d4..a1
+FROM docker.io/menedev/testimagea:2.0.0@sha256:3d4..a1
+FROM docker.io/menedev/testimagea:2.0.0@sha256:3d4..a1
+FROM docker.io/menedev/testimagea:2.0.0@sha256:3d4..a1
+
+RUN something
+....
+
+stdout is empty +
+stderr is empty +
+exit code: 0
+
+[[_pin_image_references_with_latest_or_no_tag_in_a_dockerfile]]
+==== Pin image references with latest or no tag in a dockerfile
+
+[subs=+macros]
+....
+dockmoor pin --latest https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-tests/Dockerfile-testimagea[pin-tests/Dockerfile-testimagea]
+....
+
+File before execution:
+
+[subs=+macros]
+....
+FROM menedev/testimagea:1
+FROM menedev/testimagea:1.0
+FROM menedev/testimagea:1.0.0
+FROM menedev/testimagea:1.0.1
+FROM menedev/testimagea:1.1.0
+FROM menedev/testimagea:1.1.1
+FROM menedev/testimagea:2
+FROM menedev/testimagea:2.0
+FROM menedev/testimagea:2.0.0
+FROM menedev/testimagea:latest
+FROM menedev/testimagea
+
+RUN something
+....
+
+File after execution:
+
+[subs=+macros]
+....
+FROM menedev/testimagea:1
+FROM menedev/testimagea:1.0
+FROM menedev/testimagea:1.0.0
+FROM menedev/testimagea:1.0.1
+FROM menedev/testimagea:1.1.0
+FROM menedev/testimagea:1.1.1
+FROM menedev/testimagea:2
+FROM menedev/testimagea:2.0
+FROM menedev/testimagea:2.0.0
+FROM docker.io/menedev/testimagea:2.0.0@sha256:3d4..a1
+FROM docker.io/menedev/testimagea:2.0.0@sha256:3d4..a1
+
+RUN something
+....
+
+stdout is empty +
+stderr is empty +
+exit code: 0
 
 [[list-command-examples]]
-list command
-~~~~~~~~~~~~
+=== list command
 
-All single file examples all refer to https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[a multi-stage build Dockerfile]
+All single file examples refer to https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[a multi-stage build Dockerfile]
 
 [[_list_all_image_references_where_the_tag_ends_in_test]]
-List all image references where the tag ends in `-test`
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== List all image references where the tag ends in `-test`
 
 Surrounding strings with `/` enables regular expression based matching.
 
@@ -54,15 +156,14 @@ image-name:1.12-test
 image-name:1.11-test
 docker.io/library/image-name:latest-test
 example.com/image-name:1.12-test
-example.com/image-name:latest-test@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+example.com/image-name:latest-test@sha256:2c4..cf
 ....
 
 stderr is empty +
 exit code: 0
 
 [[_list_all_image_references_with_latest_or_no_tag_from_a_specific_domain_in_file]]
-List all image references with latest or no tag from a specific domain in file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== List all image references with latest or no tag from a specific domain in file
 
 You can use multiple predicates to filter the matching image references. In this example the `domain` predicate is used together wih the `latest` predicate. Predicates are connected to a `conjunction`: all predicates must match.
 
@@ -75,7 +176,7 @@ stdout:
 
 [subs=+macros]
 ....
-example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+example.com/image-name:latest@sha256:2c4..cf
 example.com/other-image
 example.com/other-image:latest
 ....
@@ -84,8 +185,7 @@ stderr is empty +
 exit code: 0
 
 [[_list_all_image_references_in_file]]
-List all image references in file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== List all image references in file
 
 [subs=+macros]
 ....
@@ -101,17 +201,17 @@ image-name:latest
 image-name:1.12
 image-name:1.12-test
 image-name:1.11-test
-image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
-docker.io/library/image-name:1.12@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+image-name@sha256:2c4..cf
+docker.io/library/image-name:1.12@sha256:2c4..cf
 docker.io/library/image-name
 docker.io/library/image-name:latest
 docker.io/library/image-name:latest-test
 example.com/image-name:1.12
 example.com/image-name:1.12-test
 example.com/image-name:1.12-testing
-example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
-example.com/image-name:latest-test@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
-example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+example.com/image-name:latest@sha256:2c4..cf
+example.com/image-name:latest-test@sha256:2c4..cf
+example.com/image-name@sha256:2c4..cf
 example.com/other-image
 example.com/other-image:latest
 ....
@@ -120,8 +220,7 @@ stderr is empty +
 exit code: 0
 
 [[_list_all_image_references_with_latest_or_no_tag_in_file]]
-List all image references with latest or no tag in file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== List all image references with latest or no tag in file
 
 [subs=+macros]
 ....
@@ -136,7 +235,7 @@ image-name
 image-name:latest
 docker.io/library/image-name
 docker.io/library/image-name:latest
-example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+example.com/image-name:latest@sha256:2c4..cf
 example.com/other-image
 example.com/other-image:latest
 ....
@@ -145,8 +244,7 @@ stderr is empty +
 exit code: 0
 
 [[_list_all_unpinned_image_references]]
-List all unpinned image references
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== List all unpinned image references
 
 [subs=+macros]
 ....
@@ -176,8 +274,7 @@ stderr is empty +
 exit code: 0
 
 [[_use_unix_find_to_list_all_unpinned_image_references]]
-Use unix find to list all unpinned image references
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Use unix find to list all unpinned image references
 
 [subs=+macros]
 ....
@@ -197,8 +294,7 @@ stderr is empty +
 exit code: 0
 
 [[_use_unix_find_to_list_all_image_references_with_latestno_tags]]
-Use unix find to list all image references with latest/no tags
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Use unix find to list all image references with latest/no tags
 
 [subs=+macros]
 ....
@@ -217,8 +313,7 @@ stderr is empty +
 exit code: 0
 
 [[_use_unix_find_to_list_all_image_references]]
-Use unix find to list all image references
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Use unix find to list all image references
 
 [subs=+macros]
 ....
@@ -231,21 +326,19 @@ stdout:
 ....
 nginx
 nginx:1.15.3
-nginx:1.15.3-alpine@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf
+nginx:1.15.3-alpine@sha256:2c4..cf
 nginx:latest
-nginx@sha256:db5acc22920799fe387a903437eb89387607e5b3f63cf0f4472ac182d7bad644
+nginx@sha256:db5..44
 ....
 
 stderr is empty +
 exit code: 0
 
 [[contains-command-examples]]
-contains command
-~~~~~~~~~~~~~~~~
+=== contains command
 
 [[_use_unix_find_to_list_all_files_containing_unpinned_references]]
-Use unix find to list all files containing unpinned references
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Use unix find to list all files containing unpinned references
 
 [subs=+macros]
 ....
@@ -256,18 +349,17 @@ stdout:
 
 [subs=+macros]
 ....
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
 ....
 
 stderr is empty +
 exit code: 0
 
 [[_use_unix_find_to_list_all_files_containing_latestno_tags]]
-Use unix find to list all files containing latest/no tags
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Use unix find to list all files containing latest/no tags
 
 [subs=+macros]
 ....
@@ -279,16 +371,15 @@ stdout:
 [subs=+macros]
 ....
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
 ....
 
 stderr is empty +
-exit code: 0
+exit code: Unresolved directive in cmdContains.adoc - include::../end-to-end/results/containsLatestInFolder.exitCode[]
 
 [[_use_unix_find_to_list_all_supported_files]]
-Use unix find to list all supported files
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Use unix find to list all supported files
 
 [subs=+macros]
 ....
@@ -299,20 +390,19 @@ stdout:
 
 [subs=+macros]
 ....
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-digest[some-folder/Dockerfile-nginx-digest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-tagged-digest[some-folder/Dockerfile-nginx-tagged-digest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-digest[some-folder/Dockerfile-nginx-digest]
 ....
 
 stderr is empty +
 exit code: 0
 
 [[_test_the_format_of_a_file]]
-Test the format of a file
-^^^^^^^^^^^^^^^^^^^^^^^^^
+==== Test the format of a file
 
 The `contains` command returns with exit code 0 when an image reference was found that matches. Using the `--any` predicate allows to match any file with a supported format that contains at least one image reference.
 
@@ -335,37 +425,35 @@ stderr is empty +
 exit code: 4
 
 [[_supported_formats]]
-Supported Formats
------------------
+== Supported Formats
 
 * https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/Dockerfile[Dockerfile] (as used by `docker build`)
 
 [[_usage]]
-Usage
------
+== Usage
 
-__________________________________________________________________________________________________
-dockmoor [OPTIONS] <link:#contains-command[contains] | link:#list-command[list]> [command-OPTIONS]
-__________________________________________________________________________________________________
+___________________________________________________________________________________________________________________________
+dockmoor [OPTIONS] <link:#contains-command[contains] | link:#list-command[list] | link:#pin-command[pin]> [command-OPTIONS]
+___________________________________________________________________________________________________________________________
 
 [[_application_options]]
-Application Options
--------------------
+== Application Options
 
-**-l**, *--log-level* Sets the log-level (one of `NONE`, `ERROR`, `WARN`, `INFO`, `DEBUG`)
+*-l*, *--log-level* Sets the log-level (one of `NONE`, `ERROR`, `WARN`, `INFO`, `DEBUG`)
 
 *--version* Show version and exit
 
+*-r*, *--resolver* Strategy to resolve image references (one of `dockerd`)
+
 [[_commands]]
-Commands
-~~~~~~~~
+=== Commands
 
 * link:#contains-command[contains]
 * link:#list-command[list]
+* link:#pin-command[pin]
 
 [[_contains_command]]
-contains command
-^^^^^^^^^^^^^^^^
+==== contains command
 
 ________________________________________________________
 dockmoor [OPTIONS] contains [contains-OPTIONS] InputFile
@@ -374,28 +462,25 @@ ________________________________________________________
 Test if a file contains image references with matching predicates. Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions and is of valid format, non-null otherwise
 
 [[_domain_predicates]]
-Domain Predicates
-~~~~~~~~~~~~~~~~~
+=== Domain Predicates
 
 Limit matched image references depending on their domain
 
 *--domain* Matches all images matching one of the specified domains. Surround with '/' for regex i.e. /regex/.
 
 [[_name_predicates]]
-Name Predicates
-~~~~~~~~~~~~~~~
+=== Name Predicates
 
 Limit matched image references depending on their name
 
 *--name* Matches all images matching one of the specified names (e.g. "docker.io/library/nginx"). Surround with '/' for regex i.e. /regex/.
 
-**-f**, *--familiar-name* Matches all images matching one of the specified familiar names (e.g. "nginx"). Surround with '/' for regex i.e. /regex/.
+*-f*, *--familiar-name* Matches all images matching one of the specified familiar names (e.g. "nginx"). Surround with '/' for regex i.e. /regex/.
 
 *--path* Matches all images matching one of the specified paths (e.g. "library/nginx"). Surround with '/' for regex i.e. /regex/.
 
 [[_tag_predicates]]
-Tag Predicates
-~~~~~~~~~~~~~~
+=== Tag Predicates
 
 Limit matched image references depending on their tag
 
@@ -406,8 +491,7 @@ Limit matched image references depending on their tag
 *--tag* Matches all images matching one of the specified tag. Surround with '/' for regex i.e. /regex/.
 
 [[_digest_predicates]]
-Digest Predicates
-~~~~~~~~~~~~~~~~~
+=== Digest Predicates
 
 Limit matched image references depending on their digest
 
@@ -416,8 +500,7 @@ Limit matched image references depending on their digest
 *--digest* Matches all image references with one of the provided digests.
 
 [[_list_command]]
-list command
-^^^^^^^^^^^^
+==== list command
 
 ________________________________________________
 dockmoor [OPTIONS] list [list-OPTIONS] InputFile
@@ -426,28 +509,25 @@ ________________________________________________
 List image references with matching predicates. Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions and is of valid format, non-null otherwise
 
 [[_domain_predicates_2]]
-Domain Predicates
-~~~~~~~~~~~~~~~~~
+=== Domain Predicates
 
 Limit matched image references depending on their domain
 
 *--domain* Matches all images matching one of the specified domains. Surround with '/' for regex i.e. /regex/.
 
 [[_name_predicates_2]]
-Name Predicates
-~~~~~~~~~~~~~~~
+=== Name Predicates
 
 Limit matched image references depending on their name
 
 *--name* Matches all images matching one of the specified names (e.g. "docker.io/library/nginx"). Surround with '/' for regex i.e. /regex/.
 
-**-f**, *--familiar-name* Matches all images matching one of the specified familiar names (e.g. "nginx"). Surround with '/' for regex i.e. /regex/.
+*-f*, *--familiar-name* Matches all images matching one of the specified familiar names (e.g. "nginx"). Surround with '/' for regex i.e. /regex/.
 
 *--path* Matches all images matching one of the specified paths (e.g. "library/nginx"). Surround with '/' for regex i.e. /regex/.
 
 [[_tag_predicates_2]]
-Tag Predicates
-~~~~~~~~~~~~~~
+=== Tag Predicates
 
 Limit matched image references depending on their tag
 
@@ -458,8 +538,7 @@ Limit matched image references depending on their tag
 *--tag* Matches all images matching one of the specified tag. Surround with '/' for regex i.e. /regex/.
 
 [[_digest_predicates_2]]
-Digest Predicates
-~~~~~~~~~~~~~~~~~
+=== Digest Predicates
 
 Limit matched image references depending on their digest
 
@@ -467,15 +546,80 @@ Limit matched image references depending on their digest
 
 *--digest* Matches all image references with one of the provided digests.
 
+[[_pin_command]]
+==== pin command
+
+______________________________________________
+dockmoor [OPTIONS] pin [pin-OPTIONS] InputFile
+______________________________________________
+
+Change image references to a more reproducible format by adding version tags or digest
+
+[[_domain_predicates_3]]
+=== Domain Predicates
+
+Limit matched image references depending on their domain
+
+*--domain* Matches all images matching one of the specified domains. Surround with '/' for regex i.e. /regex/.
+
+[[_name_predicates_3]]
+=== Name Predicates
+
+Limit matched image references depending on their name
+
+*--name* Matches all images matching one of the specified names (e.g. "docker.io/library/nginx"). Surround with '/' for regex i.e. /regex/.
+
+*-f*, *--familiar-name* Matches all images matching one of the specified familiar names (e.g. "nginx"). Surround with '/' for regex i.e. /regex/.
+
+*--path* Matches all images matching one of the specified paths (e.g. "library/nginx"). Surround with '/' for regex i.e. /regex/.
+
+[[_tag_predicates_3]]
+=== Tag Predicates
+
+Limit matched image references depending on their tag
+
+*--untagged* Matches images with no tag
+
+*--latest* Matches images with latest or no tag. References with digest are only matched when explicit latest tag is present.
+
+*--tag* Matches all images matching one of the specified tag. Surround with '/' for regex i.e. /regex/.
+
+[[_digest_predicates_3]]
+=== Digest Predicates
+
+Limit matched image references depending on their digest
+
+*--unpinned* Matches unpinned image references, i.e. image references without digest.
+
+*--digest* Matches all image references with one of the provided digests.
+
+[[_reference_format]]
+=== Reference format
+
+Control the format of references, defaults are sensible, changes are not recommended
+
+*--force-domain* Includes domain even in well-known references
+
+*--no-name* Formats well-known references as digest only
+
+*--no-tag* Don't include the tag in the reference
+
+*--no-digest* Don't include the digest in the reference
+
+[[_output_parameters]]
+=== Output parameters
+
+Output parameters
+
+*-o*, *--output* Output file to write to. If empty, input file will be used.
+
 [[_building_locally_and_contributing]]
-Building locally and Contributing
----------------------------------
+== Building locally and Contributing
 
 Appreciated! See link:CONTRIBUTING.md[CONTRIBUTING] for details.
 
 [[_roadmap]]
-Roadmap
--------
+== Roadmap
 
 Currently dockmoor is in a very eraly stage and under constant development.
 

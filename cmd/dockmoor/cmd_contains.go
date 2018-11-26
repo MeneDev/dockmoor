@@ -55,10 +55,7 @@ func (co *containsOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode
 		errFormat := mopts.WithFormatProcessorDo(inputReader, func(processor dockfmt.FormatProcessor) error {
 			return co.applyFormatProcessor(predicate, processor)
 		})
-		if errFormat != nil {
-			return errFormat
-		}
-		return nil
+		return errFormat
 	})
 
 	if err != nil {

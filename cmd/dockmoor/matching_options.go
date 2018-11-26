@@ -121,7 +121,6 @@ type MatchingOptions struct {
 	} `positional-args:"yes"`
 
 	mainOpts     *mainOptions
-	matchHandler dockfmt.ImageNameProcessor
 }
 
 func (mopts *MatchingOptions) mainOptions() *mainOptions {

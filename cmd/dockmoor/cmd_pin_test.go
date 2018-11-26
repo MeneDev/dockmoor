@@ -283,18 +283,36 @@ func TestPinWritesToOutputFileAndNotToInputfile(t *testing.T) {
 
 	assert.Equal(t, ExitSuccess, exitCode)
 
-	bytes, e := ioutil.ReadFile(df1)
+	fileBytes, e := ioutil.ReadFile(df1)
 	assert.Nil(t, e)
 
-	s := string(bytes)
+	s := string(fileBytes)
 
 	assert.Equal(t, `FROM img`, s)
 
-	bytes, e = ioutil.ReadFile(df2)
+	fileBytes, e = ioutil.ReadFile(df2)
 	assert.Nil(t, e)
 
-	s = string(bytes)
+	s = string(fileBytes)
 
 	assert.Equal(t, `FROM img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf`, s)
+
+}
+
+func TestPinOptions_applyFormatProcessor_ReturnsError(t *testing.T) {
+	po := pinOptionsTestNew()
+	expected := errors.New("An error")
+
+	processorMock := &FormatProcessorMock{}
+	processorMock.process = func(imageNameProcessor dockfmt.ImageNameProcessor) error {
+		return expected
+	}
+
+	predicate, e := dockproc.AnyPredicateNew()
+	assert.Nil(t, e)
+
+	err := po.applyFormatProcessor(predicate, processorMock)
+
+	assert.Equal(t, expected, err)
 
 }

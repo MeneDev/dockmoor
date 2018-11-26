@@ -44,6 +44,10 @@ func (po *pinOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err
 	}
 
 	predicate, err := mopts.getPredicate()
+	if err != nil {
+		return ExitPredicateInvalid, err
+	}
+
 	buffer := bytes.NewBuffer(nil)
 
 	err = mopts.WithInputDo(func(inputPath string, inputReader io.Reader) error {
@@ -95,7 +99,7 @@ func (po *pinOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err
 
 func (po *pinOptions) applyFormatProcessor(predicate dockproc.Predicate, processor dockfmt.FormatProcessor) error {
 
-	processor.Process(func(original dockref.Reference) (dockref.Reference, error) {
+	return processor.Process(func(original dockref.Reference) (dockref.Reference, error) {
 		if predicate.Matches(original) {
 			repo := po.Repo()
 			rs, err := repo.Resolve(original)
@@ -123,8 +127,6 @@ func (po *pinOptions) applyFormatProcessor(predicate dockproc.Predicate, process
 		}
 		return original, nil
 	})
-
-	return nil
 }
 
 func (po *pinOptions) Repo() dockref.Resolver {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/MeneDev/dockmoor/dockfmt"
+	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
@@ -222,10 +223,10 @@ func TestContainsCommandDoesntPrint(t *testing.T) {
 		return nil
 	}
 
-	//test.matchAndProcess()
+	predicate, e := dockproc.AnyPredicateNew()
+	assert.Nil(t, e)
 
-	// TODO
-
+	test.applyFormatProcessor(predicate, processorMock)
 	s := stdout.String()
 	assert.Empty(t, s)
 }

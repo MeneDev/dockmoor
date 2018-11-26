@@ -169,8 +169,6 @@ func TestPinCommandPins(t *testing.T) {
 		assert.Nil(t, e)
 
 		po.applyFormatProcessor(predicate, processorMock)
-		//po.matchAndProcessFormatProcessor(processorMock)
-		// TODO
 		assert.True(t, ran)
 	}
 

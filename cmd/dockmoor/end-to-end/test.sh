@@ -357,7 +357,7 @@ echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
 CASE_ID=17
 CASE_NAME=pinWithDockerd
 ( # pin all image references to same file
-rm pin-tests/Dockerfile-testimagea
+rm -f pin-tests/Dockerfile-testimagea
 cp pin-tests/Dockerfile-testimagea.org pin-tests/Dockerfile-testimagea
 
 #tag::pinWithDockerd[]
@@ -371,9 +371,50 @@ stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
 cmp --silent pin-tests/Dockerfile-testimagea-any.expected pin-tests/Dockerfile-testimagea || fail ${CASE_ID} "unexpected result"
 # cleanup
-rm pin-tests/Dockerfile-testimagea
+rm -f pin-tests/Dockerfile-testimagea
 cp pin-tests/Dockerfile-testimagea.org pin-tests/Dockerfile-testimagea
 
+CASE_ID=18
+CASE_NAME=pinWithDockerdToOtherFile
+( # pin all image references to other file
+rm -f pin-tests/Dockerfile-testimagea
+rm -f pin-tests/Dockerfile-testimagea.out
+cp pin-tests/Dockerfile-testimagea.org pin-tests/Dockerfile-testimagea
+
+#tag::pinWithDockerdToOtherFile[]
+dockmoor pin --output pin-tests/Dockerfile-testimagea.out pin-tests/Dockerfile-testimagea
+#end::pinWithDockerdToOtherFile[]
+) >$RESULTS/${CASE_NAME}.stdout 2>$RESULTS/${CASE_NAME}.stderr
+[ $exitCode -eq 0 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
+stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
+stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
+[[ -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
+[[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
+cmp --silent pin-tests/Dockerfile-testimagea-any.expected pin-tests/Dockerfile-testimagea.out || fail ${CASE_ID} "unexpected result"
+# cleanup
+rm -f pin-tests/Dockerfile-testimagea
+rm -f pin-tests/Dockerfile-testimagea.out
+cp pin-tests/Dockerfile-testimagea.org pin-tests/Dockerfile-testimagea
+
+CASE_ID=19
+CASE_NAME=pinLatestWithDockerd
+( # pin all image references to same file
+rm -f pin-tests/Dockerfile-testimagea
+cp pin-tests/Dockerfile-testimagea.org pin-tests/Dockerfile-testimagea
+
+#tag::pinLatestWithDockerd[]
+dockmoor pin --latest pin-tests/Dockerfile-testimagea
+#end::pinLatestWithDockerd[]
+) >$RESULTS/${CASE_NAME}.stdout 2>$RESULTS/${CASE_NAME}.stderr
+[ $exitCode -eq 0 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
+stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
+stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
+[[ -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
+[[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
+cmp --silent pin-tests/Dockerfile-testimagea-latest.expected pin-tests/Dockerfile-testimagea || fail ${CASE_ID} "unexpected result"
+# cleanup
+rm -f pin-tests/Dockerfile-testimagea
+cp pin-tests/Dockerfile-testimagea.org pin-tests/Dockerfile-testimagea
 
 # When we reach this, everything is fine!
 echo "All tests passed!"

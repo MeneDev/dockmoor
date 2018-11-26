@@ -22,7 +22,7 @@ function hasNoLine {
 
 (cd .. && go build -ldflags="-s -w" -o end-to-end/dockmoor) || fail 1 "Error building"
 
-PATH=$PATH:.
+PATH=.:$PATH
 RESULTS=results
 
 mkdir -p $RESULTS || fail 2 "Cannot create $RESULTS folder"
@@ -353,6 +353,26 @@ hasNoLine "$stdout" "example.com/other-image" || fail ${CASE_ID} "Unexpected std
 hasNoLine "$stdout" "example.com/other-image:latest" || fail ${CASE_ID} "Unexpected stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
 echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
+
+CASE_ID=17
+CASE_NAME=pinWithDockerd
+( # pin all image references to same file
+rm pin-tests/Dockerfile-testimagea
+cp pin-tests/Dockerfile-testimagea.org pin-tests/Dockerfile-testimagea
+
+#tag::pinWithDockerd[]
+dockmoor pin pin-tests/Dockerfile-testimagea
+#end::pinWithDockerd[]
+) >$RESULTS/${CASE_NAME}.stdout 2>$RESULTS/${CASE_NAME}.stderr
+[ $exitCode -eq 0 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
+stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
+stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
+[[ -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
+[[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
+cmp --silent pin-tests/Dockerfile-testimagea-any.expected pin-tests/Dockerfile-testimagea || fail ${CASE_ID} "unexpected result"
+# cleanup
+rm pin-tests/Dockerfile-testimagea
+cp pin-tests/Dockerfile-testimagea.org pin-tests/Dockerfile-testimagea
 
 
 # When we reach this, everything is fine!

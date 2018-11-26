@@ -19,7 +19,7 @@ type pinOptionsTest struct {
 	*pinOptions
 
 	mainOptionsTest *mainOptionsTest
-	mockRepo        *dockreftst.MockRepository
+	mockRepo        *dockreftst.MockResolver
 }
 
 func (fo *pinOptionsTest) MainOptions() *mainOptionsTest {
@@ -29,10 +29,10 @@ func (fo *pinOptionsTest) MainOptions() *mainOptionsTest {
 func pinOptionsTestNew() *pinOptionsTest {
 	mainOptions := mainOptionsTestNew()
 
-	repo := dockreftst.MockRepositoryNew()
+	repo := dockreftst.MockResolverNew()
 
 	pinOptions := &pinOptionsTest{
-		pinOptions: pinOptionsNew(mainOptions.mainOptions, func() dockref.Repository {
+		pinOptions: pinOptionsNew(mainOptions.mainOptions, func() dockref.Resolver {
 			return repo
 		}),
 		mainOptionsTest: mainOptions,
@@ -241,9 +241,9 @@ func TestPinWritesToInputFile(t *testing.T) {
 	os.Args = []string{"exe", "pin", df1}
 	mainOptions := mainOptionsACNew(addPinCommand)
 
-	factory := mainOptions.repositoryFactory()
-	repository := factory()
-	repo := repository.(*dockreftst.MockRepository)
+	factory := mainOptions.resolverFactory()
+	resolver := factory()
+	repo := resolver.(*dockreftst.MockResolver)
 
 	repo.OnResolve(dockref.FromOriginalNoError("img")).Return([]dockref.Reference{
 		dockref.FromOriginalNoError("img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf"),
@@ -271,9 +271,9 @@ func TestPinWritesToOutputFileAndNotToInputfile(t *testing.T) {
 	os.Args = []string{"exe", "pin", "--output", df2, df1}
 	mainOptions := mainOptionsACNew(addPinCommand)
 
-	factory := mainOptions.repositoryFactory()
-	repository := factory()
-	repo := repository.(*dockreftst.MockRepository)
+	factory := mainOptions.resolverFactory()
+	resolver := factory()
+	repo := resolver.(*dockreftst.MockResolver)
 
 	repo.OnResolve(dockref.FromOriginalNoError("img")).Return([]dockref.Reference{
 		dockref.FromOriginalNoError("img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf"),

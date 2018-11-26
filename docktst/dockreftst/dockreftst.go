@@ -5,13 +5,13 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-var _ dockref.Repository = (*MockRepository)(nil)
+var _ dockref.Resolver = (*MockResolver)(nil)
 
-type MockRepository struct {
+type MockResolver struct {
 	mock.Mock
 }
 
-func (m *MockRepository) Resolve(reference dockref.Reference) ([]dockref.Reference, error) {
+func (m *MockResolver) Resolve(reference dockref.Reference) ([]dockref.Reference, error) {
 	called := m.Called(reference)
 	i := called.Get(0)
 	refs := i.([]dockref.Reference)
@@ -19,10 +19,10 @@ func (m *MockRepository) Resolve(reference dockref.Reference) ([]dockref.Referen
 	return refs, e
 }
 
-func (m *MockRepository) OnResolve(reference dockref.Reference) *mock.Call {
+func (m *MockResolver) OnResolve(reference dockref.Reference) *mock.Call {
 	return m.On("Resolve", reference)
 }
 
-func MockRepositoryNew() *MockRepository {
-	return &MockRepository{}
+func MockResolverNew() *MockResolver {
+	return &MockResolver{}
 }

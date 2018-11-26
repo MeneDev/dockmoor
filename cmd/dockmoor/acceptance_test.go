@@ -43,10 +43,10 @@ func mainOptionsACNew(commandAdders ...func(mainOptions *mainOptions, adder func
 	mainOptions := mainOptionsNew()
 
 	mainOptions.SetStdout(bytes.NewBuffer(nil))
-	mockRepository := dockreftst.MockRepositoryNew()
-	mainOptions.repositoryFactory = func() func() dockref.Repository {
-		return func() dockref.Repository {
-			return mockRepository
+	mockResolver := dockreftst.MockResolverNew()
+	mainOptions.resolverFactory = func() func() dockref.Resolver {
+		return func() dockref.Resolver {
+			return mockResolver
 		}
 	}
 

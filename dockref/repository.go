@@ -13,25 +13,25 @@ import (
 	"os"
 )
 
-type Repository interface {
+type Resolver interface {
 	Resolve(reference Reference) ([]Reference, error)
 }
 
-type dockerDaemonRepository struct {
+type dockerDaemonResolver struct {
 	ImageInspect func(reference Reference) (types.ImageInspect, error)
 	NewCli       func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface
 }
 
-var _ Repository = (*dockerDaemonRepository)(nil)
+var _ Resolver = (*dockerDaemonResolver)(nil)
 
-func DockerDaemonRepositoryNew() Repository {
-	repo := &dockerDaemonRepository{
+func DockerDaemonResolverNew() Resolver {
+	repo := &dockerDaemonResolver{
 		NewCli: newCli,
 	}
 	return repo
 }
 
-func (repo dockerDaemonRepository) imageInspect(reference Reference) (types.ImageInspect, error) {
+func (repo dockerDaemonResolver) imageInspect(reference Reference) (types.ImageInspect, error) {
 	ctx := context.Background()
 
 	client, err := repo.newClient()
@@ -49,7 +49,7 @@ var (
 	dockerTLS       = os.Getenv("DOCKER_TLS") != ""
 )
 
-func (repo dockerDaemonRepository) newClient() (dockerAPIClient, error) {
+func (repo dockerDaemonResolver) newClient() (dockerAPIClient, error) {
 	in := ioutil.NopCloser(bytes.NewBuffer(nil))
 	out := bytes.NewBuffer(nil)
 	errWriter := bytes.NewBuffer(nil)
@@ -104,7 +104,7 @@ func newCli(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrus
 	return &dockerCli{command.NewDockerCli(in, out, errWriter, isTrusted, nil)}
 }
 
-func (repo dockerDaemonRepository) Resolve(reference Reference) ([]Reference, error) {
+func (repo dockerDaemonResolver) Resolve(reference Reference) ([]Reference, error) {
 	imageInspect, err := repo.imageInspect(reference)
 
 	if err != nil {

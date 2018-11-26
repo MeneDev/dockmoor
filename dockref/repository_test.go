@@ -13,10 +13,10 @@ import (
 	"testing"
 )
 
-func dockerDaemonRepositoryNewTest() *dockerDaemonRepository {
-	repo := DockerDaemonRepositoryNew()
-	repository := repo.(*dockerDaemonRepository)
-	return repository
+func dockerDaemonResolverNewTest() *dockerDaemonResolver {
+	repo := DockerDaemonResolverNew()
+	resolver := repo.(*dockerDaemonResolver)
+	return resolver
 }
 
 var _ dockerCliInterface = (*mockDockerCli)(nil)
@@ -60,7 +60,7 @@ func (m *mockDockerAPIClient) ImageInspectWithRaw(ctx context.Context, image str
 }
 
 func TestDockerDaemonRegistry_Resolve(t *testing.T) {
-	repo := dockerDaemonRepositoryNewTest()
+	repo := dockerDaemonResolverNewTest()
 	mockCli := &mockDockerCli{}
 	repo.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
 		return mockCli
@@ -172,7 +172,7 @@ func TestDockerDaemonRegistry_Resolve(t *testing.T) {
 func TestDockerDaemonRegistry_Resolve_IT(t *testing.T) {
 	// integration tests
 	// require pulled nginx images
-	repo := DockerDaemonRepositoryNew()
+	repo := DockerDaemonResolverNew()
 
 	println("DOCKER_CERT_PATH " + os.Getenv("DOCKER_CERT_PATH"))
 	println("DOCKER_TLS " + os.Getenv("DOCKER_TLS"))
@@ -237,7 +237,7 @@ func TestDockerDaemonRegistry_Resolve_IT(t *testing.T) {
 }
 
 func TestDockerDaemonRegistry_Resolve_Error_in_Initialize(t *testing.T) {
-	repo := dockerDaemonRepositoryNewTest()
+	repo := dockerDaemonResolverNewTest()
 	mockCli := &mockDockerCli{}
 	repo.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
 		return mockCli
@@ -255,8 +255,8 @@ func TestDockerDaemonRegistry_Resolve_Error_in_Initialize(t *testing.T) {
 	assert.Empty(t, references)
 }
 
-func TestDockerDaemonRepository_Resolve_DigestOnly(t *testing.T) {
-	repo := dockerDaemonRepositoryNewTest()
+func TestDockerDaemonResolver_Resolve_DigestOnly(t *testing.T) {
+	repo := dockerDaemonResolverNewTest()
 	mockCli := &mockDockerCli{}
 	repo.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
 		return mockCli
@@ -282,8 +282,8 @@ func TestDockerDaemonRepository_Resolve_DigestOnly(t *testing.T) {
 	}
 }
 
-func TestDockerDaemonRepository_Resolve_LocalOnly_but_tagged(t *testing.T) {
-	repo := dockerDaemonRepositoryNewTest()
+func TestDockerDaemonResolver_Resolve_LocalOnly_but_tagged(t *testing.T) {
+	repo := dockerDaemonResolverNewTest()
 	mockCli := &mockDockerCli{}
 	repo.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
 		return mockCli

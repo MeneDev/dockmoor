@@ -181,7 +181,7 @@ func TestInvalidSolverIsNil(t *testing.T) {
 
 	po.mainOptions().Resolver = "Invalid"
 
-	solverFactory := po.mainOptions().repositoryFactory()()
+	solverFactory := po.mainOptions().resolverFactory()()
 	assert.Nil(t, solverFactory)
 }
 
@@ -190,5 +190,5 @@ func TestUsesDockerdSolver(t *testing.T) {
 
 	po, _ := cmd.(*pinOptions)
 	assert.Equal(t, po.mainOptions().Resolver, "dockerd")
-	assert.IsType(t, dockref.DockerDaemonRepositoryNew(), po.mainOptions().repositoryFactory()())
+	assert.IsType(t, dockref.DockerDaemonResolverNew(), po.mainOptions().resolverFactory()())
 }

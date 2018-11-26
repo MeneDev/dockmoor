@@ -26,7 +26,7 @@ type pinOptions struct {
 		OutputFile flags.Filename `required:"no" short:"o" long:"output" description:"Output file to write to. If empty, input file will be used."`
 	} `group:"Output parameters" description:"Output parameters"`
 
-	repoFactory func() dockref.Repository
+	repoFactory func() dockref.Resolver
 	matches     bool
 }
 
@@ -127,16 +127,16 @@ func (po *pinOptions) applyFormatProcessor(predicate dockproc.Predicate, process
 	return nil
 }
 
-func (po *pinOptions) Repo() dockref.Repository {
+func (po *pinOptions) Repo() dockref.Resolver {
 	return po.repoFactory()
 }
 
-func pinOptionsNew(mainOptions *mainOptions, repositoryFactory func() dockref.Repository) *pinOptions {
+func pinOptionsNew(mainOptions *mainOptions, resolverFactory func() dockref.Resolver) *pinOptions {
 	po := pinOptions{
 		MatchingOptions: MatchingOptions{
 			mainOpts: mainOptions,
 		},
-		repoFactory: repositoryFactory,
+		repoFactory: resolverFactory,
 		matches:     false,
 	}
 
@@ -144,7 +144,7 @@ func pinOptionsNew(mainOptions *mainOptions, repositoryFactory func() dockref.Re
 }
 
 func addPinCommand(mainOptions *mainOptions, adder func(opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error) {
-	repoFactory := mainOptions.repositoryFactory()
+	repoFactory := mainOptions.resolverFactory()
 	pinOptions := pinOptionsNew(mainOptions, repoFactory)
 
 	command, e := adder(mainOptions, "pin",

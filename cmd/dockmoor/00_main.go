@@ -40,7 +40,7 @@ type mainOptions struct {
 	stdout         io.Writer
 	stdin          io.ReadCloser
 
-	repositoryFactory func() func() dockref.Repository
+	resolverFactory func() func() dockref.Resolver
 }
 
 var osStdout io.Writer = os.Stdout
@@ -59,7 +59,7 @@ func mainOptionsNew() *mainOptions {
 	mainOptions.stdin = osStdin
 	log.SetOutput(osStdout)
 
-	mainOptions.repositoryFactory = mainOptions.DefaultRepositoryFactory
+	mainOptions.resolverFactory = mainOptions.DefaultResolverFactory
 	return mainOptions
 }
 
@@ -251,11 +251,11 @@ func fmtFprintf(log *logrus.Logger, w io.Writer, format string, a ...interface{}
 	}
 }
 
-func (options *mainOptions) DefaultRepositoryFactory() func() dockref.Repository {
-	return func() dockref.Repository {
+func (options *mainOptions) DefaultResolverFactory() func() dockref.Resolver {
+	return func() dockref.Resolver {
 		switch options.Resolver {
 		case "dockerd":
-			return dockref.DockerDaemonRepositoryNew()
+			return dockref.DockerDaemonResolverNew()
 		}
 
 		return nil

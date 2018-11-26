@@ -13,8 +13,11 @@ RUN cd /go/src/github.com/mitchellh/gox && dep ensure && go install -v ./...
 
 RUN go get github.com/mattn/goveralls
 
-RUN sudo apt-get install ruby pandoc
+RUN sudo apt-get install ruby
 RUN sudo gem install asciidoctor
+
+RUN wget https://github.com/jgm/pandoc/releases/download/2.4/pandoc-2.4-1-amd64.deb
+RUN sudo dpkg -i pandoc-2.4-1-amd64.deb
 
 RUN go get -u golang.org/x/lint/golint
 RUN go get -u github.com/gordonklaus/ineffassign

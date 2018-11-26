@@ -49,33 +49,33 @@ func IdentifyFormat(log logrus.FieldLogger, formatProvider FormatProvider, reade
 		"knownFormats": formats,
 	})
 
-	var pinner Format
-	var pinnerErrors error
+	var format Format
+	var formatErrors error
 	for _, p := range formats {
 		validationErr := p.ValidateInput(log, reader, filename)
 		if validationErr != nil {
-			pinnerErrors = multierror.Append(pinnerErrors, validationErr)
+			formatErrors = multierror.Append(formatErrors, validationErr)
 			log.WithFields(logrus.Fields{
 				"format": p.Name(),
 				"error":  validationErr,
 			}).Debug("Tried incompatible format")
 		} else {
-			if pinner != nil {
+			if format != nil {
 				return nil, AmbiguousFormatError{
-					Formats: []Format{pinner, p},
+					Formats: []Format{format, p},
 				}
 			}
 
-			pinner = p
+			format = p
 		}
 	}
 
-	if pinner == nil {
+	if format == nil {
 		log.Info("Unknown Format")
 		return nil, UnknownFormatError{
-			pinnerErrors,
+			formatErrors,
 		}
 	}
 
-	return pinner, pinnerErrors
+	return format, formatErrors
 }

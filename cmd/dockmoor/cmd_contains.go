@@ -101,7 +101,6 @@ func contains(err error, predicate func(err error) bool) bool {
 }
 
 func (co *containsOptions) applyFormatProcessor(predicate dockproc.Predicate, processor dockfmt.FormatProcessor) error {
-
 	return processor.Process(func(r dockref.Reference) (dockref.Reference, error) {
 		if predicate.Matches(r) {
 			co.matches = true

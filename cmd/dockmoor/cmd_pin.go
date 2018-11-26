@@ -164,6 +164,15 @@ func (po *pinOptions) RefFormat() (dockref.Format, error) {
 	format := dockref.FormatHasName | dockref.FormatHasTag | dockref.FormatHasDigest
 
 	rf := po.ReferenceFormat
+
+	if rf.NoDigest && rf.NoName {
+		return 0, errors.New("invalid Reference Format: --no-name and --no-digest are mutually exclusive")
+	}
+
+	if rf.ForceDomain && rf.NoName {
+		return 0, errors.New("invalid Reference Format: --force-domain and --no-name are mutually exclusive")
+	}
+
 	if rf.ForceDomain {
 		format |= dockref.FormatHasDomain
 	}

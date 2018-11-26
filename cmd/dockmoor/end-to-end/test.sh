@@ -370,7 +370,7 @@ stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
 stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
 [[ -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
-cmp --silent pin-tests/Dockerfile-testimagea-any.expected pin-tests/Dockerfile-testimagea || fail ${CASE_ID} "unexpected result"
+cmp pin-tests/Dockerfile-testimagea-any.expected pin-tests/Dockerfile-testimagea || fail ${CASE_ID} "unexpected result"
 echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
 # cleanup
 rm -f pin-tests/Dockerfile-testimagea
@@ -393,7 +393,7 @@ stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
 stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
 [[ -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
-cmp --silent pin-tests/Dockerfile-testimagea-any.expected pin-tests/Dockerfile-testimagea.out || fail ${CASE_ID} "unexpected result"
+cmp pin-tests/Dockerfile-testimagea-any.expected pin-tests/Dockerfile-testimagea.out || fail ${CASE_ID} "unexpected result"
 echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
 # cleanup
 rm -f pin-tests/Dockerfile-testimagea
@@ -416,11 +416,55 @@ stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
 stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
 [[ -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
-cmp --silent pin-tests/Dockerfile-testimagea-latest.expected pin-tests/Dockerfile-testimagea || fail ${CASE_ID} "unexpected result"
+cmp pin-tests/Dockerfile-testimagea-latest.expected pin-tests/Dockerfile-testimagea || fail ${CASE_ID} "unexpected result"
 echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
 # cleanup
 rm -f pin-tests/Dockerfile-testimagea
 cp pin-tests/Dockerfile-testimagea.org pin-tests/Dockerfile-testimagea
+
+CASE_ID=20
+CASE_NAME=pinNginxWithDockerd
+( # pin all image references in nginx dockerfile to same file
+rm -f pin-tests/Dockerfile-nginx
+cp pin-tests/Dockerfile-nginx.org pin-tests/Dockerfile-nginx
+
+#tag::pinNginxWithDockerd[]
+dockmoor pin pin-tests/Dockerfile-nginx
+#end::pinNginxWithDockerd[]
+) >$RESULTS/${CASE_NAME}.stdout 2>$RESULTS/${CASE_NAME}.stderr
+exitCode=$?
+[ $exitCode -eq 0 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
+stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
+stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
+[[ -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
+[[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
+cmp pin-tests/Dockerfile-nginx-any.expected pin-tests/Dockerfile-nginx || fail ${CASE_ID} "unexpected result"
+echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
+# cleanup
+rm -f pin-tests/Dockerfile-nginx
+cp pin-tests/Dockerfile-nginx.org pin-tests/Dockerfile-nginx
+
+CASE_ID=21
+CASE_NAME=pinNginxLatestNoDigestWithDockerd
+( # pin all image references in nginx dockerfile to same file
+rm -f pin-tests/Dockerfile-nginx
+cp pin-tests/Dockerfile-nginx.org pin-tests/Dockerfile-nginx
+
+#tag::pinNginxLatestNoDigestWithDockerd[]
+dockmoor pin --latest --no-digest pin-tests/Dockerfile-nginx
+#end::pinNginxLatestNoDigestWithDockerd[]
+) >$RESULTS/${CASE_NAME}.stdout 2>$RESULTS/${CASE_NAME}.stderr
+exitCode=$?
+[ $exitCode -eq 0 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
+stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
+stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
+[[ -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
+[[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
+cmp pin-tests/Dockerfile-latest-no-digest.expected pin-tests/Dockerfile-nginx || fail ${CASE_ID} "unexpected result"
+echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
+# cleanup
+rm -f pin-tests/Dockerfile-nginx
+cp pin-tests/Dockerfile-nginx.org pin-tests/Dockerfile-nginx
 
 # When we reach this, everything is fine!
 echo "All tests passed!"

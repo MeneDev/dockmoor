@@ -126,18 +126,79 @@ func TestPinOptions_RefFormat(t *testing.T) {
 		assert.True(t, (format&dockref.FormatHasTag) != 0)
 		assert.True(t, (format&dockref.FormatHasDigest) != 0)
 	})
+
 	po.ReferenceFormat.ForceDomain = true
 	po.ReferenceFormat.NoName = true
 	po.ReferenceFormat.NoTag = true
 	po.ReferenceFormat.NoDigest = true
 	t.Run("all set", func(t *testing.T) {
+		_, e := po.RefFormat()
+		assert.Error(t, e)
+	})
+
+	po.ReferenceFormat.ForceDomain = true
+	po.ReferenceFormat.NoName = false
+	po.ReferenceFormat.NoTag = true
+	po.ReferenceFormat.NoDigest = true
+	t.Run("all set but NoName", func(t *testing.T) {
 		format, e := po.RefFormat()
 		assert.Nil(t, e)
 		assert.True(t, (format&dockref.FormatHasDomain) != 0)
-		assert.False(t, (format&dockref.FormatHasName) != 0)
+		assert.True(t, (format&dockref.FormatHasName) != 0)
 		assert.False(t, (format&dockref.FormatHasTag) != 0)
 		assert.False(t, (format&dockref.FormatHasDigest) != 0)
 	})
+
+	po.ReferenceFormat.ForceDomain = true
+	po.ReferenceFormat.NoName = false
+	po.ReferenceFormat.NoTag = false
+	po.ReferenceFormat.NoDigest = false
+	t.Run("ForceDomain set", func(t *testing.T) {
+		format, e := po.RefFormat()
+		assert.Nil(t, e)
+		assert.True(t, (format&dockref.FormatHasDomain) != 0)
+		assert.True(t, (format&dockref.FormatHasName) != 0)
+		assert.True(t, (format&dockref.FormatHasTag) != 0)
+		assert.True(t, (format&dockref.FormatHasDigest) != 0)
+	})
+
+	po.ReferenceFormat.ForceDomain = false
+	po.ReferenceFormat.NoName = true
+	po.ReferenceFormat.NoTag = false
+	po.ReferenceFormat.NoDigest = true
+	t.Run("NoName and NoDigest set", func(t *testing.T) {
+		_, e := po.RefFormat()
+		assert.Error(t, e)
+	})
+
+	po.ReferenceFormat.ForceDomain = true
+	po.ReferenceFormat.NoName = true
+	po.ReferenceFormat.NoTag = false
+	po.ReferenceFormat.NoDigest = false
+	t.Run("ForceDomain and NoName set", func(t *testing.T) {
+		_, e := po.RefFormat()
+		assert.Error(t, e)
+	})
+
+	po.ReferenceFormat.ForceDomain = false
+	po.ReferenceFormat.NoName = true
+	po.ReferenceFormat.NoTag = false
+	po.ReferenceFormat.NoDigest = true
+	t.Run("NoName and NoDigest set", func(t *testing.T) {
+		_, e := po.RefFormat()
+		assert.Error(t, e)
+	})
+
+}
+
+func TestPinCommand_FailsWithInvalidFormattingFlags(t *testing.T) {
+	po := pinOptionsTestNew()
+	po.ReferenceFormat.NoName = true
+	po.ReferenceFormat.NoTag = true
+	po.ReferenceFormat.NoDigest = true
+	exitCode, err := po.ExecuteWithExitCode(nil)
+	assert.Error(t, err)
+	assert.NotEqual(t, ExitSuccess, exitCode)
 }
 
 func TestPinCommandPins(t *testing.T) {
@@ -314,5 +375,4 @@ func TestPinOptions_applyFormatProcessor_ReturnsError(t *testing.T) {
 	err := po.applyFormatProcessor(predicate, processorMock)
 
 	assert.Equal(t, expected, err)
-
 }

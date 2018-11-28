@@ -169,6 +169,74 @@ func TestDockerDaemonRegistry_Resolve(t *testing.T) {
 	}
 }
 
+type mockDockerCliInterface struct {
+	mock.Mock
+}
+
+func (m *mockDockerCliInterface) Initialize(options *flags.ClientOptions) error {
+	called := m.Called(options)
+	e := called.Error(0)
+	return e
+}
+
+func (m *mockDockerCliInterface) Client() dockerAPIClient {
+	called := m.Called()
+	client := called.Get(0)
+	if client != nil {
+		return client.(dockerAPIClient)
+	} else {
+		return nil
+	}
+}
+
+func TestDockerDaemonRegistry_newClient(t *testing.T) {
+	t.Run("unresolvable host returns error", func(t *testing.T) {
+		repo := dockerDaemonResolverNewTest()
+		repo.osGetenv = func(key string) string {
+			switch key {
+			case "DOCKER_HOST":
+				return "the host is not valid!"
+			}
+			return ""
+		}
+
+		apiClient, e := repo.newClient()
+		assert.Error(t, e)
+		assert.Nil(t, apiClient)
+	})
+
+	t.Run("unresolvable host returns error", func(t *testing.T) {
+		repo := dockerDaemonResolverNewTest()
+		repo.osGetenv = func(key string) string {
+			switch key {
+			case "DOCKER_TLS":
+				return "1"
+			}
+			return ""
+		}
+
+		client := &mockDockerCliInterface{}
+		repo.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
+			return client
+		}
+
+		client.On("Initialize", mock.Anything).Run(func(args mock.Arguments) {
+			get := args.Get(0)
+			assert.NotNil(t, get)
+			if get != nil {
+				options := get.(*flags.ClientOptions)
+				tlsOpts := options.Common.TLSOptions
+
+				assert.NotNil(t, tlsOpts)
+			}
+		}).Return(nil)
+		client.On("Client").Return(nil)
+		_, e := repo.newClient()
+		assert.Nil(t, e)
+	})
+
+}
+
 func TestDockerDaemonRegistry_Resolve_IT(t *testing.T) {
 	// integration tests
 	// require pulled nginx images
@@ -213,7 +281,6 @@ func TestDockerDaemonRegistry_Resolve_IT(t *testing.T) {
 
 	for _, tst := range tests {
 		dig := FromOriginalNoError(tst.digest).Formatted()
-		//dig = strings.SplitAfter(dig, ":")[1]
 		t.Run("Resolves digest "+dig, func(t *testing.T) {
 			ref := FromOriginalNoError(dig)
 

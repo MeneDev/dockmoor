@@ -255,6 +255,11 @@ func TestPinCommandPins(t *testing.T) {
 			dockref.FromOriginalNoError("nginx:latest@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
 		}, nil)
 
+	po.mockRepo.OnResolve(dockref.FromOriginalNoError("menedev/testimagea")).
+		Return([]dockref.Reference{
+			dockref.FromOriginalNoError("menedev/testimagea:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
+		}, nil)
+
 	processorMock := &FormatProcessorMock{}
 
 	pin := func(refStr, expected string) {
@@ -318,6 +323,14 @@ func TestPinCommandPins(t *testing.T) {
 		po.ReferenceFormat.NoDigest = false
 
 		pin("nginx:latest", "nginx:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991")
+	})
+	t.Run("Does not add domain to well-known user image references when ForceDomain = false", func(t *testing.T) {
+		po.ReferenceFormat.ForceDomain = false
+		po.ReferenceFormat.NoName = false
+		po.ReferenceFormat.NoTag = false
+		po.ReferenceFormat.NoDigest = false
+
+		pin("menedev/testimagea", "menedev/testimagea:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991")
 	})
 }
 

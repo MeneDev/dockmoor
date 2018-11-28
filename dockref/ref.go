@@ -247,7 +247,7 @@ func (r dockref) WithRequestedFormat(format Format) (Reference, error) {
 	}
 	var required Format
 
-	if r.Domain() != "" && r.Domain() != "docker.io" || !strings.HasPrefix(r.Path(), "library/") {
+	if r.Domain() != "" && r.Domain() != "docker.io" {
 		required |= FormatHasDomain | FormatHasName
 	}
 

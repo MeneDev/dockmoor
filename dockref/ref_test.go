@@ -16,30 +16,76 @@ func TestInvalid(t *testing.T) {
 }
 
 func TestWellknownNames(t *testing.T) {
-	originals := []string{"nginx", "alpine", "httpd"}
-	for _, original := range originals {
-		t.Run("Parses "+original, func(t *testing.T) {
+	t.Run("Parses untagged library references", func(t *testing.T) {
+		parent := t.Name()
+
+		run := func(t *testing.T) {
+			testCase := t.Name()[len(parent)+1:]
+			original := testCase
+
 			ref, e := FromOriginal(original)
 			assert.Nil(t, e)
 			assert.Equal(t, "", ref.Tag())
 
 			expected := "docker.io/library/" + original
 			assert.Equal(t, expected, ref.Name())
-		})
-	}
-}
+		}
 
-func TestWellknownTaggedNames(t *testing.T) {
-	originals := []string{"nginx:latest", "nginx:1.15.2-alpine-perl", "mongo:3.4.16-windowsservercore-ltsc2016"}
-	for _, original := range originals {
-		t.Run("Parses "+original, func(t *testing.T) {
+		t.Run("nginx", run)
+		t.Run("alpine", run)
+	})
+	t.Run("Parses untagged user image references", func(t *testing.T) {
+		parent := t.Name()
+
+		run := func(t *testing.T) {
+			testCase := t.Name()[len(parent)+1:]
+			original := testCase
+
+			ref, e := FromOriginal(original)
+			assert.Nil(t, e)
+			assert.Equal(t, "", ref.Tag())
+
+			expected := "docker.io/" + original
+			assert.Equal(t, expected, ref.Name())
+		}
+
+		t.Run("menedev/nginx", run)
+		t.Run("menedev/alpine", run)
+	})
+	t.Run("Parses tagged library references", func(t *testing.T) {
+		parent := t.Name()
+
+		run := func(t *testing.T) {
+			testCase := t.Name()[len(parent)+1:]
+			original := testCase
+
 			ref, e := FromOriginal(original)
 			assert.Nil(t, e)
 
 			expected := "docker.io/library/" + original
 			assert.Equal(t, expected, ref.Name()+":"+ref.Tag())
-		})
-	}
+		}
+
+		t.Run("nginx:latest", run)
+		t.Run("mongo:3.4.16-windowsservercore-ltsc2016", run)
+	})
+	t.Run("Parses tagged user image references", func(t *testing.T) {
+		parent := t.Name()
+
+		run := func(t *testing.T) {
+			testCase := t.Name()[len(parent)+1:]
+			original := testCase
+
+			ref, e := FromOriginal(original)
+			assert.Nil(t, e)
+
+			expected := "docker.io/" + original
+			assert.Equal(t, expected, ref.Name()+":"+ref.Tag())
+		}
+
+		t.Run("menedev/nginx:latest", run)
+		t.Run("menedev/mongo:3.4.16-windowsservercore-ltsc2016", run)
+	})
 }
 
 func TestOriginalsAreUnchanged(t *testing.T) {
@@ -336,25 +382,32 @@ func TestDockref_WithRequestedFormat(t *testing.T) {
 		assert.Error(t, e)
 	})
 
-	t.Run("well known name only", func(t *testing.T) {
+	t.Run("well known library name only", func(t *testing.T) {
 		r := FromOriginalNoError("docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 		rName, e := r.WithRequestedFormat(FormatHasName)
 		assert.Nil(t, e)
 		assert.Equal(t, "nginx", rName.String())
 	})
 
-	t.Run("well known digest only", func(t *testing.T) {
+	t.Run("well known library digest only", func(t *testing.T) {
 		r := FromOriginalNoError("docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 		rName, e := r.WithRequestedFormat(FormatHasDigest)
 		assert.Nil(t, e)
 		assert.Equal(t, "d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", rName.String())
 	})
 
-	t.Run("well known tag and digest only", func(t *testing.T) {
+	t.Run("well known library tag and digest", func(t *testing.T) {
 		r := FromOriginalNoError("docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 		rName, e := r.WithRequestedFormat(FormatHasTag | FormatHasDigest)
 		assert.Nil(t, e)
 		assert.Equal(t, "nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", rName.String())
+	})
+
+	t.Run("well known user tag and digest", func(t *testing.T) {
+		r := FromOriginalNoError("docker.io/menedev/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		rName, e := r.WithRequestedFormat(FormatHasTag | FormatHasDigest)
+		assert.Nil(t, e)
+		assert.Equal(t, "menedev/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", rName.String())
 	})
 
 	t.Run("own-domain", func(t *testing.T) {
@@ -379,8 +432,6 @@ func TestDockref_WithRequestedFormat(t *testing.T) {
 		r, e := r.WithRequestedFormat(FormatHasName)
 		assert.Nil(t, e)
 		assert.Equal(t, r.Format(), FormatHasDigest)
-		//assert.Equal(t, "d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", r.String())
-
 	})
 }
 
@@ -595,6 +646,11 @@ func TestFindRelevantTagsForReference(t *testing.T) {
 		expected: []string{"img:1-something", "img:1.2-something", "img:2.2-something"},
 	}))
 
+	t.Run("unversioned tag as input returns all", run(TestCase{
+		ref:      "img:something",
+		list:     []string{"img:something", "img:something", "img:2.2-something", "img:something-other", "img:something-other"},
+		expected: []string{"img:something", "img:something", "img:2.2-something"},
+	}))
 }
 
 func assertSameSet(t *testing.T, expected []Reference, slice []Reference) {

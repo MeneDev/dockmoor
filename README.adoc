@@ -33,6 +33,40 @@ Note: all digests are abbreviated for better readability
 [[pin-command-examples]]
 === pin command
 
+[[_pin_well_known_image_references]]
+==== Pin well-known image references
+
+[subs=+macros]
+....
+dockmoor pin https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-tests/Dockerfile-nginx[pin-tests/Dockerfile-nginx]
+....
+
+File before execution:
+
+[subs=+macros]
+....
+FROM nginx
+FROM nginx:1.15.5-alpine-perl
+FROM nginx:1.15.5
+
+RUN something
+....
+
+File after execution:
+
+[subs=+macros]
+....
+FROM nginx:1.15.6@sha256:31b..91
+FROM nginx:1.15.5-alpine-perl@sha256:9c6..ae
+FROM nginx:1.15.5@sha256:b73..2e
+
+RUN something
+....
+
+stdout is empty +
+stderr is empty +
+exit code: 0
+
 [[_pin_all_image_references_in_a_dockerfile]]
 ==== Pin all image references in a dockerfile
 

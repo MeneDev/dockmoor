@@ -1,6 +1,45 @@
 [#pin-command-examples]
 === pin command
 
+==== Pin well-known image references
+
+[subs=+macros]
+----
+include::../end-to-end/test.sh[tag=pinNginxWithDockerd]
+----
+File before execution:
+----
+include::../end-to-end/pin-tests/Dockerfile-nginx.org[]
+----
+File after execution:
+----
+include::../end-to-end/pin-tests/Dockerfile-nginx-any.expected[]
+----
+stdout is empty +
+stderr is empty +
+exit code:
+include::../end-to-end/results/pinNginxWithDockerd.exitCode[]
+
+
+==== Pin well-known image references by tag only
+
+[subs=+macros]
+----
+include::../end-to-end/test.sh[tag=pinNginxLatestNoDigestWithDockerd]
+----
+File before execution:
+----
+include::../end-to-end/pin-tests/Dockerfile-nginx.org[]
+----
+File after execution:
+----
+include::../end-to-end/pin-tests/Dockerfile-nginx-any.expected[]
+----
+stdout is empty +
+stderr is empty +
+exit code:
+include::../end-to-end/results/pinNginxWithDockerd.exitCode[]
+
 ==== Pin all image references in a dockerfile
 
 [subs=+macros]

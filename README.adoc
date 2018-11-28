@@ -8,16 +8,17 @@ image:https://goreportcard.com/badge/github.com/MeneDev/dockmoor[Go Report Card,
 image:https://img.shields.io/github/release/MeneDev/dockmoor.svg["GitHub release",link="https://github.com/MeneDev/dockmoor/releases"]
 image:https://img.shields.io/twitter/follow/MeneDev.svg?style=social&label=%40MeneDev[Follow @MeneDev on Twitter, link=https://twitter.com/MeneDev]
 
-Manage docker image references.
+Once you found a nice dock it's time to moor :anchor: +
+dockmoor helps you to create reproducible builds with docker.
 
 == Features
 
 *Implemented*
 
-* find Dockerfiles
-* list image references
-* filter by various predicates, e.g. untagged, `latest`, RegEx-match
 * pin used image references to currently used version to make builds reproducible
+* list image references
+* find Dockerfiles
+* filter by various predicates, e.g. untagged, `latest`, RegEx-match
 
 *Upcomming*
 
@@ -33,35 +34,77 @@ Note: all digests are abbreviated for better readability
 [[pin-command-examples]]
 === pin command
 
-[[_pin_well_known_image_references]]
-==== Pin well-known image references
+[[_pin_well_known_image_references_by_tag_only]]
+==== Pin well-known image references by tag only
+
+Add missing tags and update tags to the most strict version.
 
 [subs=+macros]
 ....
-dockmoor pin https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-tests/Dockerfile-nginx[pin-tests/Dockerfile-nginx]
+dockmoor pin --no-digest https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-examples/Dockerfile-nginx[pin-examples/Dockerfile-nginx]
 ....
 
 File before execution:
 
-[subs=+macros]
-....
+[source,Dockerfile]
+----
 FROM nginx
-FROM nginx:1.15.5-alpine-perl
-FROM nginx:1.15.5
+FROM nginx:1.15-alpine-perl
+FROM nginx:1.15
+FROM nginx:1
 
 RUN something
-....
+----
 
 File after execution:
 
-[subs=+macros]
-....
-FROM nginx:1.15.6@sha256:31b..91
-FROM nginx:1.15.5-alpine-perl@sha256:9c6..ae
-FROM nginx:1.15.5@sha256:b73..2e
+[source,Dockerfile]
+----
+FROM nginx:1.15.6
+FROM nginx:1.15.6-alpine-perl
+FROM nginx:1.15.6
+FROM nginx:1.15.6
 
 RUN something
+----
+
+stdout is empty +
+stderr is empty +
+exit code: 0
+
+[[_pin_well_known_image_references_by_tag_and_digest]]
+==== Pin well-known image references by tag and digest
+
+This is the default and recommended format: the version conveys semantic information, the digest ensures immutability.
+
+[subs=+macros]
 ....
+dockmoor pin https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-examples/Dockerfile-nginx[pin-examples/Dockerfile-nginx]
+....
+
+File before execution:
+
+[source,Dockerfile]
+----
+FROM nginx
+FROM nginx:1.15-alpine-perl
+FROM nginx:1.15
+FROM nginx:1
+
+RUN something
+----
+
+File after execution:
+
+[source,Dockerfile]
+----
+FROM nginx:1.15.6@sha256:31b..91
+FROM nginx:1.15.6-alpine-perl@sha256:71c..fc
+FROM nginx:1.15.6@sha256:31b..91
+FROM nginx:1.15.6@sha256:31b..91
+
+RUN something
+----
 
 stdout is empty +
 stderr is empty +
@@ -72,13 +115,13 @@ exit code: 0
 
 [subs=+macros]
 ....
-dockmoor pin https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-tests/Dockerfile-testimagea[pin-tests/Dockerfile-testimagea]
+dockmoor pin https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-examples/Dockerfile-testimagea[pin-examples/Dockerfile-testimagea]
 ....
 
 File before execution:
 
-[subs=+macros]
-....
+[source,Dockerfile]
+----
 FROM menedev/testimagea:1
 FROM menedev/testimagea:1.0
 FROM menedev/testimagea:1.0.0
@@ -92,26 +135,26 @@ FROM menedev/testimagea:latest
 FROM menedev/testimagea
 
 RUN something
-....
+----
 
 File after execution:
 
-[subs=+macros]
-....
-FROM docker.io/menedev/testimagea:1.1.1@sha256:1e2..24
-FROM docker.io/menedev/testimagea:1.0.1@sha256:c27..4b
-FROM docker.io/menedev/testimagea:1.0.0@sha256:f38..df
-FROM docker.io/menedev/testimagea:1.0.1@sha256:c27..4b
-FROM docker.io/menedev/testimagea:1.1.0@sha256:bf1..96
-FROM docker.io/menedev/testimagea:1.1.1@sha256:1e2..24
-FROM docker.io/menedev/testimagea:2.0.0@sha256:3d4..a1
-FROM docker.io/menedev/testimagea:2.0.0@sha256:3d4..a1
-FROM docker.io/menedev/testimagea:2.0.0@sha256:3d4..a1
-FROM docker.io/menedev/testimagea:2.0.0@sha256:3d4..a1
-FROM docker.io/menedev/testimagea:2.0.0@sha256:3d4..a1
+[source,Dockerfile]
+----
+FROM menedev/testimagea:1.1.1@sha256:1e2..24
+FROM menedev/testimagea:1.0.1@sha256:c27..4b
+FROM menedev/testimagea:1.0.0@sha256:f38..df
+FROM menedev/testimagea:1.0.1@sha256:c27..4b
+FROM menedev/testimagea:1.1.0@sha256:bf1..96
+FROM menedev/testimagea:1.1.1@sha256:1e2..24
+FROM menedev/testimagea:2.0.0@sha256:3d4..a1
+FROM menedev/testimagea:2.0.0@sha256:3d4..a1
+FROM menedev/testimagea:2.0.0@sha256:3d4..a1
+FROM menedev/testimagea:2.0.0@sha256:3d4..a1
+FROM menedev/testimagea:2.0.0@sha256:3d4..a1
 
 RUN something
-....
+----
 
 stdout is empty +
 stderr is empty +
@@ -122,13 +165,13 @@ exit code: 0
 
 [subs=+macros]
 ....
-dockmoor pin --latest https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-tests/Dockerfile-testimagea[pin-tests/Dockerfile-testimagea]
+dockmoor pin --latest https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-examples/Dockerfile-testimagea[pin-examples/Dockerfile-testimagea]
 ....
 
 File before execution:
 
-[subs=+macros]
-....
+[source,Dockerfile]
+----
 FROM menedev/testimagea:1
 FROM menedev/testimagea:1.0
 FROM menedev/testimagea:1.0.0
@@ -142,12 +185,12 @@ FROM menedev/testimagea:latest
 FROM menedev/testimagea
 
 RUN something
-....
+----
 
 File after execution:
 
-[subs=+macros]
-....
+[source,Dockerfile]
+----
 FROM menedev/testimagea:1
 FROM menedev/testimagea:1.0
 FROM menedev/testimagea:1.0.0
@@ -157,11 +200,11 @@ FROM menedev/testimagea:1.1.1
 FROM menedev/testimagea:2
 FROM menedev/testimagea:2.0
 FROM menedev/testimagea:2.0.0
-FROM docker.io/menedev/testimagea:2.0.0@sha256:3d4..a1
-FROM docker.io/menedev/testimagea:2.0.0@sha256:3d4..a1
+FROM menedev/testimagea:2.0.0@sha256:3d4..a1
+FROM menedev/testimagea:2.0.0@sha256:3d4..a1
 
 RUN something
-....
+----
 
 stdout is empty +
 stderr is empty +

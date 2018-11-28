@@ -5,19 +5,21 @@ image:https://goreportcard.com/badge/github.com/MeneDev/dockmoor[Go Report Card,
 image:https://img.shields.io/github/release/MeneDev/dockmoor.svg["GitHub release",link="https://github.com/MeneDev/dockmoor/releases"]
 image:https://img.shields.io/twitter/follow/MeneDev.svg?style=social&label=%40MeneDev[Follow @MeneDev on Twitter, link=https://twitter.com/MeneDev]
 
-Manage docker image references.
+Once you found a nice dock it's time to moor :anchor: +
+dockmoor helps you to create reproducible builds with Docker.
 
 == Features
 
 *Implemented*
 
-* find Dockerfiles
-* list image references
-* filter by various predicates, e.g. untagged, `latest`, RegEx-match
 * pin used image references to currently used version to make builds reproducible
+* list image references
+* find Dockerfiles
+* filter by various predicates, e.g. untagged, `latest`, RegEx-match
 
 *Upcomming*
 
+* communicate with docker registries to find images that are not pulled
 * find outdated image references
 * update to newer major, minor or patch version respecting SemVer
 * other formats: docker-compose, GitLab CI, Circle CI, Travis CI, ...

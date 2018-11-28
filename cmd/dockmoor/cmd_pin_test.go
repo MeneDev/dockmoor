@@ -191,13 +191,54 @@ func TestPinOptions_RefFormat(t *testing.T) {
 
 }
 
-func TestPinCommand_FailsWithInvalidFormattingFlags(t *testing.T) {
+func TestPinCommand_applyFormatProcessor_FailsWithInvalidFormattingFlags(t *testing.T) {
 	po := pinOptionsTestNew()
 	po.ReferenceFormat.NoName = true
 	po.ReferenceFormat.NoTag = true
 	po.ReferenceFormat.NoDigest = true
+
+	format := &FormatMock{}
+	format.OnName().Return("Mock")
+	format.OnProcess(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	processorMock := &FormatProcessorMock{}
+
+	po.mockRepo.OnResolve(mock.Anything).
+		Return([]dockref.Reference{dockref.FromOriginalNoError("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")}, nil)
+
+	processorMock.process = func(imageNameProcessor dockfmt.ImageNameProcessor) error {
+		_, e := imageNameProcessor(dockref.FromOriginalNoError("nginx"))
+		return e
+	}
+
+	predicate, e := dockproc.AnyPredicateNew()
+	assert.Nil(t, e)
+	err := po.applyFormatProcessor(predicate, processorMock)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid Reference Format")
+}
+
+func TestPinCommand_FailsWhenErrorInProcess(t *testing.T) {
+	po := pinOptionsTestNew()
+	po.ReferenceFormat.NoName = true
+	po.ReferenceFormat.NoTag = true
+	po.ReferenceFormat.NoDigest = true
+
+	format := &FormatMock{}
+	format.OnName().Return("Mock")
+	expected := errors.New("A Process Error")
+
+	format.OnProcess(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(expected)
+
+	format.OnValidateInput(mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+	formatProvider := &FormatProviderMock{}
+	po.mainOptionsTest.formatProvider = formatProvider
+
+	formatProvider.OnFormats().Return([]dockfmt.Format { format })
+
 	exitCode, err := po.ExecuteWithExitCode(nil)
 	assert.Error(t, err)
+	assert.Equal(t, expected, err)
 	assert.NotEqual(t, ExitSuccess, exitCode)
 }
 

@@ -15,6 +15,7 @@ import (
 )
 
 var NotADockerfile = "notDocker"
+var ADockerfile = "Dockerfile"
 
 type mainOptionsTest struct {
 	*mainOptions
@@ -34,6 +35,8 @@ func mainOptionsTestNew() *mainOptionsTest {
 
 	mainOptions.openerMock = new(ReadableOpenerMock)
 	mainOptions.openerMock.On("Open", NotADockerfile).Return(makeReadCloser("not a dockerfile"), nil)
+	mainOptions.openerMock.On("Open", ADockerfile).Return(makeReadCloser("FROM scratch"), nil)
+	mainOptions.openerMock.On("Open", "").Return(makeReadCloser("FROM scratch"), nil)
 
 	mainOptions.readableOpener = func(s string) (io.ReadCloser, error) {
 		return mainOptions.openerMock.Open(s)

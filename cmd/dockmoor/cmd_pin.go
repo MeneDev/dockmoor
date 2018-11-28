@@ -104,6 +104,7 @@ func (po *pinOptions) applyFormatProcessor(predicate dockproc.Predicate, process
 			repo := po.Repo()
 			rs, err := repo.Resolve(original)
 			if err != nil {
+				po.Log().WithField("error", err.Error()).Errorf("Could not resolve %s", original.Original())
 				return nil, err
 			}
 

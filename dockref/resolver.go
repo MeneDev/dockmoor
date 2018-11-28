@@ -20,6 +20,8 @@ type Resolver interface {
 type dockerDaemonResolver struct {
 	ImageInspect func(reference Reference) (types.ImageInspect, error)
 	NewCli       func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface
+
+	osGetenv func(key string) string
 }
 
 var _ Resolver = (*dockerDaemonResolver)(nil)
@@ -27,6 +29,8 @@ var _ Resolver = (*dockerDaemonResolver)(nil)
 func DockerDaemonResolverNew() Resolver {
 	repo := &dockerDaemonResolver{
 		NewCli: newCli,
+
+		osGetenv: os.Getenv,
 	}
 	return repo
 }
@@ -44,12 +48,11 @@ func (repo dockerDaemonResolver) imageInspect(reference Reference) (types.ImageI
 	return imageInspect, err
 }
 
-var (
-	dockerTLSVerify = os.Getenv("DOCKER_TLS_VERIFY") != ""
-	dockerTLS       = os.Getenv("DOCKER_TLS") != ""
-)
-
 func (repo dockerDaemonResolver) newClient() (dockerAPIClient, error) {
+
+	dockerTLSVerify := repo.osGetenv("DOCKER_TLS_VERIFY") != ""
+	dockerTLS       := repo.osGetenv("DOCKER_TLS") != ""
+
 	in := ioutil.NopCloser(bytes.NewBuffer(nil))
 	out := bytes.NewBuffer(nil)
 	errWriter := bytes.NewBuffer(nil)
@@ -58,7 +61,7 @@ func (repo dockerDaemonResolver) newClient() (dockerAPIClient, error) {
 	cliOpts := flags.NewClientOptions()
 
 	tls := dockerTLS || dockerTLSVerify
-	host, e := opts.ParseHost(tls, os.Getenv("DOCKER_HOST"))
+	host, e := opts.ParseHost(tls, repo.osGetenv("DOCKER_HOST"))
 	if e != nil {
 		return nil, e
 	}
@@ -67,8 +70,8 @@ func (repo dockerDaemonResolver) newClient() (dockerAPIClient, error) {
 	cliOpts.Common.Hosts = []string{host}
 
 	if tls {
-		flags := pflag.NewFlagSet("testing", pflag.ContinueOnError)
-		cliOpts.Common.InstallFlags(flags)
+		flgs := pflag.NewFlagSet("testing", pflag.ContinueOnError)
+		cliOpts.Common.InstallFlags(flgs)
 	}
 
 	err := cli.Initialize(cliOpts)

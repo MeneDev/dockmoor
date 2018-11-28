@@ -19,7 +19,7 @@ func (m *MockResolver) Resolve(reference dockref.Reference) ([]dockref.Reference
 	return refs, e
 }
 
-func (m *MockResolver) OnResolve(reference dockref.Reference) *mock.Call {
+func (m *MockResolver) OnResolve(reference interface{}) *mock.Call {
 	return m.On("Resolve", reference)
 }
 

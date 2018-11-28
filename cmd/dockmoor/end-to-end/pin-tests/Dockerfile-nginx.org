@@ -1,5 +1,6 @@
 FROM nginx
-FROM nginx:1.15.5-alpine-perl
-FROM nginx:1.15.5
+FROM nginx:1.15-alpine-perl
+FROM nginx:1.15
+FROM nginx:1
 
 RUN something

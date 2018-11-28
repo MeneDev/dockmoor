@@ -1,0 +1,6 @@
+FROM nginx:1.15.6
+FROM nginx:1.15.6-alpine-perl
+FROM nginx:1.15.6
+FROM nginx:1.15.6
+
+RUN something

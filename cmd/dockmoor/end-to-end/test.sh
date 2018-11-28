@@ -13,6 +13,13 @@ function hasLine {
     return 1
 }
 
+function contains {
+    local file="$1"
+    local line="$2"
+    [[ -z $(echo "$file" | grep -F "$line") ]] || return 0
+    return 1
+}
+
 function hasNoLine {
     local file="$1"
     local line="$2"
@@ -445,6 +452,28 @@ rm -f pin-tests/Dockerfile-nginx
 cp pin-tests/Dockerfile-nginx.org pin-tests/Dockerfile-nginx
 
 CASE_ID=21
+CASE_NAME=pinNginxNoDigestWithDockerd
+( # pin all image references in nginx dockerfile to same file
+rm -f pin-tests/Dockerfile-nginx
+cp pin-tests/Dockerfile-nginx.org pin-tests/Dockerfile-nginx
+
+#tag::pinNginxNoDigestWithDockerd[]
+dockmoor pin --no-digest pin-tests/Dockerfile-nginx
+#end::pinNginxNoDigestWithDockerd[]
+) >$RESULTS/${CASE_NAME}.stdout 2>$RESULTS/${CASE_NAME}.stderr
+exitCode=$?
+[ $exitCode -eq 0 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
+stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
+stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
+[[ -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
+[[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
+cmp pin-tests/Dockerfile-nginx-any-no-digest.expected pin-tests/Dockerfile-nginx || fail ${CASE_ID} "unexpected result"
+echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
+# cleanup
+rm -f pin-tests/Dockerfile-nginx
+cp pin-tests/Dockerfile-nginx.org pin-tests/Dockerfile-nginx
+
+CASE_ID=22
 CASE_NAME=pinNginxLatestNoDigestWithDockerd
 ( # pin all image references in nginx dockerfile to same file
 rm -f pin-tests/Dockerfile-nginx
@@ -460,11 +489,29 @@ stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
 stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
 [[ -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
-cmp pin-tests/Dockerfile-latest-no-digest.expected pin-tests/Dockerfile-nginx || fail ${CASE_ID} "unexpected result"
+cmp pin-tests/Dockerfile-nginx-latest-no-digest.expected pin-tests/Dockerfile-nginx || fail ${CASE_ID} "unexpected result"
 echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
 # cleanup
 rm -f pin-tests/Dockerfile-nginx
 cp pin-tests/Dockerfile-nginx.org pin-tests/Dockerfile-nginx
+
+CASE_ID=23
+CASE_NAME=pinUnknownReportsError
+( # pin all image references in nginx dockerfile to same file
+#tag::pinUnknownReportsError[]
+dockmoor pin pin-tests/Dockerfile-unknown
+#end::pinUnknownReportsError[]
+) >$RESULTS/${CASE_NAME}.stdout 2>$RESULTS/${CASE_NAME}.stderr
+exitCode=$?
+[ $exitCode -eq 4 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
+stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
+stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
+[[ ! -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
+[[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
+cmp pin-tests/Dockerfile-unknown.expected pin-tests/Dockerfile-unknown || fail ${CASE_ID} "unexpected result"
+echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
+contains "$stdout" "No such image: unknown" || fail ${CASE_ID} "Unexpected stdout"
+
 
 # When we reach this, everything is fine!
 echo "All tests passed!"

@@ -277,6 +277,28 @@ func (r dockref) WithTag(tag string) Reference {
 	return cpy
 }
 
+func FindRelevantTagsForReference(ref Reference, refs []Reference, log *logrus.Logger) ([]Reference, error) {
+	// name and domain must match
+	sameName := make([]Reference, 0)
+	for _, r := range refs {
+		if ref.Name() == r.Name() {
+			sameName = append(sameName, r)
+		}
+	}
+
+	_, refVariant := splitVersionAndVariant(ref.Tag())
+	sameVariant := make([]Reference, 0)
+	for _, r := range sameName {
+		_, rVariant := splitVersionAndVariant(r.Tag())
+
+		if refVariant == rVariant {
+			sameVariant = append(sameVariant, r)
+		}
+	}
+
+	return sameVariant, nil
+}
+
 func MostPreciseTag(refs []Reference, log *logrus.Logger) (Reference, error) {
 	if refs == nil {
 		return nil, errors.New("refs is nil")
@@ -397,21 +419,43 @@ func bestSemVer(refs []Reference) ([]Reference, Reference) {
 	return nonSemVer, best
 }
 
-func parseVeryTolerant(tag string) (semver.Version, error) {
-	lastIndex := strings.LastIndex(tag, "-")
-	version := tag
-	meta := ""
-	if lastIndex > 0 {
+func splitVersionAndVariant(tag string) (version string, variant string) {
+	lastIndex := strings.Index(tag, "-")
+	if lastIndex >= 0 {
 		version = tag[0:lastIndex]
-		meta = tag[lastIndex:]
+		variant = tag[lastIndex+1:]
+		_, e := semver.ParseTolerant(version)
+		if e != nil {
+			version = ""
+			variant = tag
+			return
+		}
+	} else {
+		// no variant
+		_, e := semver.ParseTolerant(tag)
+		if e != nil {
+			version = ""
+			variant = tag
+			return
+		}
+		version = tag
+		variant = ""
+		return
 	}
+
+	return
+}
+
+func parseVeryTolerant(tag string) (semver.Version, error) {
+	version, variant := splitVersionAndVariant(tag)
+
 	parsed, e := semver.ParseTolerant(version)
 	if e != nil {
 		return parsed, e
 	}
-	if meta != "" {
+	if variant != "" {
 		str := parsed.String()
-		version = str + meta
+		version = str + "-" + variant
 	}
 
 	return semver.ParseTolerant(version)

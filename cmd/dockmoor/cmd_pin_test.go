@@ -234,7 +234,7 @@ func TestPinCommand_FailsWhenErrorInProcess(t *testing.T) {
 	formatProvider := &FormatProviderMock{}
 	po.mainOptionsTest.formatProvider = formatProvider
 
-	formatProvider.OnFormats().Return([]dockfmt.Format { format })
+	formatProvider.OnFormats().Return([]dockfmt.Format{format})
 
 	exitCode, err := po.ExecuteWithExitCode(nil)
 	assert.Error(t, err)

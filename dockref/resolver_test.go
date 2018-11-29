@@ -184,9 +184,8 @@ func (m *mockDockerCliInterface) Client() dockerAPIClient {
 	client := called.Get(0)
 	if client != nil {
 		return client.(dockerAPIClient)
-	} else {
-		return nil
 	}
+	return nil
 }
 
 func TestDockerDaemonRegistry_newClient(t *testing.T) {

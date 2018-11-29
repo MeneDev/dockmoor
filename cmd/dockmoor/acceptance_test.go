@@ -16,7 +16,6 @@ import (
 	"testing"
 )
 
-
 func dockerfile(content string) (fileName string) {
 	contentBytes := []byte(content)
 	tmpfile := tmpFile()

@@ -51,7 +51,7 @@ func (repo dockerDaemonResolver) imageInspect(reference Reference) (types.ImageI
 func (repo dockerDaemonResolver) newClient() (dockerAPIClient, error) {
 
 	dockerTLSVerify := repo.osGetenv("DOCKER_TLS_VERIFY") != ""
-	dockerTLS       := repo.osGetenv("DOCKER_TLS") != ""
+	dockerTLS := repo.osGetenv("DOCKER_TLS") != ""
 
 	in := ioutil.NopCloser(bytes.NewBuffer(nil))
 	out := bytes.NewBuffer(nil)

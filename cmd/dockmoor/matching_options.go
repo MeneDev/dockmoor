@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"io"
+	"os"
 )
 
 const (
@@ -120,7 +121,7 @@ type MatchingOptions struct {
 		InputFile flags.Filename `required:"yes"`
 	} `positional-args:"yes"`
 
-	mainOpts     *mainOptions
+	mainOpts *mainOptions
 }
 
 func (mopts *MatchingOptions) mainOptions() *mainOptions {
@@ -377,4 +378,23 @@ func (mopts *MatchingOptions) WithFormatProcessorDo(fpInput io.Reader, action fu
 func (mopts *MatchingOptions) WithOutputDo(action func(outputPath string) error) error {
 	filename := string(mopts.Positional.InputFile)
 	return action(filename)
+}
+
+func exitCodeFromError(err error) (ExitCode, bool) {
+	_, isUnknownFormatError := err.(dockfmt.UnknownFormatError)
+	_, isAmbiguousFormatError := err.(dockfmt.AmbiguousFormatError)
+	_, isFormatError := err.(dockfmt.FormatError)
+	_, isFileError := err.(*os.PathError)
+
+	switch {
+	case isUnknownFormatError, isAmbiguousFormatError, isFormatError:
+		return ExitInvalidFormat, true
+	case isFileError:
+		return ExitCouldNotOpenFile, true
+	}
+
+	if err != nil {
+		return ExitUnknownError, true
+	}
+	return ExitSuccess, false
 }

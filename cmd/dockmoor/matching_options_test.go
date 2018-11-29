@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/jessevdk/go-flags"
@@ -65,6 +66,14 @@ func applyPredicatesByName(fo *MatchingOptions, names ...string) {
 			panic(fmt.Sprintf("Unknown predicate name '%s'", name))
 		}
 	}
+}
+
+func TestExitCodeFromError(t *testing.T)  {
+	t.Run("returns ExitUnknownError for random error", func(t *testing.T) {
+		code, ok := exitCodeFromError(errors.New("unknown"))
+		assert.Equal(t, ExitUnknownError, code)
+		assert.True(t, ok)
+	})
 }
 
 func TestAllPredicateNamesAreRecognizedByParser(t *testing.T) {

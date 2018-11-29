@@ -5,7 +5,6 @@ import (
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/MeneDev/dockmoor/dockref"
-	"github.com/hashicorp/go-multierror"
 	"github.com/jessevdk/go-flags"
 	"io"
 )
@@ -58,18 +57,8 @@ func (co *containsOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode
 		return errFormat
 	})
 
-	if err != nil {
-		_, isUnknownFormatError := err.(dockfmt.UnknownFormatError)
-		_, isAmbiguousFormatError := err.(dockfmt.AmbiguousFormatError)
-		_, isFormatError := err.(dockfmt.FormatError)
-
-		switch {
-		case isUnknownFormatError, isAmbiguousFormatError, isFormatError:
-			exitCode = ExitInvalidFormat
-		case contains(err, func(err error) bool { _, ok := err.(error); return ok }):
-			exitCode = ExitCouldNotOpenFile
-		}
-		return
+	if exitCode, ok := exitCodeFromError(err); ok {
+		return exitCode, err
 	}
 
 	if co.matches {
@@ -79,22 +68,6 @@ func (co *containsOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode
 	}
 
 	return exitCode, err
-}
-
-func contains(err error, predicate func(err error) bool) bool {
-	err = multierror.Flatten(err)
-
-	if multi, ok := err.(*multierror.Error); ok {
-		for _, e := range multi.Errors {
-			if predicate(e) {
-				return true
-			}
-		}
-	} else {
-		return predicate(err)
-	}
-
-	return false
 }
 
 func (co *containsOptions) applyFormatProcessor(predicate dockproc.Predicate, processor dockfmt.FormatProcessor) error {

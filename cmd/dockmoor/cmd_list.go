@@ -52,26 +52,13 @@ func (lo *listOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, er
 	}
 
 	err = mopts.WithInputDo(func(inputPath string, inputReader io.Reader) error {
-		errFormat := mopts.WithFormatProcessorDo(inputReader, func(processor dockfmt.FormatProcessor) error {
+		return mopts.WithFormatProcessorDo(inputReader, func(processor dockfmt.FormatProcessor) error {
 			return lo.applyFormatProcessor(predicate, processor)
 		})
-		if errFormat != nil {
-			exitCode = ExitInvalidFormat
-			return errFormat
-		}
-		return nil
 	})
 
-	if err != nil {
-		switch {
-		case contains(err, func(err error) bool { _, ok := err.(dockfmt.UnknownFormatError); return ok }) ||
-			contains(err, func(err error) bool { _, ok := err.(dockfmt.AmbiguousFormatError); return ok }) ||
-			contains(err, func(err error) bool { _, ok := err.(dockfmt.FormatError); return ok }):
-			exitCode = ExitInvalidFormat
-		case contains(err, func(err error) bool { _, ok := err.(error); return ok }):
-			exitCode = ExitCouldNotOpenFile
-		}
-		return
+	if exitCode, ok := exitCodeFromError(err); ok {
+		return exitCode, err
 	}
 
 	if lo.matches {

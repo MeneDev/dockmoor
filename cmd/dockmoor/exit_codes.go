@@ -5,7 +5,7 @@ type ExitCode int
 const (
 	ExitSuccess ExitCode = iota
 	ExitInvalidParams
-	_ // reserved for ExitUnknownError
+	ExitUnknownError
 	ExitNotFound
 	ExitInvalidFormat
 	ExitCouldNotOpenFile

@@ -64,17 +64,10 @@ func (po *pinOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err
 		return nil
 	})
 
-	if err != nil {
-		switch {
-		case contains(err, func(err error) bool { _, ok := err.(dockfmt.UnknownFormatError); return ok }) ||
-			contains(err, func(err error) bool { _, ok := err.(dockfmt.AmbiguousFormatError); return ok }) ||
-			contains(err, func(err error) bool { _, ok := err.(dockfmt.FormatError); return ok }):
-			exitCode = ExitInvalidFormat
-		case contains(err, func(err error) bool { _, ok := err.(error); return ok }):
-			exitCode = ExitCouldNotOpenFile
-		}
-		return
+	if exitCode, ok := exitCodeFromError(err); ok {
+		return exitCode, err
 	}
+
 	err = po.WithOutputDo(func(outputPath string) error {
 
 		mode := os.FileMode(0660)

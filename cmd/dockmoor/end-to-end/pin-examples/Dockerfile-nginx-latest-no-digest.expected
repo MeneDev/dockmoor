@@ -1,6 +1,10 @@
+# originally untagged
 FROM nginx:1.15.6
-FROM nginx:1.15-alpine-perl
+# originally tagged 1.15
 FROM nginx:1.15
+# originally tagged 1
 FROM nginx:1
+# originally tagged 1.15-alpine-perl
+FROM nginx:1.15-alpine-perl
 
 RUN something

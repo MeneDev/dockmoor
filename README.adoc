@@ -8,8 +8,8 @@ image:https://goreportcard.com/badge/github.com/MeneDev/dockmoor[Go Report Card,
 image:https://img.shields.io/github/release/MeneDev/dockmoor.svg["GitHub release",link="https://github.com/MeneDev/dockmoor/releases"]
 image:https://img.shields.io/twitter/follow/MeneDev.svg?style=social&label=%40MeneDev[Follow @MeneDev on Twitter, link=https://twitter.com/MeneDev]
 
-Once you found a nice dock it's time to moor :anchor: +
-dockmoor helps you to create reproducible builds with docker.
+Once you found a nice dock, it's time to moor :anchor: +
+dockmoor helps you to create reproducible builds with Docker.
 
 == Features
 
@@ -22,6 +22,7 @@ dockmoor helps you to create reproducible builds with docker.
 
 *Upcomming*
 
+* communicate with docker registries to find images that are not pulled
 * find outdated image references
 * update to newer major, minor or patch version respecting SemVer
 * other formats: docker-compose, GitLab CI, Circle CI, Travis CI, ...
@@ -34,6 +35,11 @@ Note: all digests are abbreviated for better readability
 [[pin-command-examples]]
 === pin command
 
+The `pin` command queries a Docker daemon (local or remote) for images matching the used image references and tries to choose the most precise one.
+
+*Note* the Docker daemon only knows pulled images! +
+Future dockmoor versions will be able to query repositories, too.
+
 [[_pin_well_known_image_references_by_tag_only]]
 ==== Pin well-known image references by tag only
 
@@ -44,36 +50,61 @@ Add missing tags and update tags to the most strict version.
 dockmoor pin --no-digest https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-examples/Dockerfile-nginx[pin-examples/Dockerfile-nginx]
 ....
 
-File before execution:
+Given the following multi-stage dockerfile:
 
 [source,Dockerfile]
 ----
+# originally untagged
 FROM nginx
-FROM nginx:1.15-alpine-perl
+# originally tagged 1.15
 FROM nginx:1.15
+# originally tagged 1
 FROM nginx:1
+# originally tagged 1.15-alpine-perl
+FROM nginx:1.15-alpine-perl
 
 RUN something
 ----
 
-File after execution:
+We can see that `nginx` employs a widely used tagging strategy: the tags `1` and `1.15` are updated when `1.15.6` is published. All three tags refer to the same image until `1.15.7` is published. +
+Additionally different *variants* are separated from the version by a hyphen.
+
+Executing the command will change the file to:
 
 [source,Dockerfile]
 ----
+# originally untagged
 FROM nginx:1.15.6
-FROM nginx:1.15.6-alpine-perl
+# originally tagged 1.15
 FROM nginx:1.15.6
+# originally tagged 1
 FROM nginx:1.15.6
+# originally tagged 1.15-alpine-perl
+FROM nginx:1.15.5-alpine-perl
 
 RUN something
 ----
 
+Tags are only changed when a more strict version is found that referrers to the *exact same* image. The `pin` command will never try to update tags to a different (e.g. later) version.
+
+In this example `1.15.6` refers to the same image as `1` and `1.15`. +
+However, `1.15-alpine-perl` referred to the `1.15.5-alpine-perl`.
+
+This example uses the `--no-digest` flag to pin image references by tag only. While tags are the way we usually address different image versions, we’ll learn in the next example that there is a better way.
+
+Other properties of the command: +
 stdout is empty +
 stderr is empty +
 exit code: 0
 
 [[_pin_well_known_image_references_by_tag_and_digest]]
 ==== Pin well-known image references by tag and digest
+
+Pinning image references by tag, like we did in the previous example, helps creating more reproducible builds. However, as we also saw in the previous example, tags can be overwritten!
+
+Fortunately dockmoor allows us to use tags and digests to pin our images.
+
+Digests are a direct result of the actual content of the images and thus cannot be overwritten.
 
 This is the default and recommended format: the version conveys semantic information, the digest ensures immutability.
 
@@ -82,26 +113,18 @@ This is the default and recommended format: the version conveys semantic informa
 dockmoor pin https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-examples/Dockerfile-nginx[pin-examples/Dockerfile-nginx]
 ....
 
-File before execution:
-
-[source,Dockerfile]
-----
-FROM nginx
-FROM nginx:1.15-alpine-perl
-FROM nginx:1.15
-FROM nginx:1
-
-RUN something
-----
-
 File after execution:
 
 [source,Dockerfile]
 ----
+# originally untagged
 FROM nginx:1.15.6@sha256:31b..91
-FROM nginx:1.15.6-alpine-perl@sha256:71c..fc
+# originally tagged 1.15
 FROM nginx:1.15.6@sha256:31b..91
+# originally tagged 1
 FROM nginx:1.15.6@sha256:31b..91
+# originally tagged 1.15-alpine-perl
+FROM nginx:1.15.5-alpine-perl@sha256:9c6..ae
 
 RUN something
 ----
@@ -167,25 +190,6 @@ exit code: 0
 ....
 dockmoor pin --latest https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-examples/Dockerfile-testimagea[pin-examples/Dockerfile-testimagea]
 ....
-
-File before execution:
-
-[source,Dockerfile]
-----
-FROM menedev/testimagea:1
-FROM menedev/testimagea:1.0
-FROM menedev/testimagea:1.0.0
-FROM menedev/testimagea:1.0.1
-FROM menedev/testimagea:1.1.0
-FROM menedev/testimagea:1.1.1
-FROM menedev/testimagea:2
-FROM menedev/testimagea:2.0
-FROM menedev/testimagea:2.0.0
-FROM menedev/testimagea:latest
-FROM menedev/testimagea
-
-RUN something
-----
 
 File after execution:
 

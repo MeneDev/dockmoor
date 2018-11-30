@@ -5,14 +5,14 @@ image:https://goreportcard.com/badge/github.com/MeneDev/dockmoor[Go Report Card,
 image:https://img.shields.io/github/release/MeneDev/dockmoor.svg["GitHub release",link="https://github.com/MeneDev/dockmoor/releases"]
 image:https://img.shields.io/twitter/follow/MeneDev.svg?style=social&label=%40MeneDev[Follow @MeneDev on Twitter, link=https://twitter.com/MeneDev]
 
-Once you found a nice dock it's time to moor :anchor: +
+Once you found a nice dock, it's time to moor :anchor: +
 dockmoor helps you to create reproducible builds with Docker.
 
 == Features
 
 *Implemented*
 
-* pin used image references to currently used version to make builds reproducible
+* pin image references to currently used version to make builds reproducible
 * list image references
 * find Dockerfiles
 * filter by various predicates, e.g. untagged, `latest`, RegEx-match

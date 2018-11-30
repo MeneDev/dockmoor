@@ -209,11 +209,8 @@ func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.
 		log.SetOutput(bytes.NewBuffer(nil))
 	} else {
 		level, err := logrus.ParseLevel(mainOptions.LogLevel)
-		if err != nil {
-			log.Errorf("Error parsing log-level '%s': %s", mainOptions.LogLevel, err.Error())
-			exitCode = ExitInvalidParams
-			return
-		}
+		// err cannot happen here as invalid strings are handled by flags validation
+		deliberatelyUnhandled(err)
 		log.SetLevel(level)
 	}
 

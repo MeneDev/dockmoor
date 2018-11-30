@@ -76,9 +76,7 @@ func (lo *listOptions) applyFormatProcessor(predicate dockproc.Predicate, proces
 		if predicate.Matches(r) {
 			lo.matches = true
 			_, err := fmt.Fprintf(lo.Stdout(), "%s\n", r.Original())
-			if err != nil {
-				return r, err
-			}
+			return r, err
 		}
 		return r, nil
 	})

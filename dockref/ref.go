@@ -12,23 +12,21 @@ import (
 	"strings"
 )
 
-func deliberatelyUnsued(err error) {
-	// noop
-}
-
-// FromOriginalNoError same functionallity as FromOriginal, but hides errors.
-// Use this function only when you know that the input cannot have an error
-func FromOriginalNoError(original string) Reference {
-	ref, e := FromOriginal(original)
-	deliberatelyUnsued(e)
-
-	return ref
-}
-
-func MustParseAlgoDigest(algoDigest string) Reference {
-	ref, e := ParseAlgoDigest(algoDigest)
-	deliberatelyUnsued(e)
-	return ref
+type Reference interface {
+	Name() string
+	Tag() string
+	DigestString() string
+	Digest() digest.Digest
+	Original() string
+	Domain() string
+	Path() string
+	Named() reference.Named
+	Format() Format
+	Formatted() string
+	String() string
+	WithRequestedFormat(format Format) (Reference, error)
+	WithDigest(dig string) Reference
+	WithTag(tag string) Reference
 }
 
 func ParseAlgoDigest(algoDigest string) (ref Reference, e error) {
@@ -39,10 +37,16 @@ func ParseAlgoDigest(algoDigest string) (ref Reference, e error) {
 	}
 
 	hex := dig.Hex()
-	return FromOriginalNoError(hex), nil
+	return MustParse(hex), nil
 }
 
-func FromOriginal(original string) (ref Reference, e error) {
+func MustParseAlgoDigest(algoDigest string) Reference {
+	ref, e := ParseAlgoDigest(algoDigest)
+	deliberatelyUnsued(e)
+	return ref
+}
+
+func Parse(original string) (ref Reference, e error) {
 	r, e := reference.ParseAnyReference(original)
 	if e != nil {
 		return
@@ -83,21 +87,13 @@ func FromOriginal(original string) (ref Reference, e error) {
 	return
 }
 
-type Reference interface {
-	Name() string
-	Tag() string
-	DigestString() string
-	Digest() digest.Digest
-	Original() string
-	Domain() string
-	Path() string
-	Named() reference.Named
-	Format() Format
-	Formatted() string
-	String() string
-	WithRequestedFormat(format Format) (Reference, error)
-	WithDigest(dig string) Reference
-	WithTag(tag string) Reference
+// MustParse same functionallity as Parse, but hides errors.
+// Use this function only when you know that the input cannot have an error
+func MustParse(original string) Reference {
+	ref, e := Parse(original)
+	deliberatelyUnsued(e)
+
+	return ref
 }
 
 type Format uint
@@ -112,6 +108,7 @@ const (
 func (format Format) hasName() bool {
 	return format&FormatHasName != 0
 }
+
 func (format Format) hasTag() bool {
 	return format&FormatHasTag != 0
 }
@@ -121,7 +118,6 @@ func (format Format) hasDomain() bool {
 func (format Format) hasDigest() bool {
 	return format&FormatHasDigest != 0
 }
-
 func (format Format) Valid() (bool, error) {
 	f := format
 	f &= ^(FormatHasName | FormatHasTag | FormatHasDomain | FormatHasDigest)
@@ -459,4 +455,8 @@ func parseVeryTolerant(tag string) (semver.Version, error) {
 	}
 
 	return semver.ParseTolerant(version)
+}
+
+func deliberatelyUnsued(err error) {
+	// noop
 }

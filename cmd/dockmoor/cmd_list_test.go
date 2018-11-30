@@ -114,11 +114,11 @@ func TestListCommandPrints(t *testing.T) {
 	ran := false
 	processorMock.process = func(imageNameProcessor dockfmt.ImageNameProcessor) error {
 		ran = true
-		r, _ := dockref.FromOriginal("nginx")
+		r, _ := dockref.Parse("nginx")
 		imageNameProcessor(r)
-		r, _ = dockref.FromOriginal("nginx:latest")
+		r, _ = dockref.Parse("nginx:latest")
 		imageNameProcessor(r)
-		r, _ = dockref.FromOriginal("nginx:1.2")
+		r, _ = dockref.Parse("nginx:1.2")
 		imageNameProcessor(r)
 		return nil
 	}

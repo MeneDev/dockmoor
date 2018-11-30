@@ -10,7 +10,7 @@ import (
 )
 
 func TestInvalid(t *testing.T) {
-	ref, e := FromOriginal("invalid:reference:format")
+	ref, e := Parse("invalid:reference:format")
 	assert.Nil(t, ref)
 	assert.Error(t, e)
 }
@@ -23,7 +23,7 @@ func TestWellknownNames(t *testing.T) {
 			testCase := t.Name()[len(parent)+1:]
 			original := testCase
 
-			ref, e := FromOriginal(original)
+			ref, e := Parse(original)
 			assert.Nil(t, e)
 			assert.Equal(t, "", ref.Tag())
 
@@ -41,7 +41,7 @@ func TestWellknownNames(t *testing.T) {
 			testCase := t.Name()[len(parent)+1:]
 			original := testCase
 
-			ref, e := FromOriginal(original)
+			ref, e := Parse(original)
 			assert.Nil(t, e)
 			assert.Equal(t, "", ref.Tag())
 
@@ -59,7 +59,7 @@ func TestWellknownNames(t *testing.T) {
 			testCase := t.Name()[len(parent)+1:]
 			original := testCase
 
-			ref, e := FromOriginal(original)
+			ref, e := Parse(original)
 			assert.Nil(t, e)
 
 			expected := "docker.io/library/" + original
@@ -76,7 +76,7 @@ func TestWellknownNames(t *testing.T) {
 			testCase := t.Name()[len(parent)+1:]
 			original := testCase
 
-			ref, e := FromOriginal(original)
+			ref, e := Parse(original)
 			assert.Nil(t, e)
 
 			expected := "docker.io/" + original
@@ -92,7 +92,7 @@ func TestOriginalsAreUnchanged(t *testing.T) {
 	originals := []string{"nginx", "nginx:latest", "nginx:1.15.2-alpine-perl"}
 	for _, original := range originals {
 		t.Run(original+" remains "+original, func(t *testing.T) {
-			ref, e := FromOriginal(original)
+			ref, e := Parse(original)
 			assert.Nil(t, e)
 
 			expected := original
@@ -105,7 +105,7 @@ func TestDigestOnly(t *testing.T) {
 	originals := []string{"d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240"}
 	for _, original := range originals {
 		t.Run("Parses "+original, func(t *testing.T) {
-			ref, e := FromOriginal(original)
+			ref, e := Parse(original)
 			assert.Nil(t, e)
 			assert.Empty(t, ref.Name())
 			assert.Empty(t, ref.Tag())
@@ -121,7 +121,7 @@ func TestNameAndDigest(t *testing.T) {
 	originals := []string{"nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240"}
 	for _, original := range originals {
 		t.Run("Parses "+original, func(t *testing.T) {
-			ref, e := FromOriginal(original)
+			ref, e := Parse(original)
 			assert.Nil(t, e)
 			assert.Equal(t, "docker.io/library/nginx", ref.Name())
 			assert.Empty(t, ref.Tag())
@@ -136,7 +136,7 @@ func TestNameAndTagAndDigest(t *testing.T) {
 	originals := []string{"nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240"}
 	for _, original := range originals {
 		t.Run("Parses "+original, func(t *testing.T) {
-			ref, e := FromOriginal(original)
+			ref, e := Parse(original)
 			assert.Nil(t, e)
 			assert.Equal(t, "docker.io/library/nginx", ref.Name())
 			assert.Equal(t, "1.2", ref.Tag())
@@ -151,7 +151,7 @@ func TestDomainAndNameAndTagAndDigest(t *testing.T) {
 	originals := []string{"nginx"}
 	for _, original := range originals {
 		t.Run("Parses "+original, func(t *testing.T) {
-			ref, e := FromOriginal(original)
+			ref, e := Parse(original)
 			assert.Nil(t, e)
 			assert.Equal(t, "docker.io", ref.Domain())
 			assert.Equal(t, "library/nginx", ref.Path())
@@ -160,7 +160,7 @@ func TestDomainAndNameAndTagAndDigest(t *testing.T) {
 	originals = []string{"my.com/nginx"}
 	for _, original := range originals {
 		t.Run("Parses "+original, func(t *testing.T) {
-			ref, e := FromOriginal(original)
+			ref, e := Parse(original)
 			assert.Nil(t, e)
 			assert.Equal(t, "my.com", ref.Domain())
 			assert.Equal(t, "nginx", ref.Path())
@@ -170,19 +170,19 @@ func TestDomainAndNameAndTagAndDigest(t *testing.T) {
 
 func TestDockref_Named(t *testing.T) {
 	t.Run("Returns Named for named references", func(t *testing.T) {
-		ref, e := FromOriginal("nginx")
+		ref, e := Parse("nginx")
 		assert.Nil(t, e)
 		assert.NotNil(t, ref.Named())
 	})
 	t.Run("Returns nil for unnamed references", func(t *testing.T) {
-		ref, e := FromOriginal("d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		ref, e := Parse("d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 		assert.Nil(t, e)
 		assert.Nil(t, ref.Named())
 	})
 }
 
 func TestFromOriginalNoError(t *testing.T) {
-	reference := FromOriginalNoError("nginx")
+	reference := MustParse("nginx")
 	assert.NotNil(t, reference)
 }
 
@@ -198,7 +198,7 @@ func TestDockref_Format(t *testing.T) {
 		original := "nginx"
 
 		t.Run(original, func(t *testing.T) {
-			nginx := FromOriginalNoError(original)
+			nginx := MustParse(original)
 			format := nginx.Format()
 
 			t.Run("has name", func(t *testing.T) {
@@ -220,7 +220,7 @@ func TestDockref_Format(t *testing.T) {
 		original := "nginx:latest"
 
 		t.Run(original, func(t *testing.T) {
-			nginx := FromOriginalNoError(original)
+			nginx := MustParse(original)
 			format := nginx.Format()
 
 			t.Run("has name", func(t *testing.T) {
@@ -242,7 +242,7 @@ func TestDockref_Format(t *testing.T) {
 		original := "docker.io/library/nginx"
 
 		t.Run(original, func(t *testing.T) {
-			nginx := FromOriginalNoError(original)
+			nginx := MustParse(original)
 			format := nginx.Format()
 
 			t.Run("has name", func(t *testing.T) {
@@ -264,7 +264,7 @@ func TestDockref_Format(t *testing.T) {
 		original := "docker.io/library/nginx:latest"
 
 		t.Run(original, func(t *testing.T) {
-			nginx := FromOriginalNoError(original)
+			nginx := MustParse(original)
 			format := nginx.Format()
 
 			t.Run("has name", func(t *testing.T) {
@@ -286,7 +286,7 @@ func TestDockref_Format(t *testing.T) {
 		original := "docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240"
 
 		t.Run(original, func(t *testing.T) {
-			nginx := FromOriginalNoError(original)
+			nginx := MustParse(original)
 			format := nginx.Format()
 
 			t.Run("has name", func(t *testing.T) {
@@ -308,7 +308,7 @@ func TestDockref_Format(t *testing.T) {
 		original := "d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240"
 
 		t.Run(original, func(t *testing.T) {
-			nginx := FromOriginalNoError(original)
+			nginx := MustParse(original)
 			format := nginx.Format()
 
 			t.Run("has no name", func(t *testing.T) {
@@ -340,7 +340,7 @@ func TestDockref_Formatted(t *testing.T) {
 
 		for _, original := range originals {
 			t.Run(original, func(t *testing.T) {
-				ref := FromOriginalNoError(original)
+				ref := MustParse(original)
 				format := ref.Format()
 
 				reference, err := ref.WithRequestedFormat(format)
@@ -366,7 +366,7 @@ func TestDockref_String(t *testing.T) {
 
 		for _, original := range originals {
 			t.Run(original, func(t *testing.T) {
-				ref := FromOriginalNoError(original)
+				ref := MustParse(original)
 
 				formatted := ref.String()
 				assert.Equal(t, original, formatted)
@@ -377,41 +377,41 @@ func TestDockref_String(t *testing.T) {
 
 func TestDockref_WithRequestedFormat(t *testing.T) {
 	t.Run("invalid returns error", func(t *testing.T) {
-		r := FromOriginalNoError("docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		r := MustParse("docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 		_, e := r.WithRequestedFormat(FormatHasName | FormatHasDigest | FormatHasTag | FormatHasDomain + 1)
 		assert.Error(t, e)
 	})
 
 	t.Run("well known library name only", func(t *testing.T) {
-		r := FromOriginalNoError("docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		r := MustParse("docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 		rName, e := r.WithRequestedFormat(FormatHasName)
 		assert.Nil(t, e)
 		assert.Equal(t, "nginx", rName.String())
 	})
 
 	t.Run("well known library digest only", func(t *testing.T) {
-		r := FromOriginalNoError("docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		r := MustParse("docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 		rName, e := r.WithRequestedFormat(FormatHasDigest)
 		assert.Nil(t, e)
 		assert.Equal(t, "d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", rName.String())
 	})
 
 	t.Run("well known library tag and digest", func(t *testing.T) {
-		r := FromOriginalNoError("docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		r := MustParse("docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 		rName, e := r.WithRequestedFormat(FormatHasTag | FormatHasDigest)
 		assert.Nil(t, e)
 		assert.Equal(t, "nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", rName.String())
 	})
 
 	t.Run("well known user tag and digest", func(t *testing.T) {
-		r := FromOriginalNoError("docker.io/menedev/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		r := MustParse("docker.io/menedev/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 		rName, e := r.WithRequestedFormat(FormatHasTag | FormatHasDigest)
 		assert.Nil(t, e)
 		assert.Equal(t, "menedev/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", rName.String())
 	})
 
 	t.Run("own-domain", func(t *testing.T) {
-		r := FromOriginalNoError("example.com/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		r := MustParse("example.com/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 
 		rNameOwn, e := r.WithRequestedFormat(FormatHasName)
 		assert.Nil(t, e)
@@ -419,7 +419,7 @@ func TestDockref_WithRequestedFormat(t *testing.T) {
 	})
 
 	t.Run("own-domain digest-only", func(t *testing.T) {
-		r := FromOriginalNoError("example.com/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		r := MustParse("example.com/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 
 		rNameOwn, e := r.WithRequestedFormat(FormatHasDigest)
 		assert.Nil(t, e)
@@ -427,7 +427,7 @@ func TestDockref_WithRequestedFormat(t *testing.T) {
 	})
 
 	t.Run("digest-only remains digest-only", func(t *testing.T) {
-		r := FromOriginalNoError("d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		r := MustParse("d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 
 		r, e := r.WithRequestedFormat(FormatHasName)
 		assert.Nil(t, e)
@@ -466,7 +466,7 @@ func TestMostPreciseTag(t *testing.T) {
 		assert.Error(t, err)
 	})
 	t.Run("Nil element returns nil", func(t *testing.T) {
-		result, err := MostPreciseTag([]Reference{nil, FromOriginalNoError("nginx")}, nil)
+		result, err := MostPreciseTag([]Reference{nil, MustParse("nginx")}, nil)
 		assert.Nil(t, result)
 		assert.Error(t, err)
 	})
@@ -494,10 +494,10 @@ func TestMostPreciseTag(t *testing.T) {
 		t.Run(strings.Join(c.list, ", ")+" to "+c.expected, func(t *testing.T) {
 			refs := make([]Reference, 0)
 			for _, refStr := range c.list {
-				ref := FromOriginalNoError(refStr)
+				ref := MustParse(refStr)
 				refs = append(refs, ref)
 			}
-			expected := FromOriginalNoError(c.expected)
+			expected := MustParse(c.expected)
 			result, err := MostPreciseTag(refs, nil)
 			assert.Equal(t, expected, result)
 			assert.Nil(t, err)
@@ -519,7 +519,7 @@ func TestMostPreciseTag(t *testing.T) {
 		t.Run("Not warning for "+strings.Join(c.list, ", "), func(t *testing.T) {
 			refs := make([]Reference, 0)
 			for _, refStr := range c.list {
-				ref := FromOriginalNoError(refStr)
+				ref := MustParse(refStr)
 				refs = append(refs, ref)
 			}
 
@@ -563,7 +563,7 @@ func TestMostPreciseTag(t *testing.T) {
 func toRefs(strs []string) []Reference {
 	refs := make([]Reference, 0)
 	for _, refStr := range strs {
-		ref := FromOriginalNoError(refStr)
+		ref := MustParse(refStr)
 		refs = append(refs, ref)
 	}
 
@@ -579,7 +579,7 @@ func TestFindRelevantTagsForReference(t *testing.T) {
 
 	run := func(c TestCase) func(t *testing.T) {
 		return func(t *testing.T) {
-			ref := FromOriginalNoError(c.ref)
+			ref := MustParse(c.ref)
 			refs := toRefs(c.list)
 			expected := toRefs(c.expected)
 

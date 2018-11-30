@@ -15,7 +15,7 @@ func TestAnyPredicate(t *testing.T) {
 		"mongo:3.4.16-windowsservercore-ltsc2016", "d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240"}
 	for _, original := range originals {
 		t.Run("Matches "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.True(t, predicate.Matches(ref))
@@ -32,7 +32,7 @@ func TestLatestPredicate(t *testing.T) {
 
 	for _, original := range shouldMatches {
 		t.Run("Matches "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.True(t, predicate.Matches(ref))
@@ -46,7 +46,7 @@ func TestLatestPredicate(t *testing.T) {
 
 	for _, original := range shouldNotMatches {
 		t.Run("Not matching "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.False(t, predicate.Matches(ref))
@@ -70,7 +70,7 @@ func TestUnpinnedPredicate(t *testing.T) {
 
 	for _, original := range shouldMatches {
 		t.Run("Matches "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.True(t, predicate.Matches(ref))
@@ -85,7 +85,7 @@ func TestUnpinnedPredicate(t *testing.T) {
 
 	for _, original := range shouldNotMatches {
 		t.Run("Not matching "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.False(t, predicate.Matches(ref))
@@ -105,7 +105,7 @@ func TestUntaggedPredicate(t *testing.T) {
 
 	for _, original := range shouldMatches {
 		t.Run("Matches "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.True(t, predicate.Matches(ref))
@@ -119,7 +119,7 @@ func TestUntaggedPredicate(t *testing.T) {
 
 	for _, original := range shouldNotMatches {
 		t.Run("Not matching "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.False(t, predicate.Matches(ref))
@@ -144,7 +144,7 @@ func TestDomainsPredicate(t *testing.T) {
 
 	for _, original := range shouldMatches {
 		t.Run("Matches "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.True(t, predicate.Matches(ref))
@@ -165,7 +165,7 @@ func TestDomainsPredicate(t *testing.T) {
 
 	for _, original := range shouldNotMatches {
 		t.Run("Not matching "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.False(t, predicate.Matches(ref))
@@ -189,7 +189,7 @@ func TestDomainsPredicateWithRegExp(t *testing.T) {
 
 	for _, original := range shouldMatches {
 		t.Run("Matches"+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.True(t, predicate.Matches(ref))
@@ -210,7 +210,7 @@ func TestDomainsPredicateWithRegExp(t *testing.T) {
 
 	for _, original := range shouldNotMatches {
 		t.Run("Not matching "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.False(t, predicate.Matches(ref))
@@ -232,7 +232,7 @@ func TestNamesPredicate(t *testing.T) {
 
 	for _, original := range shouldMatches {
 		t.Run("Matches "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.True(t, predicate.Matches(ref))
@@ -251,7 +251,7 @@ func TestNamesPredicate(t *testing.T) {
 
 	for _, original := range shouldNotMatches {
 		t.Run("Not matching "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.False(t, predicate.Matches(ref))
@@ -274,7 +274,7 @@ func TestNamesPredicateWithRegExp(t *testing.T) {
 
 	for _, original := range shouldMatches {
 		t.Run("Matches"+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.True(t, predicate.Matches(ref))
@@ -293,7 +293,7 @@ func TestNamesPredicateWithRegExp(t *testing.T) {
 
 	for _, original := range shouldNotMatches {
 		t.Run("Not matching "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.False(t, predicate.Matches(ref))
@@ -316,7 +316,7 @@ func TestFamiliarNamesPredicate(t *testing.T) {
 
 	for _, original := range shouldMatches {
 		t.Run("Matches "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.True(t, predicate.Matches(ref))
@@ -335,7 +335,7 @@ func TestFamiliarNamesPredicate(t *testing.T) {
 
 	for _, original := range shouldNotMatches {
 		t.Run("Not matching "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.False(t, predicate.Matches(ref))
@@ -359,7 +359,7 @@ func TestFamiliarNamesPredicateWithRegExp(t *testing.T) {
 
 	for _, original := range shouldMatches {
 		t.Run("Matches "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.True(t, predicate.Matches(ref))
@@ -378,7 +378,7 @@ func TestFamiliarNamesPredicateWithRegExp(t *testing.T) {
 
 	for _, original := range shouldNotMatches {
 		t.Run("Not matching "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.False(t, predicate.Matches(ref))
@@ -399,7 +399,7 @@ func TestTagsPredicate(t *testing.T) {
 
 	for _, original := range shouldMatches {
 		t.Run("Matches "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.True(t, predicate.Matches(ref))
@@ -419,7 +419,7 @@ func TestTagsPredicate(t *testing.T) {
 
 	for _, original := range shouldNotMatches {
 		t.Run("Not matching "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.False(t, predicate.Matches(ref))
@@ -441,7 +441,7 @@ func TestTagsPredicateWithRegExp(t *testing.T) {
 
 	for _, original := range shouldMatches {
 		t.Run("Matches "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.True(t, predicate.Matches(ref))
@@ -461,7 +461,7 @@ func TestTagsPredicateWithRegExp(t *testing.T) {
 
 	for _, original := range shouldNotMatches {
 		t.Run("Not matching "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.False(t, predicate.Matches(ref))
@@ -485,7 +485,7 @@ func TestDigestsPredicate(t *testing.T) {
 
 	for _, original := range shouldMatches {
 		t.Run("Matches "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.True(t, predicate.Matches(ref))
@@ -506,7 +506,7 @@ func TestDigestsPredicate(t *testing.T) {
 
 	for _, original := range shouldNotMatches {
 		t.Run("Not matching "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.False(t, predicate.Matches(ref))
@@ -529,7 +529,7 @@ func TestPathsPredicate(t *testing.T) {
 
 	for _, original := range shouldMatches {
 		t.Run("Matches "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.True(t, predicate.Matches(ref))
@@ -550,7 +550,7 @@ func TestPathsPredicate(t *testing.T) {
 
 	for _, original := range shouldNotMatches {
 		t.Run("Not matching "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.False(t, predicate.Matches(ref))
@@ -574,7 +574,7 @@ func TestPathsPredicateWithRegExp(t *testing.T) {
 
 	for _, original := range shouldMatches {
 		t.Run("Matches "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.True(t, predicate.Matches(ref))
@@ -595,7 +595,7 @@ func TestPathsPredicateWithRegExp(t *testing.T) {
 
 	for _, original := range shouldNotMatches {
 		t.Run("Not matching "+original, func(t *testing.T) {
-			ref, e := dockref.FromOriginal(original)
+			ref, e := dockref.Parse(original)
 
 			assert.Nil(t, e)
 			assert.False(t, predicate.Matches(ref))
@@ -614,7 +614,7 @@ func (p mockPredicate) Matches(ref dockref.Reference) bool {
 }
 
 func TestAndPredicate_Matches(t *testing.T) {
-	ref, _ := dockref.FromOriginal("a")
+	ref, _ := dockref.Parse("a")
 	and := func(matches ...bool) Predicate {
 		predicates := make([]Predicate, 0)
 

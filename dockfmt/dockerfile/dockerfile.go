@@ -189,7 +189,7 @@ func (format *dockerfileFormat) processNode(log logrus.FieldLogger, node *parser
 		from := node.Next.Value
 		log.Infof("Found image %s", from)
 
-		ref, err := dockref.FromOriginal(from)
+		ref, err := dockref.Parse(from)
 		if err != nil {
 			return false, err
 		}

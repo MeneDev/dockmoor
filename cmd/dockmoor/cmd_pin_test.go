@@ -203,10 +203,10 @@ func TestPinCommand_applyFormatProcessor_FailsWithInvalidFormattingFlags(t *test
 	processorMock := &FormatProcessorMock{}
 
 	po.mockRepo.OnResolve(mock.Anything).
-		Return([]dockref.Reference{dockref.FromOriginalNoError("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")}, nil)
+		Return([]dockref.Reference{dockref.MustParse("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")}, nil)
 
 	processorMock.process = func(imageNameProcessor dockfmt.ImageNameProcessor) error {
-		_, e := imageNameProcessor(dockref.FromOriginalNoError("nginx"))
+		_, e := imageNameProcessor(dockref.MustParse("nginx"))
 		return e
 	}
 
@@ -244,20 +244,20 @@ func TestPinCommand_FailsWhenErrorInProcess(t *testing.T) {
 
 func TestPinCommandPins(t *testing.T) {
 	po := pinOptionsTestNew()
-	po.mockRepo.OnResolve(dockref.FromOriginalNoError("nginx")).
-		Return([]dockref.Reference{dockref.FromOriginalNoError("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")}, nil)
+	po.mockRepo.OnResolve(dockref.MustParse("nginx")).
+		Return([]dockref.Reference{dockref.MustParse("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")}, nil)
 
-	po.mockRepo.OnResolve(dockref.FromOriginalNoError("nginx:latest")).
+	po.mockRepo.OnResolve(dockref.MustParse("nginx:latest")).
 		Return([]dockref.Reference{
-			dockref.FromOriginalNoError("nginx:1@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
-			dockref.FromOriginalNoError("nginx:1.15@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
-			dockref.FromOriginalNoError("nginx:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
-			dockref.FromOriginalNoError("nginx:latest@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
+			dockref.MustParse("nginx:1@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
+			dockref.MustParse("nginx:1.15@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
+			dockref.MustParse("nginx:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
+			dockref.MustParse("nginx:latest@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
 		}, nil)
 
-	po.mockRepo.OnResolve(dockref.FromOriginalNoError("menedev/testimagea")).
+	po.mockRepo.OnResolve(dockref.MustParse("menedev/testimagea")).
 		Return([]dockref.Reference{
-			dockref.FromOriginalNoError("menedev/testimagea:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
+			dockref.MustParse("menedev/testimagea:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
 		}, nil)
 
 	processorMock := &FormatProcessorMock{}
@@ -265,7 +265,7 @@ func TestPinCommandPins(t *testing.T) {
 	pin := func(refStr, expected string) {
 		ran := false
 		processorMock.process = func(imageNameProcessor dockfmt.ImageNameProcessor) error {
-			ref, e := imageNameProcessor(dockref.FromOriginalNoError(refStr))
+			ref, e := imageNameProcessor(dockref.MustParse(refStr))
 			assert.Nil(t, e)
 			str := ref.String()
 			assert.Equal(t, expected, str)
@@ -360,8 +360,8 @@ func TestPinWritesToInputFile(t *testing.T) {
 	resolver := factory()
 	repo := resolver.(*dockreftst.MockResolver)
 
-	repo.OnResolve(dockref.FromOriginalNoError("img")).Return([]dockref.Reference{
-		dockref.FromOriginalNoError("img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf"),
+	repo.OnResolve(dockref.MustParse("img")).Return([]dockref.Reference{
+		dockref.MustParse("img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf"),
 	}, nil)
 
 	exitCode := doMain(mainOptions)
@@ -390,8 +390,8 @@ func TestPinWritesToOutputFileAndNotToInputfile(t *testing.T) {
 	resolver := factory()
 	repo := resolver.(*dockreftst.MockResolver)
 
-	repo.OnResolve(dockref.FromOriginalNoError("img")).Return([]dockref.Reference{
-		dockref.FromOriginalNoError("img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf"),
+	repo.OnResolve(dockref.MustParse("img")).Return([]dockref.Reference{
+		dockref.MustParse("img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf"),
 	}, nil)
 
 	exitCode := doMain(mainOptions)

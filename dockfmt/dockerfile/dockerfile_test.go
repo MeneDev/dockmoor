@@ -208,7 +208,7 @@ func TestProcessLogsReplacingReferences(t *testing.T) {
 
 	err := format.ValidateInput(log, strings.NewReader(file), "anything")
 
-	expected := dockref.FromOriginalNoError("pinned")
+	expected := dockref.MustParse("pinned")
 	processErr := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (dockref.Reference, error) {
 		return expected, nil
 	})
@@ -239,7 +239,7 @@ func TestDockerfileFormat_ReportsFlushError(t *testing.T) {
 	err := format.ValidateInput(log, strings.NewReader(file), "anything")
 
 	processErr := format.Process(log, strings.NewReader(file), failingWriter{}, func(r dockref.Reference) (dockref.Reference, error) {
-		return dockref.FromOriginalNoError("pinned"), nil
+		return dockref.MustParse("pinned"), nil
 	})
 
 	assert.Contains(t, buffer.String(), `Error flushing writer`)

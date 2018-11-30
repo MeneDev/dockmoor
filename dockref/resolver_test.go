@@ -105,7 +105,7 @@ func TestDockerDaemonRegistry_Resolve(t *testing.T) {
 		Return(types.ImageInspect{}, nil, errors.New("Error"))
 
 	t.Run("invalid", func(t *testing.T) {
-		references, e := repo.Resolve(FromOriginalNoError("unknown:unknown"))
+		references, e := repo.Resolve(MustParse("unknown:unknown"))
 		assert.Error(t, e)
 		assert.Nil(t, references)
 	})
@@ -129,7 +129,7 @@ func TestDockerDaemonRegistry_Resolve(t *testing.T) {
 
 	for _, tst := range tests {
 		t.Run("Resolves name "+tst.name, func(t *testing.T) {
-			ref, e := FromOriginal(tst.name)
+			ref, e := Parse(tst.name)
 			assert.Nil(t, e)
 
 			resolve, e := repo.Resolve(ref)
@@ -145,10 +145,10 @@ func TestDockerDaemonRegistry_Resolve(t *testing.T) {
 	}
 
 	for _, tst := range tests {
-		dig := FromOriginalNoError(tst.digest).Formatted()
+		dig := MustParse(tst.digest).Formatted()
 		//dig = strings.SplitAfter(dig, ":")[1]
 		t.Run("Resolves digest "+dig, func(t *testing.T) {
-			ref := FromOriginalNoError(dig)
+			ref := MustParse(dig)
 
 			resolve, e := repo.Resolve(ref)
 			assert.Nil(t, e)
@@ -246,7 +246,7 @@ func TestDockerDaemonRegistry_Resolve_IT(t *testing.T) {
 	println("DOCKER_TLS_VERIFY " + os.Getenv("DOCKER_TLS_VERIFY"))
 
 	t.Run("invalid", func(t *testing.T) {
-		references, e := repo.Resolve(FromOriginalNoError("unknown:unknown"))
+		references, e := repo.Resolve(MustParse("unknown:unknown"))
 		assert.Error(t, e)
 		assert.Nil(t, references)
 	})
@@ -263,7 +263,7 @@ func TestDockerDaemonRegistry_Resolve_IT(t *testing.T) {
 
 	for _, tst := range tests {
 		t.Run("Resolves name "+tst.name, func(t *testing.T) {
-			ref, e := FromOriginal(tst.name)
+			ref, e := Parse(tst.name)
 			assert.Nil(t, e)
 
 			resolve, e := repo.Resolve(ref)
@@ -279,9 +279,9 @@ func TestDockerDaemonRegistry_Resolve_IT(t *testing.T) {
 	}
 
 	for _, tst := range tests {
-		dig := FromOriginalNoError(tst.digest).Formatted()
+		dig := MustParse(tst.digest).Formatted()
 		t.Run("Resolves digest "+dig, func(t *testing.T) {
-			ref := FromOriginalNoError(dig)
+			ref := MustParse(dig)
 
 			resolve, e := repo.Resolve(ref)
 			assert.Nil(t, e)
@@ -315,7 +315,7 @@ func TestDockerDaemonRegistry_Resolve_Error_in_Initialize(t *testing.T) {
 	mockCli.On("Initialize", mock.Anything).Return(expected)
 	mockCli.On("Client").Return(mockClient)
 
-	references, e := repo.Resolve(FromOriginalNoError("nginx"))
+	references, e := repo.Resolve(MustParse("nginx"))
 	assert.Error(t, e)
 	assert.Equal(t, expected, e)
 	assert.Empty(t, references)
@@ -338,7 +338,7 @@ func TestDockerDaemonResolver_Resolve_DigestOnly(t *testing.T) {
 			ID: "sha256:3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58",
 		}, nil, nil)
 
-	references, e := repo.Resolve(FromOriginalNoError("3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58"))
+	references, e := repo.Resolve(MustParse("3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58"))
 	assert.Nil(t, e)
 	assert.NotEmpty(t, references)
 
@@ -366,7 +366,7 @@ func TestDockerDaemonResolver_Resolve_LocalOnly_but_tagged(t *testing.T) {
 			RepoTags: []string{"test:tagged"},
 		}, nil, nil)
 
-	references, e := repo.Resolve(FromOriginalNoError("3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58"))
+	references, e := repo.Resolve(MustParse("3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58"))
 	assert.Nil(t, e)
 	assert.NotEmpty(t, references)
 

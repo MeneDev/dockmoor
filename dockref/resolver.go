@@ -120,10 +120,10 @@ func (repo dockerDaemonResolver) Resolve(reference Reference) ([]Reference, erro
 	refs := make([]Reference, 0)
 	// TODO why can there more than one digest?
 	for _, tag := range tags {
-		tagRef := FromOriginalNoError(tag)
+		tagRef := MustParse(tag)
 		r := reference.WithTag(tagRef.Tag())
 		for _, dig := range digs {
-			digRef := FromOriginalNoError(dig)
+			digRef := MustParse(dig)
 			r = r.WithDigest(digRef.DigestString())
 			refs = append(refs, r)
 		}

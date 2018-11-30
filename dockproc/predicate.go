@@ -138,7 +138,7 @@ func (p namesPredicate) Matches(ref dockref.Reference) bool {
 	}
 
 	for _, v := range p.names {
-		ref2 := dockref.FromOriginalNoError(v)
+		ref2 := dockref.MustParse(v)
 
 		if isRegex(v) {
 			if regExpMatches(v, ref.Name()) {
@@ -182,7 +182,7 @@ func (p familiarNamesPredicate) Matches(ref dockref.Reference) bool {
 				return true
 			}
 		} else {
-			ref2 := dockref.FromOriginalNoError(v)
+			ref2 := dockref.MustParse(v)
 			fam2 := reference.FamiliarName(ref2.Named())
 
 			if fam1 == fam2 {

@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.0
+
+#### New commands
+* pin: add tags and digests to image references
+
+####
+* updated to golang 1.11.2
+
 ## v0.0.6
 
 Huge thank's to the first code contributor: [Subhobrata Dey aka sbcd90](https://github.com/sbcd90) :clap:

@@ -4,7 +4,7 @@ Thanks for your interest, you're very welcome to contribute. Don't take anything
 
 ## Prerequisites for building
 
-* Setup a recent go, the CI currently uses Version 1.10.3  
+* Setup a recent go, the CI currently uses Version 1.11.2
 * Clone develop branch, make sure to clone to your `GOPATH`, e.g. `/home/mene/go/github.com/MeneDev/dockmoor`
 ```bash
 cd $GOPATH

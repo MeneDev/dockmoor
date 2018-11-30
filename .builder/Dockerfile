@@ -1,4 +1,4 @@
-FROM circleci/golang:1.10.3
+FROM circleci/golang:1.11.2
 
 RUN go get -u github.com/tcnksm/ghr \
     && go get -u github.com/stevenmatthewt/semantics

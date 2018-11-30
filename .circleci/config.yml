@@ -118,6 +118,8 @@ jobs:
             docker pull nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991
             docker pull nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae
             docker tag nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e nginx:1.15.5
+            docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:1
+            docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:1.15
             docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:1.15.6
             docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:latest
             docker tag nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae nginx:1-alpine-perl
@@ -137,18 +139,8 @@ jobs:
             docker pull menedev/testimagea
 
       - run:
-          name: docker images
-          command: |
-            docker images
-
-      - run:
           name: Test
           command: |
-            echo "DOCKER_CERT_PATH: $DOCKER_CERT_PATH"
-            echo "DOCKER_TLS: $DOCKER_TLS"
-            echo "DOCKER_TLS_VERIFY: $DOCKER_TLS_VERIFY"
-
-            ls $DOCKER_CERT_PATH
             go test -v ./... -cover -race -coverprofile=/tmp/coverage.out
             $GOPATH/bin/goveralls -coverprofile=/tmp/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
 
@@ -210,6 +202,35 @@ jobs:
           paths:
           - ./vendor
           - /tmp/go/cache
+
+      - setup_remote_docker
+
+      - run:
+          name: docker pull
+          command: |
+            docker pull nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e
+            docker pull nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991
+            docker pull nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae
+            docker tag nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e nginx:1.15.5
+            docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:1
+            docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:1.15
+            docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:1.15.6
+            docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:latest
+            docker tag nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae nginx:1-alpine-perl
+            docker tag nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae nginx:1.15-alpine-perl
+            docker tag nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae nginx:1.15.5-alpine-perl
+
+            docker pull menedev/testimagea:1
+            docker pull menedev/testimagea:1.0
+            docker pull menedev/testimagea:1.0.0
+            docker pull menedev/testimagea:1.0.1
+            docker pull menedev/testimagea:1.1.0
+            docker pull menedev/testimagea:1.1.1
+            docker pull menedev/testimagea:2
+            docker pull menedev/testimagea:2.0
+            docker pull menedev/testimagea:2.0.0
+            docker pull menedev/testimagea:latest
+            docker pull menedev/testimagea
 
       - run:
           name: End-to-End Test
@@ -291,6 +312,35 @@ jobs:
           paths:
           - ./vendor
           - /tmp/go/cache
+
+      - setup_remote_docker
+
+      - run:
+          name: docker pull
+          command: |
+            docker pull nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e
+            docker pull nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991
+            docker pull nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae
+            docker tag nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e nginx:1.15.5
+            docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:1
+            docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:1.15
+            docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:1.15.6
+            docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:latest
+            docker tag nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae nginx:1-alpine-perl
+            docker tag nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae nginx:1.15-alpine-perl
+            docker tag nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae nginx:1.15.5-alpine-perl
+
+            docker pull menedev/testimagea:1
+            docker pull menedev/testimagea:1.0
+            docker pull menedev/testimagea:1.0.0
+            docker pull menedev/testimagea:1.0.1
+            docker pull menedev/testimagea:1.1.0
+            docker pull menedev/testimagea:1.1.1
+            docker pull menedev/testimagea:2
+            docker pull menedev/testimagea:2.0
+            docker pull menedev/testimagea:2.0.0
+            docker pull menedev/testimagea:latest
+            docker pull menedev/testimagea
 
       - run:
           name: End-to-End Test

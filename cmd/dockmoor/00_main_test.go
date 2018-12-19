@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"github.com/MeneDev/dockmoor/dockref"
+	"github.com/MeneDev/dockmoor/dockref/resolver"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -193,5 +193,5 @@ func TestUsesDockerdSolver(t *testing.T) {
 
 	po, _ := cmd.(*pinOptions)
 	assert.Equal(t, po.mainOptions().Resolver, "dockerd")
-	assert.IsType(t, dockref.DockerDaemonResolverNew(), po.mainOptions().resolverFactory()())
+	assert.IsType(t, resolver.DockerDaemonResolverNew(), po.mainOptions().resolverFactory()())
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/MeneDev/dockmoor/dockfmt"
 	_ "github.com/MeneDev/dockmoor/dockfmt/dockerfile"
 	"github.com/MeneDev/dockmoor/dockref"
+	"github.com/MeneDev/dockmoor/dockref/resolver"
 	"github.com/jessevdk/go-flags"
 	"github.com/sirupsen/logrus"
 	"io"
@@ -252,7 +253,7 @@ func (options *mainOptions) DefaultResolverFactory() func() dockref.Resolver {
 	return func() dockref.Resolver {
 		switch options.Resolver {
 		case "dockerd":
-			return dockref.DockerDaemonResolverNew()
+			return resolver.DockerDaemonResolverNew()
 		}
 
 		return nil

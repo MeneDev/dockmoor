@@ -10,7 +10,6 @@ import (
 	cliconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/cli/manifest/types"
-	registryclient "github.com/docker/cli/cli/registry/client"
 	"github.com/docker/cli/opts"
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/manifestlist"
@@ -19,7 +18,6 @@ import (
 	"github.com/docker/distribution/registry/client/auth"
 	"github.com/docker/distribution/registry/client/transport"
 	types2 "github.com/docker/docker/api/types"
-	registry2 "github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/registry"
 	"github.com/docker/go-connections/tlsconfig"
 	"github.com/pkg/errors"
@@ -60,13 +58,22 @@ type searchOptions struct {
 	automated bool
 }
 
-func (repo *dockerRegistryResolver) Resolve(reference dockref.Reference) ([]dockref.Reference, error) {
-	ctx := context.Background()
+var _ reference.Named = (*lookupReference)(nil)
 
-	ref, err := normalizeReference(reference.Original())
-	if err != nil {
-		return nil, err
-	}
+type lookupReference struct {
+	r dockref.Reference
+}
+
+func (lr lookupReference) String() string {
+	panic("implement me")
+}
+
+func (lr lookupReference) Name() string {
+	return lr.r.Path()
+}
+
+func (repo *dockerRegistryResolver) Resolve(rfrnce dockref.Reference) ([]dockref.Reference, error) {
+	ctx := context.Background()
 
 	dockerTLSVerify := repo.osGetenv("DOCKER_TLS_VERIFY") != ""
 	dockerTLS := repo.osGetenv("DOCKER_TLS") != ""
@@ -92,7 +99,7 @@ func (repo *dockerRegistryResolver) Resolve(reference dockref.Reference) ([]dock
 		cliOpts.Common.InstallFlags(flgs)
 	}
 
-	err = cli.Initialize(cliOpts)
+	err := cli.Initialize(cliOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -112,70 +119,49 @@ func (repo *dockerRegistryResolver) Resolve(reference dockref.Reference) ([]dock
 		return nil, errors.New(errStr)
 	}
 
-	authConfig := configFile.AuthConfigs["https://index.docker.io/v1/"]
-	print(authConfig.Auth)
+	store := configFile.GetCredentialsStore(rfrnce.Domain())
 
 	options := registry.ServiceOptions{}
 	defaultService, err := registry.NewService(options)
-	endpoints, err := defaultService.LookupPullEndpoints("index.docker.io")
 
-	roundTripper, err := getHTTPTransport(authConfig, endpoints[0], "ngix", UserAgent())
+	repoInfo, err := registry.ParseRepositoryInfo(rfrnce)
+
+	endpoints, err := defaultService.LookupPullEndpoints(reference.Domain(repoInfo.Name))
+
+	authConfig, err := store.Get(rfrnce.Domain())
+	if err != nil {
+		return nil, err
+	}
+
+	lrr := lookupReference{rfrnce}
+
+	roundTripper, err := getHTTPTransport(authConfig, endpoints[0], lrr.Name(), UserAgent())
 	println(endpoints)
 
-	repository, err := client.NewRepository(ref, "https://registry-1.docker.io/", roundTripper)
+	//fmtd, err := rfrnce.WithRequestedFormat(dockref.FormatHasDigest | dockref.FormatHasDigest | dockref.FormatHasDomain | dockref.FormatHasTag)
+	repository, err := client.NewRepository(lrr, endpoints[0].URL.String(), roundTripper)
 	tags := repository.Tags(ctx)
-	descriptor, err := tags.Get(ctx, "latest")
-	dig := descriptor.Digest.Encoded()
-	print(dig)
-
-	resolver := func(ctx context.Context, index *registry2.IndexInfo) types2.AuthConfig {
-		return command.ResolveAuthConfig(ctx, cli, index)
-	}
-
-	registryClient := registryclient.NewRegistryClient(resolver, UserAgent(), false)
-
-	if e != nil {
-		return nil, e
-	}
-
-	named, e := normalizeReference("nginx:latest")
-
-	imageManifest, e := registryClient.GetManifest(ctx, named)
-
-	manifestList, e := registryClient.GetManifestList(ctx, named)
-	if e != nil {
-		return nil, e
-	}
-
-	print(tags)
-	print(manifestList)
-	print(imageManifest.Descriptor.Annotations)
-
-	targetRepo, err := registry.ParseRepositoryInfo(named)
+	strings, err := tags.All(ctx)
+	strings, err = tags.All(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	manifests := []manifestlist.ManifestDescriptor{}
-	// More than one response. This is a manifest list.
-	for _, img := range manifestList {
-		mfd, err := buildManifestDescriptor(targetRepo, img)
+	refs := make([]dockref.Reference, 0)
+	println(strings)
+	for _, tag := range strings {
+		r := rfrnce.WithTag(tag)
+
+		descriptor, err := tags.Get(ctx, tag)
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to assemble ManifestDescriptor")
+			return nil, err
 		}
-		manifests = append(manifests, mfd)
-	}
-	deserializedML, err := manifestlist.FromDescriptors(manifests)
-	if err != nil {
-		return nil, err
+
+		r = r.WithDigest(descriptor.Digest.String())
+		refs = append(refs, r)
 	}
 
-	jsonBytes, err := deserializedML.MarshalJSON()
-
-	str := string(jsonBytes)
-	println(str)
-
-	return nil, nil
+	return refs, nil
 }
 
 // getHTTPTransport builds a transport for use in communicating with a registry

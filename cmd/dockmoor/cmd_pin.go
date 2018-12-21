@@ -95,7 +95,7 @@ func (po *pinOptions) applyFormatProcessor(predicate dockproc.Predicate, process
 	return processor.Process(func(original dockref.Reference) (dockref.Reference, error) {
 		if predicate.Matches(original) {
 			repo := po.Repo()
-			rs, err := repo.Resolve(original)
+			rs, err := repo.FindAllTags(original)
 			if err != nil {
 				po.Log().WithField("error", err.Error()).Errorf("Could not resolve %s", original.Original())
 				return nil, err

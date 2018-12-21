@@ -11,7 +11,7 @@ type MockResolver struct {
 	mock.Mock
 }
 
-func (m *MockResolver) Resolve(reference dockref.Reference) ([]dockref.Reference, error) {
+func (m *MockResolver) FindAllTags(reference dockref.Reference) ([]dockref.Reference, error) {
 	called := m.Called(reference)
 	i := called.Get(0)
 	refs := i.([]dockref.Reference)
@@ -19,8 +19,8 @@ func (m *MockResolver) Resolve(reference dockref.Reference) ([]dockref.Reference
 	return refs, e
 }
 
-func (m *MockResolver) OnResolve(reference interface{}) *mock.Call {
-	return m.On("Resolve", reference)
+func (m *MockResolver) OnFindAllTags(reference interface{}) *mock.Call {
+	return m.On("FindAllTags", reference)
 }
 
 func MockResolverNew() *MockResolver {

@@ -72,7 +72,7 @@ func (lr lookupReference) Name() string {
 	return lr.r.Path()
 }
 
-func (repo *dockerRegistryResolver) Resolve(rfrnce dockref.Reference) ([]dockref.Reference, error) {
+func (repo *dockerRegistryResolver) FindAllTags(rfrnce dockref.Reference) ([]dockref.Reference, error) {
 	ctx := context.Background()
 
 	dockerTLSVerify := repo.osGetenv("DOCKER_TLS_VERIFY") != ""
@@ -150,14 +150,14 @@ func (repo *dockerRegistryResolver) Resolve(rfrnce dockref.Reference) ([]dockref
 	refs := make([]dockref.Reference, 0)
 	println(strings)
 	for _, tag := range strings {
-		r := rfrnce.WithTag(tag)
+		r := rfrnce.WithTag(tag).WithDigest("")
 
-		descriptor, err := tags.Get(ctx, tag)
-		if err != nil {
-			return nil, err
-		}
+		//descriptor, err := tags.Get(ctx, tag)
+		//if err != nil {
+		//	return nil, err
+		//}
 
-		r = r.WithDigest(descriptor.Digest.String())
+		//r = r.WithDigest(descriptor.Digest.String())
 		refs = append(refs, r)
 	}
 

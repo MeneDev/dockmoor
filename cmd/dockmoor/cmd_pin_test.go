@@ -202,7 +202,7 @@ func TestPinCommand_applyFormatProcessor_FailsWithInvalidFormattingFlags(t *test
 	format.OnProcess(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	processorMock := &FormatProcessorMock{}
 
-	po.mockRepo.OnResolve(mock.Anything).
+	po.mockRepo.OnFindAllTags(mock.Anything).
 		Return([]dockref.Reference{dockref.MustParse("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")}, nil)
 
 	processorMock.process = func(imageNameProcessor dockfmt.ImageNameProcessor) error {
@@ -244,10 +244,10 @@ func TestPinCommand_FailsWhenErrorInProcess(t *testing.T) {
 
 func TestPinCommandPins(t *testing.T) {
 	po := pinOptionsTestNew()
-	po.mockRepo.OnResolve(dockref.MustParse("nginx")).
+	po.mockRepo.OnFindAllTags(dockref.MustParse("nginx")).
 		Return([]dockref.Reference{dockref.MustParse("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")}, nil)
 
-	po.mockRepo.OnResolve(dockref.MustParse("nginx:latest")).
+	po.mockRepo.OnFindAllTags(dockref.MustParse("nginx:latest")).
 		Return([]dockref.Reference{
 			dockref.MustParse("nginx:1@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
 			dockref.MustParse("nginx:1.15@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
@@ -255,7 +255,7 @@ func TestPinCommandPins(t *testing.T) {
 			dockref.MustParse("nginx:latest@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
 		}, nil)
 
-	po.mockRepo.OnResolve(dockref.MustParse("menedev/testimagea")).
+	po.mockRepo.OnFindAllTags(dockref.MustParse("menedev/testimagea")).
 		Return([]dockref.Reference{
 			dockref.MustParse("menedev/testimagea:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
 		}, nil)
@@ -316,7 +316,7 @@ func TestPinCommandPins(t *testing.T) {
 		pinNginx("d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 	})
 
-	t.Run("Resolve to most precise tag", func(t *testing.T) {
+	t.Run("FindAllTags to most precise tag", func(t *testing.T) {
 		po.ReferenceFormat.ForceDomain = false
 		po.ReferenceFormat.NoName = false
 		po.ReferenceFormat.NoTag = false
@@ -360,7 +360,7 @@ func TestPinWritesToInputFile(t *testing.T) {
 	resolver := factory()
 	repo := resolver.(*dockreftst.MockResolver)
 
-	repo.OnResolve(dockref.MustParse("img")).Return([]dockref.Reference{
+	repo.OnFindAllTags(dockref.MustParse("img")).Return([]dockref.Reference{
 		dockref.MustParse("img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf"),
 	}, nil)
 
@@ -390,7 +390,7 @@ func TestPinWritesToOutputFileAndNotToInputfile(t *testing.T) {
 	resolver := factory()
 	repo := resolver.(*dockreftst.MockResolver)
 
-	repo.OnResolve(dockref.MustParse("img")).Return([]dockref.Reference{
+	repo.OnFindAllTags(dockref.MustParse("img")).Return([]dockref.Reference{
 		dockref.MustParse("img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf"),
 	}, nil)
 

@@ -9,7 +9,7 @@ import (
 func TestDockerRegistryResolver_Resolve(t *testing.T) {
 	resolver := DockerRegistryResolverNew()
 
-	references, e := resolver.Resolve(dockref.MustParse("nginx"))
+	references, e := resolver.FindAllTags(dockref.MustParse("nginx"))
 	assert.Nil(t, e)
 	assert.NotNil(t, references)
 	lenOfRefs := len(references)

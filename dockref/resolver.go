@@ -1,5 +1,5 @@
 package dockref
 
 type Resolver interface {
-	Resolve(reference Reference) ([]Reference, error)
+	FindAllTags(reference Reference) ([]Reference, error)
 }

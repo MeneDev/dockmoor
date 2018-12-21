@@ -104,7 +104,7 @@ func newCli(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrus
 	return &dockerCli{command.NewDockerCli(in, out, errWriter, isTrusted, nil)}
 }
 
-func (repo dockerDaemonResolver) Resolve(reference dockref.Reference) ([]dockref.Reference, error) {
+func (repo dockerDaemonResolver) FindAllTags(reference dockref.Reference) ([]dockref.Reference, error) {
 	imageInspect, err := repo.imageInspect(reference)
 
 	if err != nil {

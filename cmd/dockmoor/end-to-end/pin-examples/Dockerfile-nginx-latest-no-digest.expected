@@ -1,5 +1,5 @@
 # originally untagged
-FROM nginx:1.15.6
+FROM nginx:latest
 # originally tagged 1.15
 FROM nginx:1.15
 # originally tagged 1

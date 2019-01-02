@@ -151,8 +151,9 @@ func (repo dockerDaemonResolver) Resolve(reference dockref.Reference) (dockref.R
 
 	// TODO why can there more than one digest?
 	for _, tag := range tags {
+		tagRef := dockref.MustParse(tag)
+		tag = tagRef.Tag()
 		if tag == "latest" && reference.Tag() == "" || reference.Tag() == tag {
-			tagRef := dockref.MustParse(tag)
 			r := reference.WithTag(tagRef.Tag())
 			for _, dig := range digs {
 				digRef := dockref.MustParse(dig)

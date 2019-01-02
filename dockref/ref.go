@@ -103,6 +103,7 @@ const (
 	FormatHasTag    Format = 1 << iota
 	FormatHasDomain Format = 1 << iota
 	FormatHasDigest Format = 1 << iota
+	FormatFull      Format = FormatHasName | FormatHasTag | FormatHasDomain | FormatHasDigest
 )
 
 func (format Format) hasName() bool {
@@ -329,10 +330,12 @@ func TagVersionsEqualOrNotAVersion(ref Reference, refs []Reference, log *logrus.
 	return greater, nil
 }
 
-func MostPreciseTag(refs []Reference, log *logrus.Logger) (Reference, error) {
+func MostPreciseTag(ref Reference, refs []Reference, resolver func(Reference) (Reference, error), log *logrus.Logger) (Reference, error) {
 	if refs == nil {
 		return nil, errors.New("refs is nil")
 	}
+	dig := ref.Digest()
+
 	seen := make(map[string]struct{}, len(refs))
 	unique := make([]Reference, 0)
 	for _, r := range refs {
@@ -352,10 +355,17 @@ func MostPreciseTag(refs []Reference, log *logrus.Logger) (Reference, error) {
 		return refs[0], nil
 	}
 
-	nonSemVer, best := bestSemVer(refs)
+	nonSemVer, semvers := orderedSemVers(refs)
 
-	if best != nil {
-		return best, nil
+	for _, sv := range semvers {
+		sv, err := resolver(sv)
+		if err != nil {
+			return nil, err
+		}
+
+		if dig == sv.Digest() {
+			return sv, nil
+		}
 	}
 
 	// look for best non semver
@@ -363,16 +373,34 @@ func MostPreciseTag(refs []Reference, log *logrus.Logger) (Reference, error) {
 	// remove empty tag
 	nonEmpty := removeEmpty(nonSemVer)
 	if len(nonEmpty) == 1 {
-		return nonEmpty[0], nil
+		for _, r := range nonEmpty {
+			sv, err := resolver(r)
+			if err != nil {
+				return nil, err
+			}
+
+			if dig == sv.Digest() {
+				return sv, nil
+			}
+		}
 	}
 
 	nonLatest := removeLatest(nonEmpty)
 	if len(nonLatest) == 1 {
-		return nonLatest[0], nil
+		for _, r := range nonLatest {
+			sv, err := resolver(r)
+			if err != nil {
+				return nil, err
+			}
+
+			if dig == sv.Digest() {
+				return sv, nil
+			}
+		}
 	}
 
 	if log != nil {
-		log.Warnf("Didn't find semantic versioning tags, still trying to choose best tag but your mileage might vary")
+		log.Warn("Didn't find semantic versioning tags, still trying to choose best tag but your mileage might vary")
 	}
 
 	// take longest
@@ -386,8 +414,23 @@ func MostPreciseTag(refs []Reference, log *logrus.Logger) (Reference, error) {
 		return strings.Compare(a.Tag(), b.Tag()) > 0
 	})
 
-	best = longest[0]
-	return best, nil
+	for _, r := range longest {
+		sv, err := resolver(r)
+		if err != nil {
+			return nil, err
+		}
+
+		if dig == sv.Digest() {
+			return sv, nil
+		}
+	}
+
+	ref, e := ref.WithRequestedFormat(FormatFull)
+	if e != nil {
+		return nil, e
+	}
+
+	return nil, errors.Errorf("Couldn't find the most precise tag for %s", ref.Formatted())
 }
 
 func filterNonLongest(nonLatest []Reference) []Reference {
@@ -429,7 +472,7 @@ func removeEmpty(refs []Reference) []Reference {
 	return nonEmpty
 }
 
-func bestSemVer(refs []Reference) ([]Reference, Reference) {
+func orderedSemVers(refs []Reference) ([]Reference, []Reference) {
 
 	type SemVer struct {
 		ref       Reference
@@ -461,11 +504,12 @@ func bestSemVer(refs []Reference) ([]Reference, Reference) {
 		return a.version.GT(b.version)
 	})
 
-	var best Reference
-	if len(semvers) > 0 {
-		best = semvers[0].ref
+	semrefs := make([]Reference, 0)
+	for _, sv := range semvers {
+		semrefs = append(semrefs, sv.ref)
 	}
-	return nonSemVer, best
+
+	return nonSemVer, semrefs
 }
 
 func splitVersionAndVariant(tag string) (version string, variant string) {

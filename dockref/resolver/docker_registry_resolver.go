@@ -27,11 +27,10 @@ import (
 	"net/http"
 	"os"
 	"runtime"
-	"sync"
 	"time"
 )
 
-func DockerRegistryResolverNew(opts dockref.ResolverOptions) dockref.Resolver {
+func DockerRegistryResolverNew() dockref.Resolver {
 	return &dockerRegistryResolver{
 		NewCli:   newCli,
 		osGetenv: os.Getenv,
@@ -200,80 +199,80 @@ func (repo *dockerRegistryResolver) Resolve(rfrnce dockref.Reference) (dockref.R
 
 	rfrnce = rfrnce.WithDigest(string(descriptor.Digest))
 
-	rfrnce, err = findTag(ctx, rfrnce, tagService)
-	if err != nil {
-		return nil, err
-	}
+	//rfrnce, err = findTag(ctx, rfrnce, tagService)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	return rfrnce, nil
 }
 
-func findTag(ctx context.Context, ref dockref.Reference, tagService distribution.TagService) (dockref.Reference, error) {
-	if ref.Digest() == "" {
-		return nil, errors.New("Expected digest")
-	}
-
-	tags, err := tagService.All(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	tagged := make([]dockref.Reference, 0)
-	for _, tag := range tags {
-		tagged = append(tagged, ref.WithTag(tag))
-	}
-
-	relevant, err := dockref.MatchingDomainNameAndVariant(ref, tagged, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	relevant, err = dockref.TagVersionsGreaterOrEqualOrNotAVersion(ref, relevant, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	relevant, err = dockref.TagVersionsEqualOrNotAVersion(ref, relevant, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	sameDigestChan := make(chan dockref.Reference, len(relevant))
-	var waitGroup sync.WaitGroup
-	waitGroup.Add(len(relevant))
-
-	sameDigest := make([]dockref.Reference, 0)
-	for _, tagged := range relevant {
-		go func(tagged dockref.Reference) {
-			defer func() {
-				waitGroup.Done()
-			}()
-
-			descriptor, err := tagService.Get(ctx, tagged.Tag())
-			if err != nil {
-				return
-			}
-			if descriptor.Digest == ref.Digest() {
-				sameDigestChan <- tagged
-			}
-		}(tagged)
-	}
-
-	waitGroup.Wait()
-	close(sameDigestChan)
-
-	for v := range sameDigestChan {
-		sameDigest = append(sameDigest, v)
-	}
-
-	if len(sameDigest) == 0 {
-		// TODO better error
-		return nil, errors.New("not found")
-	}
-
-	mostPreciseTag, err := dockref.MostPreciseTag(sameDigest, nil)
-	return mostPreciseTag, nil
-}
+//func findTag(ctx context.Context, ref dockref.Reference, tagService distribution.TagService) (dockref.Reference, error) {
+//	if ref.Digest() == "" {
+//		return nil, errors.New("Expected digest")
+//	}
+//
+//	tags, err := tagService.All(ctx)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	tagged := make([]dockref.Reference, 0)
+//	for _, tag := range tags {
+//		tagged = append(tagged, ref.WithTag(tag))
+//	}
+//
+//	relevant, err := dockref.MatchingDomainNameAndVariant(ref, tagged, nil)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	relevant, err = dockref.TagVersionsGreaterOrEqualOrNotAVersion(ref, relevant, nil)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	relevant, err = dockref.TagVersionsEqualOrNotAVersion(ref, relevant, nil)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	sameDigestChan := make(chan dockref.Reference, len(relevant))
+//	var waitGroup sync.WaitGroup
+//	waitGroup.Add(len(relevant))
+//
+//	sameDigest := make([]dockref.Reference, 0)
+//	for _, tagged := range relevant {
+//		go func(tagged dockref.Reference) {
+//			defer func() {
+//				waitGroup.Done()
+//			}()
+//
+//			descriptor, err := tagService.Get(ctx, tagged.Tag())
+//			if err != nil {
+//				return
+//			}
+//			if descriptor.Digest == ref.Digest() {
+//				sameDigestChan <- tagged
+//			}
+//		}(tagged)
+//	}
+//
+//	waitGroup.Wait()
+//	close(sameDigestChan)
+//
+//	for v := range sameDigestChan {
+//		sameDigest = append(sameDigest, v)
+//	}
+//
+//	if len(sameDigest) == 0 {
+//		// TODO better error
+//		return nil, errors.New("not found")
+//	}
+//
+//	mostPreciseTag, err := dockref.MostPreciseTag(sameDigest, nil)
+//	return mostPreciseTag, nil
+//}
 
 // getHTTPTransport builds a transport for use in communicating with a registry
 func getHTTPTransport(authConfig types2.AuthConfig, endpoint registry.APIEndpoint, repoName string, userAgent string) (http.RoundTripper, error) {

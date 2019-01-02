@@ -2,11 +2,11 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/jessevdk/go-flags"
+	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -22,15 +22,15 @@ type pinOptions struct {
 		NoDigest    bool `required:"no" long:"no-digest" description:"Don't include the digest in the reference"`
 	} `group:"Reference format" description:"Control the format of references, defaults are sensible, changes are not recommended"`
 
-	ResolverOptions struct {
-		ResolveMode string `required:"no" long:"resolve-mode" description:"Strategy to resolve image references" choice:"unchanged" choice:"most-precise-version" default:"unchanged"`
+	VersionOptions struct {
+		VersionMode string `required:"no" long:"version-mode" description:"Strategy to resolve image references" choice:"unchanged" default:"unchanged"`
 	} `group:"Pin Options" description:"Control how the image references are resolved"`
 
 	Output struct {
 		OutputFile flags.Filename `required:"no" short:"o" long:"output" description:"Output file to write to. If empty, input file will be used."`
 	} `group:"Output parameters" description:"Output parameters"`
 
-	resolverFactory func(resOpts dockref.ResolverOptions) dockref.Resolver
+	resolverFactory func() dockref.Resolver
 	matches         bool
 }
 
@@ -98,56 +98,82 @@ func (po *pinOptions) applyFormatProcessor(predicate dockproc.Predicate, process
 
 	return processor.Process(func(original dockref.Reference) (dockref.Reference, error) {
 		if predicate.Matches(original) {
+			po.matches = true
 			repo := po.Resolver()
-			rs, err := repo.FindAllTags(original)
-			if err != nil {
-				po.Log().WithField("error", err.Error()).Errorf("Could not resolve %s", original.Original())
-				return nil, err
+
+			mode, e := versionMode(po.VersionOptions.VersionMode)
+			if e != nil {
+				return nil, e
 			}
 
-			format, err := po.RefFormat()
-			if err != nil {
-				return nil, err
-			}
-
-			mostPrecise, err := dockref.MostPreciseTag(rs, po.Log())
-
-			if err == nil {
-				po.matches = true
-				reference, e := mostPrecise.WithRequestedFormat(format)
-				if e != nil {
-					return nil, e
+			switch mode {
+			case dockref.ResolveModeUnchanged:
+				resolved, err := repo.Resolve(original)
+				if err != nil {
+					po.Log().WithField("error", err.Error()).Errorf("Could not resolve %s", original.Original())
+					return nil, err
 				}
-				mostPrecise = reference
-				return mostPrecise, err
+
+				format, err := po.RefFormat()
+				if err != nil {
+					return nil, err
+				}
+
+				formatted, err := resolved.WithRequestedFormat(format)
+				if err != nil {
+					return nil, err
+				}
+
+				return formatted, nil
+
+			case dockref.ResolveModeMostPreciseVersion:
+				return nil, errors.Errorf("VersionMode %s not yet implemented", po.VersionOptions.VersionMode)
+				//rs, err := repo.FindAllTags(original)
+				//if err != nil {
+				//	po.Log().WithField("error", err.Error()).Errorf("Could not resolve %s", original.Original())
+				//	return nil, err
+				//}
+				//
+				//format, err := po.RefFormat()
+				//if err != nil {
+				//	return nil, err
+				//}
+				//
+				//mostPrecise, err := dockref.MostPreciseTag(rs, po.Log())
+				//
+				//if err == nil {
+				//	po.matches = true
+				//	reference, e := mostPrecise.WithRequestedFormat(format)
+				//	if e != nil {
+				//		return nil, e
+				//	}
+				//	mostPrecise = reference
+				//	return mostPrecise, err
+				//}
+				//return mostPrecise, err
 			}
-			return mostPrecise, err
+
 		}
 		return original, nil
 	})
 }
 
-func resolveMode(modeString string) dockref.ResolveMode {
+func versionMode(modeString string) (dockref.ResolveMode, error) {
 	switch modeString {
 	case "unchanged":
-		return dockref.ResolveModeUnchanged
+		return dockref.ResolveModeUnchanged, nil
 	case "most-precise-version":
-		return dockref.ResolveModeMostPreciseVersion
+		return dockref.ResolveModeMostPreciseVersion, nil
 	}
 
-	return -1
+	return -1, errors.Errorf("Invalid VersionMode '%s'", modeString)
 }
 
 func (po *pinOptions) Resolver() dockref.Resolver {
-
-	resolverOptions := dockref.ResolverOptions{
-		Mode: resolveMode(po.ResolverOptions.ResolveMode),
-	}
-
-	return po.resolverFactory(resolverOptions)
+	return po.resolverFactory()
 }
 
-func pinOptionsNew(mainOptions *mainOptions, resolverFactory func(resOpts dockref.ResolverOptions) dockref.Resolver) *pinOptions {
+func pinOptionsNew(mainOptions *mainOptions, resolverFactory func() dockref.Resolver) *pinOptions {
 	po := pinOptions{
 		MatchingOptions: MatchingOptions{
 			mainOpts: mainOptions,
@@ -156,6 +182,7 @@ func pinOptionsNew(mainOptions *mainOptions, resolverFactory func(resOpts dockre
 		matches:         false,
 	}
 
+	po.VersionOptions.VersionMode = "unchanged"
 	return &po
 }
 

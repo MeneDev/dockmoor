@@ -1,9 +1,7 @@
 package dockref
 
 import (
-	"bytes"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
@@ -454,112 +452,112 @@ func TestFromAlgoDigest(t *testing.T) {
 
 }
 
-func TestMostPreciseTag(t *testing.T) {
-	type TestCase struct {
-		list     []string
-		expected string
-	}
-	//
-	//t.Run("Nil slice returns nil", func(t *testing.T) {
-	//	result, err := MostPreciseTag(nil, nil)
-	//	assert.Nil(t, result)
-	//	assert.Error(t, err)
-	//})
-	//t.Run("Nil element returns nil", func(t *testing.T) {
-	//	result, err := MostPreciseTag([]Reference{nil, MustParse("nginx")}, nil)
-	//	assert.Nil(t, result)
-	//	assert.Error(t, err)
-	//})
-
-	cases := []TestCase{
-		//{list: []string{"nginx:latest"}, expected: "nginx:latest"},
-		//{list: []string{"nginx:latest", "nginx"}, expected: "nginx:latest"},
-		//{list: []string{"nginx", "nginx:latest"}, expected: "nginx:latest"},
-		//{list: []string{"nginx:latest", "nginx:latest"}, expected: "nginx:latest"},
-		//{list: []string{"nginx:latest", "nginx:notlatest", "nginx:latest"}, expected: "nginx:notlatest"},
-		//{list: []string{"nginx:latest", "nginx:notlatest", "nginx:1", "nginx:latest"}, expected: "nginx:1"},
-		//{list: []string{"nginx:1", "nginx:1.1"}, expected: "nginx:1.1"},
-		//{list: []string{"nginx:1", "nginx:1.1", "nginx:2"}, expected: "nginx:2"},
-		//{list: []string{"nginx:1", "nginx:1.1", "nginx:2", "nginx:2.1"}, expected: "nginx:2.1"},
-		//{list: []string{"nginx:1", "nginx:1.1", "nginx:1.1-rc1"}, expected: "nginx:1.1"},
-		//{list: []string{"nginx:1.1-rc1", "nginx:1.1-beta"}, expected: "nginx:1.1-rc1"},
-		//{list: []string{"nginx:1.1-beta", "nginx:1.1-alpha"}, expected: "nginx:1.1-beta"},
-		//{list: []string{"nginx:latest", "nginx:1.1-alpha"}, expected: "nginx:1.1-alpha"},
-		//{list: []string{"img:20181120", "img:20181121", "img:20181119"}, expected: "img:20181121"},
-		//{list: []string{"img:a", "img:aaa", "img:bb"}, expected: "img:aaa"},
-		//{list: []string{"img:aaa", "img:aab"}, expected: "img:aab"},
-		{list: []string{"img:latest", "img:1", "img:1.0.0", "img:1.0"}, expected: "img:1.0.0"},
-	}
-
-	for _, c := range cases {
-		t.Run(strings.Join(c.list, ", ")+" to "+c.expected, func(t *testing.T) {
-			refs := make([]Reference, 0)
-			for _, refStr := range c.list {
-				ref := MustParse(refStr)
-				refs = append(refs, ref)
-			}
-			expected := MustParse(c.expected)
-			result, err := MostPreciseTag(refs, nil)
-			assert.Equal(t, expected, result)
-			assert.Nil(t, err)
-		})
-
-	}
-
-	cases = []TestCase{
-		{list: []string{"nginx:latest"}, expected: "nginx:latest"},
-		{list: []string{"nginx:latest", "nginx"}, expected: "nginx:latest"},
-		{list: []string{"nginx", "nginx:latest"}, expected: "nginx:latest"},
-		{list: []string{"nginx:latest", "nginx:latest"}, expected: "nginx:latest"},
-		{list: []string{"nginx:latest", "nginx:notlatest", "nginx:latest"}, expected: "nginx:notlatest"},
-		{list: []string{"nginx:notlatest", "nginx:1"}, expected: "nginx:1"},
-		{list: []string{"nginx:1", "nginx:1.1"}, expected: "nginx:1.1"},
-	}
-
-	for _, c := range cases {
-		t.Run("Not warning for "+strings.Join(c.list, ", "), func(t *testing.T) {
-			refs := make([]Reference, 0)
-			for _, refStr := range c.list {
-				ref := MustParse(refStr)
-				refs = append(refs, ref)
-			}
-
-			log := logrus.New()
-			stdout := bytes.NewBuffer(nil)
-			log.SetOutput(stdout)
-
-			reference, err := MostPreciseTag(refs, log)
-
-			assert.NotNil(t, reference)
-			assert.Nil(t, err)
-
-			str := stdout.String()
-			assert.Empty(t, str)
-		})
-	}
-
-	cases = []TestCase{
-		{list: []string{"img:a", "img:aaa", "img:bb"}, expected: "img:aaa"},
-		{list: []string{"img:aaa", "img:aab"}, expected: "img:aab"},
-	}
-
-	for _, c := range cases {
-		t.Run("Warning for "+list(c.list), func(t *testing.T) {
-			log := logrus.New()
-			stdout := bytes.NewBuffer(nil)
-			log.SetOutput(stdout)
-
-			refs := toRefs(c.list)
-			reference, err := MostPreciseTag(refs, log)
-
-			assert.NotNil(t, reference)
-			assert.Nil(t, err)
-
-			str := stdout.String()
-			assert.NotEmpty(t, str)
-		})
-	}
-}
+//func TestMostPreciseTag(t *testing.T) {
+//	type TestCase struct {
+//		list     []string
+//		expected string
+//	}
+//	//
+//	//t.Run("Nil slice returns nil", func(t *testing.T) {
+//	//	result, err := MostPreciseTag(nil, nil)
+//	//	assert.Nil(t, result)
+//	//	assert.Error(t, err)
+//	//})
+//	//t.Run("Nil element returns nil", func(t *testing.T) {
+//	//	result, err := MostPreciseTag([]Reference{nil, MustParse("nginx")}, nil)
+//	//	assert.Nil(t, result)
+//	//	assert.Error(t, err)
+//	//})
+//
+//	cases := []TestCase{
+//		//{list: []string{"nginx:latest"}, expected: "nginx:latest"},
+//		//{list: []string{"nginx:latest", "nginx"}, expected: "nginx:latest"},
+//		//{list: []string{"nginx", "nginx:latest"}, expected: "nginx:latest"},
+//		//{list: []string{"nginx:latest", "nginx:latest"}, expected: "nginx:latest"},
+//		//{list: []string{"nginx:latest", "nginx:notlatest", "nginx:latest"}, expected: "nginx:notlatest"},
+//		//{list: []string{"nginx:latest", "nginx:notlatest", "nginx:1", "nginx:latest"}, expected: "nginx:1"},
+//		//{list: []string{"nginx:1", "nginx:1.1"}, expected: "nginx:1.1"},
+//		//{list: []string{"nginx:1", "nginx:1.1", "nginx:2"}, expected: "nginx:2"},
+//		//{list: []string{"nginx:1", "nginx:1.1", "nginx:2", "nginx:2.1"}, expected: "nginx:2.1"},
+//		//{list: []string{"nginx:1", "nginx:1.1", "nginx:1.1-rc1"}, expected: "nginx:1.1"},
+//		//{list: []string{"nginx:1.1-rc1", "nginx:1.1-beta"}, expected: "nginx:1.1-rc1"},
+//		//{list: []string{"nginx:1.1-beta", "nginx:1.1-alpha"}, expected: "nginx:1.1-beta"},
+//		//{list: []string{"nginx:latest", "nginx:1.1-alpha"}, expected: "nginx:1.1-alpha"},
+//		//{list: []string{"img:20181120", "img:20181121", "img:20181119"}, expected: "img:20181121"},
+//		//{list: []string{"img:a", "img:aaa", "img:bb"}, expected: "img:aaa"},
+//		//{list: []string{"img:aaa", "img:aab"}, expected: "img:aab"},
+//		{list: []string{"img:latest", "img:1", "img:1.0.0", "img:1.0"}, expected: "img:1.0.0"},
+//	}
+//
+//	for _, c := range cases {
+//		t.Run(strings.Join(c.list, ", ")+" to "+c.expected, func(t *testing.T) {
+//			refs := make([]Reference, 0)
+//			for _, refStr := range c.list {
+//				ref := MustParse(refStr)
+//				refs = append(refs, ref)
+//			}
+//			expected := MustParse(c.expected)
+//			result, err := MostPreciseTag(refs, nil)
+//			assert.Equal(t, expected, result)
+//			assert.Nil(t, err)
+//		})
+//
+//	}
+//
+//	cases = []TestCase{
+//		{list: []string{"nginx:latest"}, expected: "nginx:latest"},
+//		{list: []string{"nginx:latest", "nginx"}, expected: "nginx:latest"},
+//		{list: []string{"nginx", "nginx:latest"}, expected: "nginx:latest"},
+//		{list: []string{"nginx:latest", "nginx:latest"}, expected: "nginx:latest"},
+//		{list: []string{"nginx:latest", "nginx:notlatest", "nginx:latest"}, expected: "nginx:notlatest"},
+//		{list: []string{"nginx:notlatest", "nginx:1"}, expected: "nginx:1"},
+//		{list: []string{"nginx:1", "nginx:1.1"}, expected: "nginx:1.1"},
+//	}
+//
+//	for _, c := range cases {
+//		t.Run("Not warning for "+strings.Join(c.list, ", "), func(t *testing.T) {
+//			refs := make([]Reference, 0)
+//			for _, refStr := range c.list {
+//				ref := MustParse(refStr)
+//				refs = append(refs, ref)
+//			}
+//
+//			log := logrus.New()
+//			stdout := bytes.NewBuffer(nil)
+//			log.SetOutput(stdout)
+//
+//			reference, err := MostPreciseTag(refs, log)
+//
+//			assert.NotNil(t, reference)
+//			assert.Nil(t, err)
+//
+//			str := stdout.String()
+//			assert.Empty(t, str)
+//		})
+//	}
+//
+//	cases = []TestCase{
+//		{list: []string{"img:a", "img:aaa", "img:bb"}, expected: "img:aaa"},
+//		{list: []string{"img:aaa", "img:aab"}, expected: "img:aab"},
+//	}
+//
+//	for _, c := range cases {
+//		t.Run("Warning for "+list(c.list), func(t *testing.T) {
+//			log := logrus.New()
+//			stdout := bytes.NewBuffer(nil)
+//			log.SetOutput(stdout)
+//
+//			refs := toRefs(c.list)
+//			reference, err := MostPreciseTag(refs, log)
+//
+//			assert.NotNil(t, reference)
+//			assert.Nil(t, err)
+//
+//			str := stdout.String()
+//			assert.NotEmpty(t, str)
+//		})
+//	}
+//}
 
 func toRefs(strs []string) []Reference {
 	refs := make([]Reference, 0)
@@ -571,34 +569,34 @@ func toRefs(strs []string) []Reference {
 	return refs
 }
 
-func TestDockref_bestSemVer(t *testing.T) {
-	rootTestCase := t.Name()
-
-	expectedResults := map[string]string{
-		"1:1.0.0:1.0":             "1.0.0",
-		"1:1.0.0:1.0:2:2.0.0:2.0": "2.0.0",
-		"2:2.0.0:2.0:1:1.0.0:1.0": "2.0.0",
-	}
-
-	run := func(t *testing.T) {
-		testCase := t.Name()[len(rootTestCase)+1:]
-		expected := expectedResults[testCase]
-
-		reference := make([]Reference, 0)
-		tags := strings.Split(testCase, ":")
-		for _, tag := range tags {
-			reference = append(reference, MustParse("img:"+tag))
-		}
-		_, result := bestSemVer(reference)
-
-		tag := result.Tag()
-		assert.Equal(t, expected, tag)
-	}
-
-	t.Run("1:1.0.0:1.0", run)
-	t.Run("1:1.0.0:1.0:2:2.0.0:2.0", run)
-	t.Run("2:2.0.0:2.0:1:1.0.0:1.0", run)
-}
+//func TestDockref_bestSemVer(t *testing.T) {
+//	rootTestCase := t.Name()
+//
+//	expectedResults := map[string]string{
+//		"1:1.0.0:1.0":             "1.0.0",
+//		"1:1.0.0:1.0:2:2.0.0:2.0": "2.0.0",
+//		"2:2.0.0:2.0:1:1.0.0:1.0": "2.0.0",
+//	}
+//
+//	run := func(t *testing.T) {
+//		testCase := t.Name()[len(rootTestCase)+1:]
+//		expected := expectedResults[testCase]
+//
+//		reference := make([]Reference, 0)
+//		tags := strings.Split(testCase, ":")
+//		for _, tag := range tags {
+//			reference = append(reference, MustParse("img:"+tag))
+//		}
+//		_, result := orderedSemVers(reference)
+//
+//		tag := result.Tag()
+//		assert.Equal(t, expected, tag)
+//	}
+//
+//	t.Run("1:1.0.0:1.0", run)
+//	t.Run("1:1.0.0:1.0:2:2.0.0:2.0", run)
+//	t.Run("2:2.0.0:2.0:1:1.0.0:1.0", run)
+//}
 
 func TestDockref_TagVersionsGreaterOrEqual(t *testing.T) {
 	rootTestCase := t.Name()

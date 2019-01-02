@@ -24,7 +24,7 @@ type dockerDaemonResolver struct {
 	osGetenv func(key string) string
 }
 
-func DockerDaemonResolverNew(opts dockref.ResolverOptions) dockref.Resolver {
+func DockerDaemonResolverNew() dockref.Resolver {
 	repo := &dockerDaemonResolver{
 		NewCli: newCli,
 

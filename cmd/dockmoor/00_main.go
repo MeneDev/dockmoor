@@ -41,7 +41,7 @@ type mainOptions struct {
 	stdout         io.Writer
 	stdin          io.ReadCloser
 
-	resolverFactory func() func(options dockref.ResolverOptions) dockref.Resolver
+	resolverFactory func() func() dockref.Resolver
 }
 
 var osStdout io.Writer = os.Stdout
@@ -249,13 +249,13 @@ func fmtFprintf(log *logrus.Logger, w io.Writer, format string, a ...interface{}
 	}
 }
 
-func (options *mainOptions) DefaultResolverFactory() func(dockref.ResolverOptions) dockref.Resolver {
-	return func(resOpts dockref.ResolverOptions) dockref.Resolver {
+func (options *mainOptions) DefaultResolverFactory() func() dockref.Resolver {
+	return func() dockref.Resolver {
 		switch options.Resolver {
 		case "dockerd":
-			return resolver.DockerDaemonResolverNew(resOpts)
+			return resolver.DockerDaemonResolverNew()
 		case "registry":
-			return resolver.DockerRegistryResolverNew(resOpts)
+			return resolver.DockerRegistryResolverNew()
 		}
 
 		return nil

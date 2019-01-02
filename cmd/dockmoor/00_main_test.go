@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/MeneDev/dockmoor/dockref/resolver"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
@@ -184,14 +185,22 @@ func TestInvalidSolverIsNil(t *testing.T) {
 
 	po.mainOptions().Resolver = "Invalid"
 
-	solverFactory := po.mainOptions().resolverFactory()()
+	solverFactory := po.mainOptions().resolverFactory()(dockref.ResolverOptions{Mode: dockref.ResolveModeUnchanged})
 	assert.Nil(t, solverFactory)
 }
 
-func TestUsesDockerdSolver(t *testing.T) {
+func TestUsesDockerdResolver(t *testing.T) {
 	cmd, _, _, _ := testMain([]string{"--resolver", "dockerd", "pin", "fileNameIn"}, addPinCommand)
 
 	po, _ := cmd.(*pinOptions)
 	assert.Equal(t, po.mainOptions().Resolver, "dockerd")
-	assert.IsType(t, resolver.DockerDaemonResolverNew(), po.mainOptions().resolverFactory()())
+	assert.IsType(t, resolver.DockerDaemonResolverNew(dockref.ResolverOptions{Mode: dockref.ResolveModeUnchanged}), po.mainOptions().resolverFactory()(dockref.ResolverOptions{Mode: dockref.ResolveModeUnchanged}))
+}
+
+func TestUsesRegistryResolver(t *testing.T) {
+	cmd, _, _, _ := testMain([]string{"--resolver", "registry", "pin", "fileNameIn"}, addPinCommand)
+
+	po, _ := cmd.(*pinOptions)
+	assert.Equal(t, po.mainOptions().Resolver, "registry")
+	assert.IsType(t, resolver.DockerRegistryResolverNew(dockref.ResolverOptions{Mode: dockref.ResolveModeUnchanged}), po.mainOptions().resolverFactory()(dockref.ResolverOptions{Mode: dockref.ResolveModeUnchanged}))
 }

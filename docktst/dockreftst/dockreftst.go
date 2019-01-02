@@ -19,8 +19,20 @@ func (m *MockResolver) FindAllTags(reference dockref.Reference) ([]dockref.Refer
 	return refs, e
 }
 
+func (m *MockResolver) Resolve(reference dockref.Reference) (dockref.Reference, error) {
+	called := m.Called(reference)
+	i := called.Get(0)
+	ref := i.(dockref.Reference)
+	e := called.Error(1)
+	return ref, e
+}
+
 func (m *MockResolver) OnFindAllTags(reference interface{}) *mock.Call {
 	return m.On("FindAllTags", reference)
+}
+
+func (m *MockResolver) OnResolve(reference interface{}) *mock.Call {
+	return m.On("Resolve", reference)
 }
 
 func MockResolverNew() *MockResolver {

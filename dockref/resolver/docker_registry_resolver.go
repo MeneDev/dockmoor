@@ -19,7 +19,6 @@ import (
 	"github.com/docker/distribution/registry/client/transport"
 	types2 "github.com/docker/docker/api/types"
 	"github.com/docker/docker/registry"
-	"github.com/docker/go-connections/tlsconfig"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"io"
@@ -28,10 +27,11 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"sync"
 	"time"
 )
 
-func DockerRegistryResolverNew() dockref.Resolver {
+func DockerRegistryResolverNew(opts dockref.ResolverOptions) dockref.Resolver {
 	return &dockerRegistryResolver{
 		NewCli:   newCli,
 		osGetenv: os.Getenv,
@@ -104,14 +104,6 @@ func (repo *dockerRegistryResolver) FindAllTags(rfrnce dockref.Reference) ([]doc
 		return nil, err
 	}
 
-	tripper := cli.Client().HTTPClient().Transport
-
-	if tr, ok := tripper.(*http.Transport); ok {
-		tr.TLSClientConfig = tlsconfig.ClientDefault()
-	}
-
-	tripper = http.DefaultTransport
-
 	errOut := bytes.NewBuffer(nil)
 	configFile := cliconfig.LoadDefaultConfigFile(errOut)
 	errStr := errOut.String()
@@ -162,6 +154,125 @@ func (repo *dockerRegistryResolver) FindAllTags(rfrnce dockref.Reference) ([]doc
 	}
 
 	return refs, nil
+}
+
+func (repo *dockerRegistryResolver) Resolve(rfrnce dockref.Reference) (dockref.Reference, error) {
+	ctx := context.Background()
+
+	errOut := bytes.NewBuffer(nil)
+	configFile := cliconfig.LoadDefaultConfigFile(errOut)
+	errStr := errOut.String()
+	if errStr != "" {
+		return nil, errors.New(errStr)
+	}
+
+	store := configFile.GetCredentialsStore(rfrnce.Domain())
+
+	options := registry.ServiceOptions{}
+	defaultService, err := registry.NewService(options)
+
+	repoInfo, err := registry.ParseRepositoryInfo(rfrnce)
+
+	endpoints, err := defaultService.LookupPullEndpoints(reference.Domain(repoInfo.Name))
+
+	authConfig, err := store.Get(rfrnce.Domain())
+	if err != nil {
+		return nil, err
+	}
+
+	lrr := lookupReference{rfrnce}
+
+	roundTripper, err := getHTTPTransport(authConfig, endpoints[0], lrr.Name(), UserAgent())
+
+	repository, err := client.NewRepository(lrr, endpoints[0].URL.String(), roundTripper)
+	tagService := repository.Tags(ctx)
+
+	tag := rfrnce.Tag()
+	if tag == "" {
+		tag = "latest"
+		rfrnce = rfrnce.WithTag(tag)
+	}
+
+	descriptor, err := tagService.Get(ctx, tag)
+	if err != nil {
+		return nil, err
+	}
+
+	rfrnce = rfrnce.WithDigest(string(descriptor.Digest))
+
+	rfrnce, err = findTag(ctx, rfrnce, tagService)
+	if err != nil {
+		return nil, err
+	}
+
+	return rfrnce, nil
+}
+
+func findTag(ctx context.Context, ref dockref.Reference, tagService distribution.TagService) (dockref.Reference, error) {
+	if ref.Digest() == "" {
+		return nil, errors.New("Expected digest")
+	}
+
+	tags, err := tagService.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	tagged := make([]dockref.Reference, 0)
+	for _, tag := range tags {
+		tagged = append(tagged, ref.WithTag(tag))
+	}
+
+	relevant, err := dockref.MatchingDomainNameAndVariant(ref, tagged, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	relevant, err = dockref.TagVersionsGreaterOrEqualOrNotAVersion(ref, relevant, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	relevant, err = dockref.TagVersionsEqualOrNotAVersion(ref, relevant, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	sameDigestChan := make(chan dockref.Reference, len(relevant))
+	var waitGroup sync.WaitGroup
+	waitGroup.Add(len(relevant))
+
+	sameDigest := make([]dockref.Reference, 0)
+	for _, tagged := range relevant {
+		go func(tagged dockref.Reference) {
+			defer func() {
+				waitGroup.Done()
+			}()
+
+			descriptor, err := tagService.Get(ctx, tagged.Tag())
+			if err != nil {
+				return
+			}
+			if descriptor.Digest == ref.Digest() {
+				sameDigestChan <- tagged
+			}
+		}(tagged)
+	}
+
+	waitGroup.Wait()
+	close(sameDigestChan)
+
+	for v := range sameDigestChan {
+		sameDigest = append(sameDigest, v)
+	}
+
+	if len(sameDigest) == 0 {
+		// TODO better error
+		return nil, errors.New("not found")
+	}
+
+	mostPreciseTag, err := dockref.MostPreciseTag(sameDigest, nil)
+	return mostPreciseTag, nil
 }
 
 // getHTTPTransport builds a transport for use in communicating with a registry

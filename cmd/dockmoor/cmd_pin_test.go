@@ -32,7 +32,7 @@ func pinOptionsTestNew() *pinOptionsTest {
 	repo := dockreftst.MockResolverNew()
 
 	pinOptions := &pinOptionsTest{
-		pinOptions: pinOptionsNew(mainOptions.mainOptions, func() dockref.Resolver {
+		pinOptions: pinOptionsNew(mainOptions.mainOptions, func(dockref.ResolverOptions) dockref.Resolver {
 			return repo
 		}),
 		mainOptionsTest: mainOptions,
@@ -357,7 +357,7 @@ func TestPinWritesToInputFile(t *testing.T) {
 	mainOptions := mainOptionsACNew(addPinCommand)
 
 	factory := mainOptions.resolverFactory()
-	resolver := factory()
+	resolver := factory(dockref.ResolverOptions{Mode: dockref.ResolveModeUnchanged})
 	repo := resolver.(*dockreftst.MockResolver)
 
 	repo.OnFindAllTags(dockref.MustParse("img")).Return([]dockref.Reference{
@@ -387,7 +387,7 @@ func TestPinWritesToOutputFileAndNotToInputfile(t *testing.T) {
 	mainOptions := mainOptionsACNew(addPinCommand)
 
 	factory := mainOptions.resolverFactory()
-	resolver := factory()
+	resolver := factory(dockref.ResolverOptions{Mode: dockref.ResolveModeUnchanged})
 	repo := resolver.(*dockreftst.MockResolver)
 
 	repo.OnFindAllTags(dockref.MustParse("img")).Return([]dockref.Reference{

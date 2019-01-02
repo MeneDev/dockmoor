@@ -25,7 +25,7 @@ type mainOptions struct {
 	LogLevel    string `required:"no" short:"l" long:"log-level" description:"Sets the log-level" choice:"NONE" choice:"ERROR" choice:"WARN" choice:"INFO" choice:"DEBUG" default:"WARN"`
 	ShowVersion bool   `required:"no" long:"version" description:"Show version and exit"`
 
-	Resolver string `required:"no" short:"r" long:"resolver" description:"Strategy to resolve image references" choice:"dockerd" default:"dockerd"`
+	Resolver string `required:"no" short:"r" long:"resolver" description:"Strategy to resolve image references" choice:"dockerd" choice:"registry" default:"dockerd"`
 
 	Help struct {
 		Help          bool `short:"h" long:"help" description:"Show help and exit"`
@@ -41,7 +41,7 @@ type mainOptions struct {
 	stdout         io.Writer
 	stdin          io.ReadCloser
 
-	resolverFactory func() func() dockref.Resolver
+	resolverFactory func() func(options dockref.ResolverOptions) dockref.Resolver
 }
 
 var osStdout io.Writer = os.Stdout
@@ -249,11 +249,13 @@ func fmtFprintf(log *logrus.Logger, w io.Writer, format string, a ...interface{}
 	}
 }
 
-func (options *mainOptions) DefaultResolverFactory() func() dockref.Resolver {
-	return func() dockref.Resolver {
+func (options *mainOptions) DefaultResolverFactory() func(dockref.ResolverOptions) dockref.Resolver {
+	return func(resOpts dockref.ResolverOptions) dockref.Resolver {
 		switch options.Resolver {
 		case "dockerd":
-			return resolver.DockerDaemonResolverNew()
+			return resolver.DockerDaemonResolverNew(resOpts)
+		case "registry":
+			return resolver.DockerRegistryResolverNew(resOpts)
 		}
 
 		return nil

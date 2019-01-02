@@ -273,7 +273,7 @@ func (r dockref) WithTag(tag string) Reference {
 	return cpy
 }
 
-func FindRelevantTagsForReference(ref Reference, refs []Reference, log *logrus.Logger) ([]Reference, error) {
+func MatchingDomainNameAndVariant(ref Reference, refs []Reference, log *logrus.Logger) ([]Reference, error) {
 	// name and domain must match
 	sameName := make([]Reference, 0)
 	for _, r := range refs {
@@ -293,6 +293,40 @@ func FindRelevantTagsForReference(ref Reference, refs []Reference, log *logrus.L
 	}
 
 	return sameVariant, nil
+}
+
+func TagVersionsGreaterOrEqualOrNotAVersion(ref Reference, refs []Reference, log *logrus.Logger) ([]Reference, error) {
+	refVersion, _, _, e := parseVeryTolerant(ref.Tag())
+	if e != nil {
+		return refs, nil
+	}
+
+	greater := make([]Reference, 0)
+	for _, r := range refs {
+		tag := r.Tag()
+		version, _, _, e := parseVeryTolerant(tag)
+		if e != nil || semver.Version.GTE(version, refVersion) {
+			greater = append(greater, r)
+		}
+	}
+	return greater, nil
+}
+
+func TagVersionsEqualOrNotAVersion(ref Reference, refs []Reference, log *logrus.Logger) ([]Reference, error) {
+	refVersion, _, _, e := parseVeryTolerant(ref.Tag())
+	if e != nil {
+		return refs, nil
+	}
+
+	greater := make([]Reference, 0)
+	for _, r := range refs {
+		tag := r.Tag()
+		version, _, _, e := parseVeryTolerant(tag)
+		if e != nil || semver.Version.EQ(version, refVersion) {
+			greater = append(greater, r)
+		}
+	}
+	return greater, nil
 }
 
 func MostPreciseTag(refs []Reference, log *logrus.Logger) (Reference, error) {
@@ -396,21 +430,40 @@ func removeEmpty(refs []Reference) []Reference {
 }
 
 func bestSemVer(refs []Reference) ([]Reference, Reference) {
-	var best Reference
-	var bestSemver semver.Version
+
+	type SemVer struct {
+		ref       Reference
+		precision int
+		version   semver.Version
+	}
+
 	nonSemVer := make([]Reference, 0)
-	// look for semver first, semver wins
+	semvers := make([]SemVer, 0)
+
+	// look for semvers first, semvers wins
 	for _, r := range refs {
 		tag := r.Tag()
-		version, e := parseVeryTolerant(tag)
+		version, versionPrecision, _, e := parseVeryTolerant(tag)
 		if e != nil {
 			nonSemVer = append(nonSemVer, r)
 			continue
 		}
-		if version.Compare(bestSemver) >= 0 {
-			bestSemver = version
-			best = r
+		semvers = append(semvers, SemVer{r, versionPrecision, version})
+	}
+
+	sort.Slice(semvers, func(i, j int) bool {
+		a := semvers[i]
+		b := semvers[j]
+
+		if a.version.EQ(b.version) {
+			return a.precision > b.precision
 		}
+		return a.version.GT(b.version)
+	})
+
+	var best Reference
+	if len(semvers) > 0 {
+		best = semvers[0].ref
 	}
 	return nonSemVer, best
 }
@@ -430,8 +483,13 @@ func splitVersionAndVariant(tag string) (version string, variant string) {
 		// no variant
 		_, e := semver.ParseTolerant(tag)
 		if e != nil {
-			version = ""
-			variant = tag
+			if tag == "latest" || tag == "" {
+				version = tag
+				variant = ""
+			} else {
+				version = ""
+				variant = tag
+			}
 			return
 		}
 		version = tag
@@ -442,19 +500,29 @@ func splitVersionAndVariant(tag string) (version string, variant string) {
 	return
 }
 
-func parseVeryTolerant(tag string) (semver.Version, error) {
+func parseVeryTolerant(tag string) (semver.Version, int, int, error) {
 	version, variant := splitVersionAndVariant(tag)
 
 	parsed, e := semver.ParseTolerant(version)
 	if e != nil {
-		return parsed, e
+		return parsed, 0, 0, e
 	}
 	if variant != "" {
 		str := parsed.String()
 		version = str + "-" + variant
 	}
 
-	return semver.ParseTolerant(version)
+	parsed, e = semver.ParseTolerant(version)
+	if e != nil {
+		return parsed, 0, 0, e
+	}
+	components := versionPrecision(version)
+
+	return parsed, components, 0, e
+}
+
+func versionPrecision(version string) int {
+	return len(strings.Split(version, "."))
 }
 
 func deliberatelyUnsued(err error) {

@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
+	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"io"
 	"io/ioutil"
@@ -23,7 +24,7 @@ type dockerDaemonResolver struct {
 	osGetenv func(key string) string
 }
 
-func DockerDaemonResolverNew() dockref.Resolver {
+func DockerDaemonResolverNew(opts dockref.ResolverOptions) dockref.Resolver {
 	repo := &dockerDaemonResolver{
 		NewCli: newCli,
 
@@ -136,4 +137,30 @@ func (repo dockerDaemonResolver) FindAllTags(reference dockref.Reference) ([]doc
 	}
 
 	return refs, nil
+}
+
+func (repo dockerDaemonResolver) Resolve(reference dockref.Reference) (dockref.Reference, error) {
+	imageInspect, err := repo.imageInspect(reference)
+
+	if err != nil {
+		return nil, err
+	}
+
+	digs := imageInspect.RepoDigests
+	tags := imageInspect.RepoTags
+
+	// TODO why can there more than one digest?
+	for _, tag := range tags {
+		if tag == "latest" && reference.Tag() == "" || reference.Tag() == tag {
+			tagRef := dockref.MustParse(tag)
+			r := reference.WithTag(tagRef.Tag())
+			for _, dig := range digs {
+				digRef := dockref.MustParse(dig)
+				r = r.WithDigest(digRef.DigestString())
+				return r, nil
+			}
+		}
+	}
+
+	return nil, errors.Errorf("Could not find a image matching %s via docker daemon. Maybe you need to pull the image?", reference.Formatted())
 }

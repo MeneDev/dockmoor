@@ -10,13 +10,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"io"
-	"os"
 	"testing"
 )
 
-func dockerDaemonResolverNewTest() *dockerDaemonResolver {
-	repo := DockerDaemonResolverNew()
-	resolver := repo.(*dockerDaemonResolver)
+func dockerDaemonResolverNewTest(options dockref.ResolverOptions) *dockerDaemonResolver {
+	reser := DockerDaemonResolverNew(options)
+	resolver := reser.(*dockerDaemonResolver)
 	return resolver
 }
 
@@ -61,9 +60,9 @@ func (m *mockDockerAPIClient) ImageInspectWithRaw(ctx context.Context, image str
 }
 
 func TestDockerDaemonRegistry_Resolve(t *testing.T) {
-	repo := dockerDaemonResolverNewTest()
+	reser := dockerDaemonResolverNewTest(dockref.ResolverOptions{Mode: dockref.ResolveModeUnchanged})
 	mockCli := &mockDockerCli{}
-	repo.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
+	reser.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
 		return mockCli
 	}
 
@@ -106,7 +105,7 @@ func TestDockerDaemonRegistry_Resolve(t *testing.T) {
 		Return(types.ImageInspect{}, nil, errors.New("Error"))
 
 	t.Run("invalid", func(t *testing.T) {
-		references, e := repo.FindAllTags(dockref.MustParse("unknown:unknown"))
+		references, e := reser.FindAllTags(dockref.MustParse("unknown:unknown"))
 		assert.Error(t, e)
 		assert.Nil(t, references)
 	})
@@ -133,7 +132,7 @@ func TestDockerDaemonRegistry_Resolve(t *testing.T) {
 			ref, e := dockref.Parse(tst.name)
 			assert.Nil(t, e)
 
-			resolve, e := repo.FindAllTags(ref)
+			resolve, e := reser.FindAllTags(ref)
 			assert.Nil(t, e)
 
 			assert.NotNil(t, resolve)
@@ -151,7 +150,7 @@ func TestDockerDaemonRegistry_Resolve(t *testing.T) {
 		t.Run("Resolves digest "+dig, func(t *testing.T) {
 			ref := dockref.MustParse(dig)
 
-			resolve, e := repo.FindAllTags(ref)
+			resolve, e := reser.FindAllTags(ref)
 			assert.Nil(t, e)
 
 			assert.NotNil(t, resolve)
@@ -191,8 +190,8 @@ func (m *mockDockerCliInterface) Client() dockerAPIClient {
 
 func TestDockerDaemonRegistry_newClient(t *testing.T) {
 	t.Run("unresolvable host returns error", func(t *testing.T) {
-		repo := dockerDaemonResolverNewTest()
-		repo.osGetenv = func(key string) string {
+		reser := dockerDaemonResolverNewTest(dockref.ResolverOptions{Mode: dockref.ResolveModeUnchanged})
+		reser.osGetenv = func(key string) string {
 			switch key {
 			case "DOCKER_HOST":
 				return "the host is not valid!"
@@ -200,14 +199,14 @@ func TestDockerDaemonRegistry_newClient(t *testing.T) {
 			return ""
 		}
 
-		apiClient, e := repo.newClient()
+		apiClient, e := reser.newClient()
 		assert.Error(t, e)
 		assert.Nil(t, apiClient)
 	})
 
 	t.Run("unresolvable host returns error", func(t *testing.T) {
-		repo := dockerDaemonResolverNewTest()
-		repo.osGetenv = func(key string) string {
+		reser := dockerDaemonResolverNewTest(dockref.ResolverOptions{Mode: dockref.ResolveModeUnchanged})
+		reser.osGetenv = func(key string) string {
 			switch key {
 			case "DOCKER_TLS":
 				return "1"
@@ -216,7 +215,7 @@ func TestDockerDaemonRegistry_newClient(t *testing.T) {
 		}
 
 		client := &mockDockerCliInterface{}
-		repo.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
+		reser.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
 			return client
 		}
 
@@ -231,7 +230,7 @@ func TestDockerDaemonRegistry_newClient(t *testing.T) {
 			}
 		}).Return(nil)
 		client.On("Client").Return(nil)
-		_, e := repo.newClient()
+		_, e := reser.newClient()
 		assert.Nil(t, e)
 	})
 
@@ -240,14 +239,10 @@ func TestDockerDaemonRegistry_newClient(t *testing.T) {
 func TestDockerDaemonRegistry_Resolve_IT(t *testing.T) {
 	// integration tests
 	// require pulled nginx images
-	repo := DockerDaemonResolverNew()
-
-	println("DOCKER_CERT_PATH " + os.Getenv("DOCKER_CERT_PATH"))
-	println("DOCKER_TLS " + os.Getenv("DOCKER_TLS"))
-	println("DOCKER_TLS_VERIFY " + os.Getenv("DOCKER_TLS_VERIFY"))
+	reser := DockerDaemonResolverNew(dockref.ResolverOptions{Mode: dockref.ResolveModeUnchanged})
 
 	t.Run("invalid", func(t *testing.T) {
-		references, e := repo.FindAllTags(dockref.MustParse("unknown:unknown"))
+		references, e := reser.FindAllTags(dockref.MustParse("unknown:unknown"))
 		assert.Error(t, e)
 		assert.Nil(t, references)
 	})
@@ -267,7 +262,7 @@ func TestDockerDaemonRegistry_Resolve_IT(t *testing.T) {
 			ref, e := dockref.Parse(tst.name)
 			assert.Nil(t, e)
 
-			resolve, e := repo.FindAllTags(ref)
+			resolve, e := reser.FindAllTags(ref)
 			assert.Nil(t, e)
 
 			assert.NotNil(t, resolve)
@@ -284,7 +279,7 @@ func TestDockerDaemonRegistry_Resolve_IT(t *testing.T) {
 		t.Run("Resolves digest "+dig, func(t *testing.T) {
 			ref := dockref.MustParse(dig)
 
-			resolve, e := repo.FindAllTags(ref)
+			resolve, e := reser.FindAllTags(ref)
 			assert.Nil(t, e)
 
 			assert.NotNil(t, resolve)
@@ -304,9 +299,9 @@ func TestDockerDaemonRegistry_Resolve_IT(t *testing.T) {
 }
 
 func TestDockerDaemonRegistry_Resolve_Error_in_Initialize(t *testing.T) {
-	repo := dockerDaemonResolverNewTest()
+	reser := dockerDaemonResolverNewTest(dockref.ResolverOptions{Mode: dockref.ResolveModeUnchanged})
 	mockCli := &mockDockerCli{}
-	repo.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
+	reser.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
 		return mockCli
 	}
 
@@ -316,16 +311,16 @@ func TestDockerDaemonRegistry_Resolve_Error_in_Initialize(t *testing.T) {
 	mockCli.On("Initialize", mock.Anything).Return(expected)
 	mockCli.On("Client").Return(mockClient)
 
-	references, e := repo.FindAllTags(dockref.MustParse("nginx"))
+	references, e := reser.FindAllTags(dockref.MustParse("nginx"))
 	assert.Error(t, e)
 	assert.Equal(t, expected, e)
 	assert.Empty(t, references)
 }
 
 func TestDockerDaemonResolver_Resolve_DigestOnly(t *testing.T) {
-	repo := dockerDaemonResolverNewTest()
+	reser := dockerDaemonResolverNewTest(dockref.ResolverOptions{Mode: dockref.ResolveModeUnchanged})
 	mockCli := &mockDockerCli{}
-	repo.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
+	reser.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
 		return mockCli
 	}
 
@@ -339,7 +334,7 @@ func TestDockerDaemonResolver_Resolve_DigestOnly(t *testing.T) {
 			ID: "sha256:3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58",
 		}, nil, nil)
 
-	references, e := repo.FindAllTags(dockref.MustParse("3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58"))
+	references, e := reser.FindAllTags(dockref.MustParse("3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58"))
 	assert.Nil(t, e)
 	assert.NotEmpty(t, references)
 
@@ -350,9 +345,9 @@ func TestDockerDaemonResolver_Resolve_DigestOnly(t *testing.T) {
 }
 
 func TestDockerDaemonResolver_Resolve_LocalOnly_but_tagged(t *testing.T) {
-	repo := dockerDaemonResolverNewTest()
+	reser := dockerDaemonResolverNewTest(dockref.ResolverOptions{Mode: dockref.ResolveModeUnchanged})
 	mockCli := &mockDockerCli{}
-	repo.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
+	reser.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
 		return mockCli
 	}
 
@@ -367,7 +362,7 @@ func TestDockerDaemonResolver_Resolve_LocalOnly_but_tagged(t *testing.T) {
 			RepoTags: []string{"test:tagged"},
 		}, nil, nil)
 
-	references, e := repo.FindAllTags(dockref.MustParse("3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58"))
+	references, e := reser.FindAllTags(dockref.MustParse("3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58"))
 	assert.Nil(t, e)
 	assert.NotEmpty(t, references)
 

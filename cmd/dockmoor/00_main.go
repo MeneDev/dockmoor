@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/MeneDev/dockmoor/dockfmt"
 	_ "github.com/MeneDev/dockmoor/dockfmt/dockerfile"
-	"github.com/MeneDev/dockmoor/dockref"
-	"github.com/MeneDev/dockmoor/dockref/resolver"
 	"github.com/jessevdk/go-flags"
 	"github.com/sirupsen/logrus"
 	"io"
@@ -25,8 +23,6 @@ type mainOptions struct {
 	LogLevel    string `required:"no" short:"l" long:"log-level" description:"Sets the log-level" choice:"NONE" choice:"ERROR" choice:"WARN" choice:"INFO" choice:"DEBUG" default:"WARN"`
 	ShowVersion bool   `required:"no" long:"version" description:"Show version and exit"`
 
-	Resolver string `required:"no" short:"r" long:"resolver" description:"Strategy to resolve image references" choice:"dockerd" choice:"registry" default:"dockerd"`
-
 	Help struct {
 		Help          bool `short:"h" long:"help" description:"Show help and exit"`
 		Manpage       bool `required:"no" long:"manpage" description:"Show man page and exit"`
@@ -40,8 +36,6 @@ type mainOptions struct {
 	formatProvider dockfmt.FormatProvider
 	stdout         io.Writer
 	stdin          io.ReadCloser
-
-	resolverFactory func() func() dockref.Resolver
 }
 
 var osStdout io.Writer = os.Stdout
@@ -60,7 +54,6 @@ func mainOptionsNew() *mainOptions {
 	mainOptions.stdin = osStdin
 	log.SetOutput(osStdout)
 
-	mainOptions.resolverFactory = mainOptions.DefaultResolverFactory
 	return mainOptions
 }
 
@@ -246,18 +239,5 @@ func fmtFprintf(log *logrus.Logger, w io.Writer, format string, a ...interface{}
 	_, err := fmt.Fprintf(w, format, a...)
 	if err != nil {
 		log.Errorf("Error printing: %s", err.Error())
-	}
-}
-
-func (options *mainOptions) DefaultResolverFactory() func() dockref.Resolver {
-	return func() dockref.Resolver {
-		switch options.Resolver {
-		case "dockerd":
-			return resolver.DockerDaemonResolverNew()
-		case "registry":
-			return resolver.DockerRegistryResolverNew()
-		}
-
-		return nil
 	}
 }

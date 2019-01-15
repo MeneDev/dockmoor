@@ -601,6 +601,8 @@ func toRefs(strs []string) []Reference {
 func TestDockref_TagVersionsGreaterOrEqual(t *testing.T) {
 	rootTestCase := t.Name()
 
+	// format: colon separated versions
+	// unfiltered list -> filtered list
 	expectedResults := map[string]string{
 		"1":               "",
 		"2:1":             "",

@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"github.com/MeneDev/dockmoor/dockref/resolver"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
@@ -175,31 +174,4 @@ func TestInvalidFlagIsReportedByName(t *testing.T) {
 	assert.Equal(t, ExitInvalidParams, exitCode)
 	assert.Contains(t, s, "level=error")
 	assert.Contains(t, s, "myInvalidFlag")
-}
-
-func TestInvalidSolverIsNil(t *testing.T) {
-	cmd, _, _, _ := testMain([]string{"--resolver", "dockerd", "pin", "fileNameIn", "fileNameOut"}, addPinCommand)
-
-	po, _ := cmd.(*pinOptions)
-
-	po.mainOptions().Resolver = "Invalid"
-
-	solverFactory := po.mainOptions().resolverFactory()()
-	assert.Nil(t, solverFactory)
-}
-
-func TestUsesDockerdResolver(t *testing.T) {
-	cmd, _, _, _ := testMain([]string{"--resolver", "dockerd", "pin", "fileNameIn"}, addPinCommand)
-
-	po, _ := cmd.(*pinOptions)
-	assert.Equal(t, po.mainOptions().Resolver, "dockerd")
-	assert.IsType(t, resolver.DockerDaemonResolverNew(), po.mainOptions().resolverFactory()())
-}
-
-func TestUsesRegistryResolver(t *testing.T) {
-	cmd, _, _, _ := testMain([]string{"--resolver", "registry", "pin", "fileNameIn"}, addPinCommand)
-
-	po, _ := cmd.(*pinOptions)
-	assert.Equal(t, po.mainOptions().Resolver, "registry")
-	assert.IsType(t, resolver.DockerRegistryResolverNew(), po.mainOptions().resolverFactory()())
 }

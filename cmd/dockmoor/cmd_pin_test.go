@@ -6,6 +6,7 @@ import (
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/MeneDev/dockmoor/dockref"
+	"github.com/MeneDev/dockmoor/dockref/resolver"
 	"github.com/MeneDev/dockmoor/docktst/dockreftst"
 	"github.com/jessevdk/go-flags"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +20,7 @@ type pinOptionsTest struct {
 	*pinOptions
 
 	mainOptionsTest *mainOptionsTest
-	mockRepo        *dockreftst.MockResolver
+	mockResolver    *dockreftst.MockResolver
 }
 
 func (fo *pinOptionsTest) MainOptions() *mainOptionsTest {
@@ -29,15 +30,17 @@ func (fo *pinOptionsTest) MainOptions() *mainOptionsTest {
 func pinOptionsTestNew() *pinOptionsTest {
 	mainOptions := mainOptionsTestNew()
 
-	repo := dockreftst.MockResolverNew()
+	resolver := dockreftst.MockResolverNew()
 
 	pinOptions := &pinOptionsTest{
-		pinOptions: pinOptionsNew(mainOptions.mainOptions, func() dockref.Resolver {
-			return repo
-		}),
+		pinOptions:      pinOptionsNew(mainOptions.mainOptions),
 		mainOptionsTest: mainOptions,
-		mockRepo:        repo,
+		mockResolver:    resolver,
 	}
+	pinOptions.resolverFactory = func(_name string) dockref.Resolver {
+		return resolver
+	}
+
 	return pinOptions
 }
 
@@ -202,7 +205,7 @@ func TestPinCommand_applyFormatProcessor_FailsWithInvalidFormattingFlags(t *test
 	format.OnProcess(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	processorMock := &FormatProcessorMock{}
 
-	po.mockRepo.OnResolve(mock.Anything).
+	po.mockResolver.OnResolve(mock.Anything).
 		Return(dockref.MustParse("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240"), nil)
 
 	processorMock.process = func(imageNameProcessor dockfmt.ImageNameProcessor) error {
@@ -244,17 +247,17 @@ func TestPinCommand_FailsWhenErrorInProcess(t *testing.T) {
 
 func TestPinCommandPins_unchanged(t *testing.T) {
 	po := pinOptionsTestNew()
-	po.mockRepo.OnResolve(dockref.MustParse("nginx")).
+	po.mockResolver.OnResolve(dockref.MustParse("nginx")).
 		Return(dockref.MustParse("nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240"), nil)
 
-	po.mockRepo.OnResolve(dockref.MustParse("nginx:tag")).
+	po.mockResolver.OnResolve(dockref.MustParse("nginx:tag")).
 		Return(dockref.MustParse("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240"), nil)
 
-	po.mockRepo.OnResolve(dockref.MustParse("nginx:latest")).
+	po.mockResolver.OnResolve(dockref.MustParse("nginx:latest")).
 		Return(
 			dockref.MustParse("nginx:latest@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"), nil)
 
-	po.mockRepo.OnResolve(dockref.MustParse("menedev/testimagea")).
+	po.mockResolver.OnResolve(dockref.MustParse("menedev/testimagea")).
 		Return(
 			dockref.MustParse("menedev/testimagea:latest@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"), nil)
 
@@ -325,10 +328,10 @@ func TestPinCommandPins_most_precise_version(t *testing.T) {
 	return
 
 	po := pinOptionsTestNew()
-	po.mockRepo.OnFindAllTags(dockref.MustParse("nginx")).
+	po.mockResolver.OnFindAllTags(dockref.MustParse("nginx")).
 		Return([]dockref.Reference{dockref.MustParse("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")}, nil)
 
-	po.mockRepo.OnFindAllTags(dockref.MustParse("nginx:latest")).
+	po.mockResolver.OnFindAllTags(dockref.MustParse("nginx:latest")).
 		Return([]dockref.Reference{
 			dockref.MustParse("nginx:1@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
 			dockref.MustParse("nginx:1.15@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
@@ -336,7 +339,7 @@ func TestPinCommandPins_most_precise_version(t *testing.T) {
 			dockref.MustParse("nginx:latest@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
 		}, nil)
 
-	po.mockRepo.OnFindAllTags(dockref.MustParse("menedev/testimagea")).
+	po.mockResolver.OnFindAllTags(dockref.MustParse("menedev/testimagea")).
 		Return([]dockref.Reference{
 			dockref.MustParse("menedev/testimagea:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
 		}, nil)
@@ -435,23 +438,36 @@ func TestPinWritesToInputFile(t *testing.T) {
 	defer os.Remove(df1)
 
 	os.Args = []string{"exe", "pin", df1}
-	mainOptions := mainOptionsACNew(addPinCommand)
 
-	factory := mainOptions.resolverFactory()
-	resolver := factory()
-	repo := resolver.(*dockreftst.MockResolver)
+	rslvr := dockreftst.MockResolverNew()
 
-	repo.OnResolve(dockref.MustParse("img")).Return(
+	rslvr.OnFindAllTags(dockref.MustParse("img")).Return([]dockref.Reference{
+		dockref.MustParse("img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf"),
+	}, nil)
+	rslvr.OnResolve(dockref.MustParse("img")).Return(
 		dockref.MustParse("img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf"), nil)
+
+	rslvr.OnResolve(dockref.MustParse("img")).Return(
+		dockref.MustParse("img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf"), nil)
+
+	mainOptions := mainOptionsACNew(addPinCommandWith(func(mainOptions *mainOptions) *pinOptions {
+		po := pinOptionsNew(mainOptions)
+
+		po.resolverFactory = func(_name string) dockref.Resolver {
+			return rslvr
+		}
+
+		return po
+	}))
 
 	exitCode := doMain(mainOptions)
 
 	assert.Equal(t, ExitSuccess, exitCode)
 
-	bytes, e := ioutil.ReadFile(df1)
+	dfBytes, e := ioutil.ReadFile(df1)
 	assert.Nil(t, e)
 
-	s := string(bytes)
+	s := string(dfBytes)
 
 	assert.Equal(t, `FROM img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf`, s)
 }
@@ -464,17 +480,24 @@ func TestPinWritesToOutputFileAndNotToInputfile(t *testing.T) {
 	defer os.Remove(df2)
 
 	os.Args = []string{"exe", "pin", "--output", df2, df1}
-	mainOptions := mainOptionsACNew(addPinCommand)
 
-	factory := mainOptions.resolverFactory()
-	resolver := factory()
-	repo := resolver.(*dockreftst.MockResolver)
+	resolver := dockreftst.MockResolverNew()
 
-	repo.OnFindAllTags(dockref.MustParse("img")).Return([]dockref.Reference{
+	resolver.OnFindAllTags(dockref.MustParse("img")).Return([]dockref.Reference{
 		dockref.MustParse("img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf"),
 	}, nil)
-	repo.OnResolve(dockref.MustParse("img")).Return(
+	resolver.OnResolve(dockref.MustParse("img")).Return(
 		dockref.MustParse("img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf"), nil)
+
+	mainOptions := mainOptionsACNew(addPinCommandWith(func(mainOptions *mainOptions) *pinOptions {
+		po := pinOptionsNew(mainOptions)
+
+		po.resolverFactory = func(_name string) dockref.Resolver {
+			return resolver
+		}
+
+		return po
+	}))
 
 	exitCode := doMain(mainOptions)
 
@@ -511,4 +534,32 @@ func TestPinOptions_applyFormatProcessor_ReturnsError(t *testing.T) {
 	err := po.applyFormatProcessor(predicate, processorMock)
 
 	assert.Equal(t, expected, err)
+}
+
+func TestInvalidSolverIsNil(t *testing.T) {
+	po := pinOptionsNew(nil)
+	testMain([]string{"pin", "--resolver", "Invalid", "fileNameIn", "fileNameOut"}, addPinCommandWith(func(mainOptions *mainOptions) *pinOptions {
+		return po
+	}))
+
+	solverFactory := po.resolverFactory("Invalid")
+	assert.Nil(t, solverFactory)
+}
+
+func TestUsesDockerdResolver(t *testing.T) {
+	po := pinOptionsNew(nil)
+	testMain([]string{"pin", "--resolver", "dockerd", "fileNameIn", "fileNameOut"}, addPinCommandWith(func(mainOptions *mainOptions) *pinOptions {
+		return po
+	}))
+	assert.Equal(t, "dockerd", po.PinOptions.Resolver)
+	assert.IsType(t, resolver.DockerDaemonResolverNew(), po.resolverFactory(po.PinOptions.Resolver))
+}
+
+func TestUsesRegistryResolver(t *testing.T) {
+	po := pinOptionsNew(nil)
+	testMain([]string{"pin", "--resolver", "registry", "fileNameIn", "fileNameOut"}, addPinCommandWith(func(mainOptions *mainOptions) *pinOptions {
+		return po
+	}))
+	assert.Equal(t, "registry", po.PinOptions.Resolver)
+	assert.IsType(t, resolver.DockerRegistryResolverNew(), po.resolverFactory(po.PinOptions.Resolver))
 }

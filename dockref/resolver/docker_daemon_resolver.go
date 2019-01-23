@@ -13,6 +13,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 var _ dockref.Resolver = (*dockerDaemonResolver)(nil)
@@ -33,10 +34,10 @@ func DockerDaemonResolverNew() dockref.Resolver {
 	return repo
 }
 
-func (repo dockerDaemonResolver) imageInspect(reference dockref.Reference) (types.ImageInspect, error) {
+func (reser dockerDaemonResolver) imageInspect(reference dockref.Reference) (types.ImageInspect, error) {
 	ctx := context.Background()
 
-	client, err := repo.newClient()
+	client, err := reser.newClient()
 	if err != nil {
 		return types.ImageInspect{}, err
 	}
@@ -46,20 +47,20 @@ func (repo dockerDaemonResolver) imageInspect(reference dockref.Reference) (type
 	return imageInspect, err
 }
 
-func (repo dockerDaemonResolver) newClient() (dockerAPIClient, error) {
+func (reser dockerDaemonResolver) newClient() (dockerAPIClient, error) {
 
-	dockerTLSVerify := repo.osGetenv("DOCKER_TLS_VERIFY") != ""
-	dockerTLS := repo.osGetenv("DOCKER_TLS") != ""
+	dockerTLSVerify := reser.osGetenv("DOCKER_TLS_VERIFY") != ""
+	dockerTLS := reser.osGetenv("DOCKER_TLS") != ""
 
 	in := ioutil.NopCloser(bytes.NewBuffer(nil))
 	out := bytes.NewBuffer(nil)
 	errWriter := bytes.NewBuffer(nil)
 	isTrusted := false
-	cli := repo.NewCli(in, out, errWriter, isTrusted)
+	cli := reser.NewCli(in, out, errWriter, isTrusted)
 	cliOpts := flags.NewClientOptions()
 
 	tls := dockerTLS || dockerTLSVerify
-	host, e := opts.ParseHost(tls, repo.osGetenv("DOCKER_HOST"))
+	host, e := opts.ParseHost(tls, reser.osGetenv("DOCKER_HOST"))
 	if e != nil {
 		return nil, e
 	}
@@ -105,8 +106,8 @@ func newCli(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrus
 	return &dockerCli{command.NewDockerCli(in, out, errWriter, isTrusted, nil)}
 }
 
-func (repo dockerDaemonResolver) FindAllTags(reference dockref.Reference) ([]dockref.Reference, error) {
-	imageInspect, err := repo.imageInspect(reference)
+func (reser dockerDaemonResolver) FindAllTags(reference dockref.Reference) ([]dockref.Reference, error) {
+	imageInspect, err := reser.imageInspect(reference)
 
 	if err != nil {
 		return nil, err
@@ -139,29 +140,103 @@ func (repo dockerDaemonResolver) FindAllTags(reference dockref.Reference) ([]doc
 	return refs, nil
 }
 
-func (repo dockerDaemonResolver) Resolve(reference dockref.Reference) (dockref.Reference, error) {
-	imageInspect, err := repo.imageInspect(reference)
+func (reser dockerDaemonResolver) Resolve(reference dockref.Reference) (dockref.Reference, error) {
+	imageInspect, err := reser.imageInspect(reference)
 
 	if err != nil {
 		return nil, err
 	}
 
 	digs := imageInspect.RepoDigests
-	tags := imageInspect.RepoTags
+	//tags := imageInspect.RepoTags
 
-	// TODO why can there more than one digest?
-	for _, tag := range tags {
-		tagRef := dockref.MustParse(tag)
-		tag = tagRef.Tag()
-		if tag == "latest" && reference.Tag() == "" || reference.Tag() == tag {
-			r := reference.WithTag(tagRef.Tag())
-			for _, dig := range digs {
-				digRef := dockref.MustParse(dig)
-				r = r.WithDigest(digRef.DigestString())
-				return r, nil
-			}
+	// TODO there can be multiple repo digests (with the same digest) when the image has been pulled from multiple
+	// registries
+	// eg
+	// menedev/testimagea@sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624
+	// localhost:5000/menedev/testimagea@sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624
+
+	digFilters := []func(dig string) bool{
+		func(dig string) bool {
+			return true
+		},
+
+		func(dig string) bool {
+			digRef := dockref.MustParse(dig)
+
+			return digRef.Domain() == reference.Domain()
+		},
+	}
+
+	var dig dockref.Reference
+	for _, filter := range digFilters {
+		digs = filterStrings(digs, filter)
+		if len(digs) == 1 {
+			dig = dockref.MustParse(digs[0])
+			break
 		}
 	}
 
-	return nil, errors.Errorf("Could not find a image matching %s via docker daemon. Maybe you need to pull the image?", reference.Formatted())
+	if dig == nil {
+		return nil, errors.Errorf(
+			"ambigious RepoDigests [%s] for reference %s",
+			strings.Join(imageInspect.RepoDigests, ", "),
+			reference.Original())
+	}
+	//
+	//digDomain := dig.Domain()
+	//
+	//tagsFilters := []func(tag string) bool{
+	//	func(tag string) bool {
+	//		return true
+	//	},
+	//
+	//	func(dig string) bool {
+	//		digRef := dockref.MustParse(dig)
+	//
+	//		return digRef.Domain() == digDomain
+	//	},
+	//}
+	//
+	//
+	//var tag dockref.Reference
+	//for _, filter := range tagsFilters {
+	//	tags = filterStrings(tags, filter)
+	//	for _, t := range tags {
+	//		tagRef := dockref.MustParse(t)
+	//		t = tagRef.Tag()
+	//		implicitLatestTag := t == "latest" && reference.Tag() == ""
+	//		tagsEqual := reference.Tag() == t
+	//		onlyTag := reference.Tag() == "" && len(tags) == 1
+	//		if implicitLatestTag || tagsEqual || onlyTag {
+	//			tag = tagRef
+	//			break
+	//		}
+	//	}
+	//}
+
+	//if tag == "" {
+	//	return nil, errors.Errorf("non of the tags [%s] matched for %s on %s",
+	//		strings.Join(imageInspect.RepoTags, ","),
+	//		reference.Original(),
+	//		digDomain)
+	//}
+
+	reference = reference.WithDigest(dig.DigestString())
+	//if tag != nil {
+	//	reference = reference.WithTag(tag.Tag())
+	//}
+
+	return reference, nil
+}
+
+func filterStrings(strings []string, predicate func(s string) bool) []string {
+	filteredStrings := make([]string, 0)
+	for _, s := range strings {
+		if predicate(s) {
+			filteredStrings = append(filteredStrings, s)
+		}
+	}
+
+	return filteredStrings
 }

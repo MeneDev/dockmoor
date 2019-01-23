@@ -8,5 +8,7 @@
   version = "18.9.0"
 
 [[constraint]]
-  name = "github.com/blang/semver"
-  version = "3.5.1"
+  name = "github.com/testcontainers/testcontainers-go"
+#  version = "0.0.1"
+  branch = "master"
+  source = "github.com/MeneDev/testcontainer-go.git"

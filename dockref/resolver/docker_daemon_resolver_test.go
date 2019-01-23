@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"io"
+	//"strings"
 	"testing"
 )
 
@@ -59,7 +60,7 @@ func (m *mockDockerAPIClient) ImageInspectWithRaw(ctx context.Context, image str
 	return imageInspect, bytes, err
 }
 
-func TestDockerDaemonRegistry_Resolve(t *testing.T) {
+func TestDockerDaemonRegistry_FindAllTags(t *testing.T) {
 	reser := dockerDaemonResolverNewTest()
 	mockCli := &mockDockerCli{}
 	reser.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
@@ -169,6 +170,202 @@ func TestDockerDaemonRegistry_Resolve(t *testing.T) {
 	}
 }
 
+func dockerDaemonResolverWithMockedDeamon() *dockerDaemonResolver {
+	reser := dockerDaemonResolverNewTest()
+	mockCli := &mockDockerCli{}
+	reser.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
+		return mockCli
+	}
+
+	mockClient := &mockDockerAPIClient{}
+
+	mockCli.On("Initialize", mock.Anything).Return(nil)
+	mockCli.On("Client").Return(mockClient)
+
+	mockClient.On("ImageInspectWithRaw", mock.Anything, "nginx:1.15.5").
+		Return(types.ImageInspect{
+			RepoDigests: []string{"nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e"},
+			RepoTags:    []string{"nginx:1.15.5"},
+		}, nil, nil)
+
+	mockClient.On("ImageInspectWithRaw", mock.Anything, "nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e").
+		Return(types.ImageInspect{
+			RepoDigests: []string{"nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e"},
+			RepoTags:    []string{"nginx:1.15.5"},
+		}, nil, nil)
+
+	mockClient.On("ImageInspectWithRaw", mock.Anything, "nginx:1.15.6").
+		Return(types.ImageInspect{
+			RepoDigests: []string{"nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"},
+			RepoTags:    []string{"nginx:1.15.6", "nginx:latest"},
+		}, nil, nil)
+
+	mockClient.On("ImageInspectWithRaw", mock.Anything, "nginx:latest").
+		Return(types.ImageInspect{
+			RepoDigests: []string{"nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"},
+			RepoTags:    []string{"nginx:1.15.6", "nginx:latest"},
+		}, nil, nil)
+
+	mockClient.On("ImageInspectWithRaw", mock.Anything, "nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991").
+		Return(types.ImageInspect{
+			RepoDigests: []string{"nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"},
+			RepoTags:    []string{"nginx:1.15.6", "nginx:latest"},
+		}, nil, nil)
+
+	mockClient.On("ImageInspectWithRaw", mock.Anything, "unknown:unknown").
+		Return(types.ImageInspect{}, nil, errors.New("Error"))
+
+	return reser
+}
+
+func TestDockerDaemonRegistry_Resolve(t *testing.T) {
+	//
+	//runMockedOrIntegration := func(t *testing.T) {
+	//	testName := t.Name()
+	//	println(testName)
+	//	testNameComponents := strings.Split(testName, "/")
+	//	mockOrIT := testNameComponents[len(testNameComponents)-1]
+	//
+	//	t.Run("invalid", func(t *testing.T) {
+	//		references, e := reser.Resolve(dockref.MustParse("unknown:unknown"))
+	//		assert.Error(t, e)
+	//		assert.Nil(t, references)
+	//	})
+	//
+	//	type T struct {
+	//		name, digest string
+	//	}
+	//
+	//	testCases := map[string]string{
+	//		"menedev/testimagea": "menedev/testimagea:latest@sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1",
+	//		"menedev/testimagea@sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624": "menedev/testimagea@sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624",
+	//		"menedev/testimagea:1": "menedev/testimagea:1@sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624",
+	//		"menedev/testimagea:2": "menedev/testimagea:1@sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624",
+	//	}
+	//
+	//	parent := t.Name()
+	//	run := func(t *testing.T) {
+	//		testCase := t.Name()[len(parent)+1:]
+	//		original := testCase
+	//
+	//		expected := testCases[original]
+	//
+	//		ref := dockref.MustParse(original)
+	//		resolve, e := reser.Resolve(ref)
+	//		assert.Nil(t, e)
+	//		if e == nil {
+	//			expectedRef := dockref.MustParse(expected)
+	//
+	//			assert.Equal(t, expectedRef.Domain(), resolve.Domain())
+	//			assert.Equal(t, expectedRef.Name(), resolve.Name())
+	//			assert.Equal(t, expectedRef.Tag(), resolve.Tag())
+	//			assert.Equal(t, expectedRef.DigestString(), resolve.DigestString())
+	//		}
+	//	}
+	//
+	//	t.Run("menedev/testimagea", run)
+	//
+	//	// not the latest, multiple tags, multiple repos
+	//	t.Run("menedev/testimagea@sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624", run)
+	//	t.Run("menedev/testimagea:1", run)
+	//	t.Run("menedev/testimagea:2", run)
+	//
+	//	tests := []T{
+	//		{name: "menedev/testimagea", digest: "menedev/testimagea@sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624"},
+	//		{name: "nginx:1.15.5", digest: "nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e"},
+	//		{name: "nginx:1.15.6", digest: "nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"},
+	//		{name: "nginx:latest", digest: "nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"},
+	//		//{name: "nginx:1.15.5-perl", digest: "nginx@sha256:01c45fbd335b5fcfbfe95777508cc16044e0d6a929f5d531f48ab53ca4556578"},
+	//		//{name: "nginx:1.15.5-alpine", digest: "nginx@sha256:ae5da813f8ad7fa785d7668f0b018ecc8c3a87331527a61d83b3b5e816a0f03c"},
+	//		//{name: "nginx:1.15.5-alpine-perl", digest: "nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae"},
+	//		//{name: "nginx:1.14.0", digest: "nginx@sha256:8b600a4d029481cc5b459f1380b30ff6cb98e27544fc02370de836e397e34030"},
+	//		//{name: "nginx:1.14.0-perl", digest: "nginx@sha256:032acb6025fa581888812e79f4efcd32d008e0ce3dfe56c65f9c1011d93ce920"},
+	//		//{name: "nginx:1.14.0-alpine", digest: "nginx@sha256:8976218be775f4244df2a60a169d44606b6978bac4375192074cefc0c7824ddf"},
+	//		//{name: "nginx:1.14.0-alpine-perl", digest: "nginx@sha256:c3d6f9a179ba365ab4b41e176623a6fc9cfc2121567131127e43f5660e0c4767"},
+	//	}
+	//
+	//	for _, tst := range tests {
+	//		t.Run("Resolves name "+tst.name, func(t *testing.T) {
+	//			ref, e := dockref.Parse(tst.name)
+	//			assert.Nil(t, e)
+	//
+	//			resolve, e := reser.Resolve(ref)
+	//			assert.Nil(t, e)
+	//
+	//			assert.NotNil(t, resolve)
+	//			if resolve != nil {
+	//				reference, err := resolve.WithRequestedFormat(dockref.FormatHasName | dockref.FormatHasDigest)
+	//				assert.Nil(t, err)
+	//				assert.Equal(t, tst.digest, reference.Formatted())
+	//			}
+	//		})
+	//	}
+	//
+	//	for _, tst := range tests {
+	//		dig := dockref.MustParse(tst.digest).Formatted()
+	//		//dig = strings.SplitAfter(dig, ":")[1]
+	//		t.Run("Resolves digest "+dig, func(t *testing.T) {
+	//			ref := dockref.MustParse(dig)
+	//
+	//			resolve, e := reser.Resolve(ref)
+	//			assert.Nil(t, e)
+	//
+	//			assert.NotNil(t, resolve)
+	//
+	//			formatted := make([]string, 0)
+	//
+	//			assert.NotNil(t, resolve)
+	//			if resolve != nil {
+	//				reference, err := resolve.WithRequestedFormat(dockref.FormatHasName | dockref.FormatHasTag)
+	//				assert.Nil(t, err)
+	//				f := reference.Formatted()
+	//				formatted = append(formatted, f)
+	//
+	//				assert.Contains(t, formatted, tst.name)
+	//			}
+	//		})
+	//	}
+	//}
+
+	testCases := map[string]string{
+		"menedev/testimagea": "menedev/testimagea@sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1",
+		"menedev/testimagea@sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624": "menedev/testimagea@sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624",
+		"menedev/testimagea:1":     "menedev/testimagea:1@sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624",
+		"menedev/testimagea:2":     "menedev/testimagea:2@sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1",
+		"menedev/testimagea:1.0.0": "menedev/testimagea:1.0.0@sha256:f38b0ff2a0f305cb449770b5ce7aa9e2fe0b7343d5dfa5ec1a4906ea34a5eedf",
+		"menedev/testimagea@sha256:f38b0ff2a0f305cb449770b5ce7aa9e2fe0b7343d5dfa5ec1a4906ea34a5eedf": "menedev/testimagea@sha256:f38b0ff2a0f305cb449770b5ce7aa9e2fe0b7343d5dfa5ec1a4906ea34a5eedf",
+	}
+
+	resolver := DockerDaemonResolverNew()
+	parent := t.Name()
+	run := func(t *testing.T) {
+		testCase := t.Name()[len(parent)+1:]
+		original := testCase
+
+		expected := testCases[original]
+
+		ref := dockref.MustParse(original)
+		resolve, e := resolver.Resolve(ref)
+		assert.Nil(t, e)
+		if e == nil {
+			expectedRef := dockref.MustParse(expected)
+
+			assert.Equal(t, expectedRef.Domain(), resolve.Domain())
+			assert.Equal(t, expectedRef.Name(), resolve.Name())
+			assert.Equal(t, expectedRef.Tag(), resolve.Tag())
+			assert.Equal(t, expectedRef.DigestString(), resolve.DigestString())
+		}
+	}
+
+	t.Run("menedev/testimagea", run)
+	t.Run("menedev/testimagea@sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624", run)
+	t.Run("menedev/testimagea:1", run)
+	t.Run("menedev/testimagea:2", run)
+	t.Run("menedev/testimagea:1.0.0", run)
+	t.Run("menedev/testimagea@sha256:f38b0ff2a0f305cb449770b5ce7aa9e2fe0b7343d5dfa5ec1a4906ea34a5eedf", run)
+
+}
+
 type mockDockerCliInterface struct {
 	mock.Mock
 }
@@ -236,7 +433,7 @@ func TestDockerDaemonRegistry_newClient(t *testing.T) {
 
 }
 
-func TestDockerDaemonRegistry_Resolve_IT(t *testing.T) {
+func TestDockerDaemonRegistry_FindAllTags_IT(t *testing.T) {
 	// integration tests
 	// require pulled nginx images
 	reser := DockerDaemonResolverNew()
@@ -317,7 +514,7 @@ func TestDockerDaemonRegistry_Resolve_Error_in_Initialize(t *testing.T) {
 	assert.Empty(t, references)
 }
 
-func TestDockerDaemonResolver_Resolve_DigestOnly(t *testing.T) {
+func TestDockerDaemonResolver_FindAllTags_DigestOnly(t *testing.T) {
 	reser := dockerDaemonResolverNewTest()
 	mockCli := &mockDockerCli{}
 	reser.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
@@ -344,7 +541,7 @@ func TestDockerDaemonResolver_Resolve_DigestOnly(t *testing.T) {
 	}
 }
 
-func TestDockerDaemonResolver_Resolve_LocalOnly_but_tagged(t *testing.T) {
+func TestDockerDaemonResolver_FindAllTags_LocalOnly_but_tagged(t *testing.T) {
 	reser := dockerDaemonResolverNewTest()
 	mockCli := &mockDockerCli{}
 	reser.NewCli = func(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {

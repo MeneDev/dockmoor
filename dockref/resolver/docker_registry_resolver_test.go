@@ -1,94 +1,152 @@
 package resolver
 
 import (
+	"context"
+	"fmt"
 	"github.com/MeneDev/dockmoor/dockref"
+	"github.com/MeneDev/dockmoor/dockref/resolver/mocks"
+	"github.com/docker/cli/cli/config/credentials"
+	"github.com/docker/docker/api/types"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 	"testing"
+	"time"
 )
 
 func TestDockerRegistryResolver_FindAllTags(t *testing.T) {
-	resolver := DockerRegistryResolverNew()
+	withRegistry(t, "registry_test", func(regAddr string) {
 
-	references, e := resolver.FindAllTags(dockref.MustParse("nginx"))
-	assert.Nil(t, e)
-	assert.NotNil(t, references)
-	lenOfRefs := len(references)
-	assert.True(t, lenOfRefs > 0)
+		resolver := DockerRegistryResolverNew().(*dockerRegistryResolver)
+		resolver.credentialsStoreFactory = func(ref dockref.Reference) (credentials.Store, error) {
+			store := &mocks.Store{}
+			store.On("Get", mock.AnythingOfType("string")).Return(types.AuthConfig{
+				Username: "testuser",
+				Password: "testpassword",
+			}, nil)
+			return store, nil
+		}
+
+		references, e := resolver.FindAllTags(dockref.MustParse(regAddr + "menedev/testimagea"))
+		assert.Nil(t, e)
+		assert.NotNil(t, references)
+		lenOfRefs := len(references)
+		assert.True(t, lenOfRefs > 0)
+	})
 }
 
 func TestDockerRegistryResolver_Resolve_resolves_versions_to_most_exact_version(t *testing.T) {
 
-	type TestCaseResult struct {
+	type TestCaseData struct {
 		ref  string
 		tag  string
 		dig  string
 		mode dockref.ResolveMode
 	}
 
-	t.Run("SemVer versions", func(t *testing.T) {
-		parentTestCase := t.Name()
-		results := map[string]TestCaseResult{
-			"unchanged_menedev/testimagea:2.0.0": {"menedev/testimagea:2.0.0", "2.0.0", "sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1", dockref.ResolveModeUnchanged},
-			"unchanged_menedev/testimagea:2.0":   {"menedev/testimagea:2.0", "2.0", "sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1", dockref.ResolveModeUnchanged},
-			"unchanged_menedev/testimagea:2":     {"menedev/testimagea:2", "2", "sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1", dockref.ResolveModeUnchanged},
-			"unchanged_menedev/testimagea":       {"menedev/testimagea", "latest", "sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1", dockref.ResolveModeUnchanged},
-			//"mostprecise_menedev/testimagea:2.0.0": {"menedev/testimagea:2.0.0", "2.0.0", "sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1", dockref.ResolveModeMostPreciseVersion},
-			//"mostprecise_menedev/testimagea:2.0": {"menedev/testimagea:2.0", "2.0.0", "sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1", dockref.ResolveModeMostPreciseVersion},
-			//"mostprecise_menedev/testimagea:2": {"menedev/testimagea:2", "2.0.0", "sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1", dockref.ResolveModeMostPreciseVersion},
-			//"mostprecise_menedev/testimagea": {"menedev/testimagea", "2.0.0", "sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1", dockref.ResolveModeMostPreciseVersion},
-		}
+	runWith := func(tcd TestCaseData) func(t *testing.T) {
 
-		run := func(t *testing.T) {
-			testCase := t.Name()[len(parentTestCase)+1:]
-			expected := results[testCase]
+		return func(t *testing.T) {
+			resolver := DockerRegistryResolverNew().(*dockerRegistryResolver)
+			resolver.credentialsStoreFactory = func(ref dockref.Reference) (credentials.Store, error) {
+				store := &mocks.Store{}
+				store.On("Get", mock.AnythingOfType("string")).Return(types.AuthConfig{
+					Username: "testuser",
+					Password: "testpassword",
+				}, nil)
+				return store, nil
+			}
 
-			resolver := DockerRegistryResolverNew()
-
-			result, e := resolver.Resolve(dockref.MustParse(expected.ref))
+			result, e := resolver.Resolve(dockref.MustParse(tcd.ref))
 			assert.Nil(t, e)
 			assert.NotNil(t, result)
 			if result != nil {
-				assert.Equal(t, expected.tag, result.Tag())
-				assert.Equal(t, expected.dig, result.DigestString())
-			}
-		}
-		t.Run("unchanged_menedev/testimagea:2.0.0", run)
-		t.Run("unchanged_menedev/testimagea:2.0", run)
-		t.Run("unchanged_menedev/testimagea:2", run)
-		t.Run("unchanged_menedev/testimagea", run)
-		//t.Run("mostprecise_menedev/testimagea:2.0.0", run)
-		//t.Run("mostprecise_menedev/testimagea:2.0", run)
-		//t.Run("mostprecise_menedev/testimagea:2", run)
-		//t.Run("mostprecise_menedev/testimagea", run)
-	})
-
-	t.Run("Named versions", func(t *testing.T) {
-		parentTestCase := t.Name()
-		results := map[string]TestCaseResult{
-			"unchanged_menedev/testimagea:mainline": {"menedev/testimagea:mainline", "mainline", "sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624", dockref.ResolveModeUnchanged},
-			"unchanged_menedev/testimagea:edge":     {"menedev/testimagea:edge", "edge", "sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1", dockref.ResolveModeUnchanged},
-			//"mostprecise_menedev/testimagea:mainline": {"menedev/testimagea:mainline", "mainline", "sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624", dockref.ResolveModeMostPreciseVersion},
-			//"mostprecise_menedev/testimagea:edge": {"menedev/testimagea:edge", "edge", "sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1", dockref.ResolveModeMostPreciseVersion},
-		}
-
-		run := func(t *testing.T) {
-			testCase := t.Name()[len(parentTestCase)+1:]
-			expected := results[testCase]
-
-			resolver := DockerRegistryResolverNew()
-
-			result, e := resolver.Resolve(dockref.MustParse(expected.ref))
-			assert.Nil(t, e)
-			assert.NotNil(t, result)
-			if result != nil {
-				assert.Equal(t, expected.tag, result.Tag())
-				assert.Equal(t, expected.dig, result.DigestString())
+				assert.Equal(t, tcd.tag, result.Tag())
+				assert.Equal(t, tcd.dig, result.DigestString())
 			}
 		}
 
-		t.Run("unchanged_menedev/testimagea:mainline", run)
-		t.Run("unchanged_menedev/testimagea:edge", run)
-		//t.Run("mostprecise_menedev/testimagea:mainline", run)
-		//t.Run("mostprecise_menedev/testimagea:edge", run)
+	}
+
+	runAll := func(regAddr string) {
+		t.Run("unchanged menedev/testimagea:2.0.0", runWith(TestCaseData{
+			regAddr + "menedev/testimagea:2.0.0",
+			"2.0.0",
+			"sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1",
+			dockref.ResolveModeUnchanged}))
+
+		t.Run("unchanged_menedev/testimagea:2.0", runWith(TestCaseData{
+			regAddr + "menedev/testimagea:2.0",
+			"2.0",
+			"sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1",
+			dockref.ResolveModeUnchanged}))
+
+		t.Run("unchanged menedev/testimagea:2", runWith(TestCaseData{
+			regAddr + "menedev/testimagea:2",
+			"2",
+			"sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1",
+			dockref.ResolveModeUnchanged}))
+
+		t.Run("unchanged menedev/testimagea", runWith(TestCaseData{
+			regAddr + "menedev/testimagea",
+			"",
+			"sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1",
+			dockref.ResolveModeUnchanged}))
+
+		t.Run("unchanged menedev/testimagea", runWith(TestCaseData{
+			regAddr + "menedev/testimagea:mainline",
+			"mainline", "sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624",
+			dockref.ResolveModeUnchanged}))
+
+		t.Run("unchanged menedev/testimagea", runWith(TestCaseData{
+			regAddr + "menedev/testimagea:edge",
+			"edge",
+			"sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1",
+			dockref.ResolveModeUnchanged}))
+	}
+
+	withRegistry(t, "registry_test", runAll)
+}
+
+func withRegistry(t *testing.T, containerName string, callback func(registryAddress string)) {
+	ctx := context.Background()
+	req := testcontainers.ContainerRequest{
+		Image:        containerName,
+		ExposedPorts: []string{"5000/tcp"},
+		Env: map[string]string{
+			"REGISTRY_AUTH_HTPASSWD_PATH":  "/auth/.htpasswd",
+			"REGISTRY_AUTH_HTPASSWD_REALM": "registry",
+		},
+		WaitingFor: wait.NewHTTPStrategy("/").
+			WithStartupTimeout(2 * time.Second).
+			WithPort("5000/tcp").
+			WithTLS(true).
+			WithAllowInsecure(true).
+			WithStatusCodeMatcher(func(status int) bool {
+				return status == 200
+			}),
+	}
+
+	registryServer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
 	})
+
+	if err != nil {
+		t.Error(err)
+	}
+	defer registryServer.Terminate(ctx)
+	ip, err := registryServer.Host(ctx)
+	if err != nil {
+		t.Error(err)
+	}
+	port, err := registryServer.MappedPort(ctx, "5000/tcp")
+	if err != nil {
+		t.Error(err)
+	}
+
+	registryAddress := fmt.Sprintf("%s:%s/", ip, port.Port())
+
+	callback(registryAddress)
 }

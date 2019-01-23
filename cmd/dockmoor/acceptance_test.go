@@ -2,8 +2,6 @@ package main
 
 import (
 	"bytes"
-	"github.com/MeneDev/dockmoor/dockref"
-	"github.com/MeneDev/dockmoor/docktst/dockreftst"
 	"github.com/jessevdk/go-flags"
 	"github.com/mattn/go-shellwords"
 	"github.com/stretchr/testify/assert"
@@ -42,12 +40,6 @@ func mainOptionsACNew(commandAdders ...func(mainOptions *mainOptions, adder func
 	mainOptions := mainOptionsNew()
 
 	mainOptions.SetStdout(bytes.NewBuffer(nil))
-	mockResolver := dockreftst.MockResolverNew()
-	mainOptions.resolverFactory = func() func() dockref.Resolver {
-		return func() dockref.Resolver {
-			return mockResolver
-		}
-	}
 
 	for _, adder := range commandAdders {
 		_, err := adder(mainOptions, AddCommand)

@@ -136,7 +136,13 @@ func withRegistry(t *testing.T, containerName string, callback func(registryAddr
 	if err != nil {
 		t.Error(err)
 	}
-	defer registryServer.Terminate(ctx)
+	defer func() {
+		err := registryServer.Terminate(ctx)
+		if err != nil {
+			t.Error(err)
+		}
+	}()
+
 	ip, err := registryServer.Host(ctx)
 	if err != nil {
 		t.Error(err)

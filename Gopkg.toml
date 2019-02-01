@@ -10,5 +10,5 @@
 [[constraint]]
   name = "github.com/testcontainers/testcontainers-go"
 #  version = "0.0.1"
-  branch = "master"
+  revision = "7e2cf9ab83986d4788a7ba45fb1183f0fcccd7f0"
   source = "github.com/MeneDev/testcontainer-go.git"

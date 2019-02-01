@@ -1,11 +1,27 @@
 # Changelog
 
+## v0.2.0
+
+### New features
+
+* The docker registry resolver can communicate directly with docker registries
+  including docker hub.
+
+### Removed features
+
+* The pin command will not change the tag anymore since the the 0.1.0 algorithms
+  was subject made assumtions that are not necessarily true.
+
+### Backwards incompatible changes
+
+* The `pin` command will no longer try to infer the most precise version automatically.
+
 ## v0.1.0
 
 #### New commands
 * pin: add tags and digests to image references
 
-####
+#### Other
 * updated to golang 1.11.2
 
 ## v0.0.6

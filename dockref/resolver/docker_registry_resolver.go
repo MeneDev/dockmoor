@@ -60,6 +60,9 @@ func (lr lookupReference) Name() string {
 func (repo *dockerRegistryResolver) FindAllTags(ref dockref.Reference) ([]dockref.Reference, error) {
 	ctx := context.Background()
 	tagService, err := repo.tagService(ctx, ref)
+	if err != nil {
+		return nil, err
+	}
 
 	strings, err := tagService.All(ctx)
 	if err != nil {
@@ -80,6 +83,9 @@ func (repo *dockerRegistryResolver) FindAllTags(ref dockref.Reference) ([]dockre
 func (repo *dockerRegistryResolver) Resolve(ref dockref.Reference) (dockref.Reference, error) {
 	ctx := context.Background()
 	tagService, err := repo.tagService(ctx, ref)
+	if err != nil {
+		return nil, err
+	}
 
 	tag := ref.Tag()
 	if tag == "" {
@@ -115,18 +121,36 @@ func (repo *dockerRegistryResolver) tagService(ctx context.Context, ref dockref.
 
 	options := registry.ServiceOptions{}
 	defaultService, err := registry.NewService(options)
-
+	if err != nil {
+		return nil, err
+	}
 	repoInfo, err := registry.ParseRepositoryInfo(ref)
+	if err != nil {
+		return nil, err
+	}
+
 	endpoints, err := defaultService.LookupPullEndpoints(reference.Domain(repoInfo.Name))
+	if err != nil {
+		return nil, err
+	}
+
 	authConfig, err := store.Get(ref.Domain())
 	if err != nil {
 		return nil, err
 	}
 	lrr := lookupReference{ref}
 	roundTripper, err := getHTTPTransport(authConfig, endpoints[0], lrr.Name(), UserAgent())
+	if err != nil {
+		return nil, err
+	}
+
 	repository, err := client.NewRepository(lrr, endpoints[0].URL.String(), roundTripper)
+	if err != nil {
+		return nil, err
+	}
+
 	tagService := repository.Tags(ctx)
-	return tagService, err
+	return tagService, nil
 }
 
 // getHTTPTransport builds a transport for use in communicating with a registry

@@ -57,8 +57,8 @@ func (lo *listOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, er
 		})
 	})
 
-	if exitCode, ok := exitCodeFromError(err); ok {
-		return exitCode, err
+	if errExitCode, ok := exitCodeFromError(err); ok {
+		return errExitCode, err
 	}
 
 	if lo.matches {

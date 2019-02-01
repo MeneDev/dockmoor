@@ -445,15 +445,14 @@
   version = "v1.2.2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:b8b4c27891e3411becd2195e3a2921138b93138e611f5d33db204ebfd22739b3"
+  digest = "1:f3b80e4755711db9ac24ea7cc5273651bf9b01946d260c61c694e8183c8f9cc8"
   name = "github.com/testcontainers/testcontainers-go"
   packages = [
     ".",
     "wait",
   ]
   pruneopts = ""
-  revision = "d372fb86b1af9276497f2056fd7c11a32c651162"
+  revision = "7e2cf9ab83986d4788a7ba45fb1183f0fcccd7f0"
   source = "github.com/MeneDev/testcontainer-go.git"
 
 [[projects]]
@@ -519,16 +518,16 @@
     "github.com/docker/cli/cli",
     "github.com/docker/cli/cli/command",
     "github.com/docker/cli/cli/config",
+    "github.com/docker/cli/cli/config/credentials",
     "github.com/docker/cli/cli/flags",
-    "github.com/docker/cli/cli/manifest/types",
     "github.com/docker/cli/opts",
     "github.com/docker/distribution",
-    "github.com/docker/distribution/manifest/manifestlist",
     "github.com/docker/distribution/reference",
     "github.com/docker/distribution/registry/client",
     "github.com/docker/distribution/registry/client/auth",
     "github.com/docker/distribution/registry/client/transport",
     "github.com/docker/docker/api/types",
+    "github.com/docker/docker/client",
     "github.com/docker/docker/registry",
     "github.com/hashicorp/go-multierror",
     "github.com/jessevdk/go-flags",

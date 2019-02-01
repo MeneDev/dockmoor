@@ -12,14 +12,15 @@ dockmoor helps you to create reproducible builds with Docker.
 
 *Implemented*
 
-* pin image references to currently used version to make builds reproducible
+* pin image references to currently used image via digest to make builds reproducible
+** works with (remote) docker daemon and docker registry (e.g. docker hub)
 * list image references
 * find Dockerfiles
 * filter by various predicates, e.g. untagged, `latest`, RegEx-match
 
 *Upcomming*
 
-* communicate with docker registries to find images that are not pulled
+* amend missing tags
 * find outdated image references
 * update to newer major, minor or patch version respecting SemVer
 * other formats: docker-compose, GitLab CI, Circle CI, Travis CI, ...

@@ -325,97 +325,96 @@ func TestPinCommandPins_unchanged(t *testing.T) {
 
 func TestPinCommandPins_most_precise_version(t *testing.T) {
 	t.SkipNow()
-	return
 
-	po := pinOptionsTestNew()
-	po.mockResolver.OnFindAllTags(dockref.MustParse("nginx")).
-		Return([]dockref.Reference{dockref.MustParse("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")}, nil)
-
-	po.mockResolver.OnFindAllTags(dockref.MustParse("nginx:latest")).
-		Return([]dockref.Reference{
-			dockref.MustParse("nginx:1@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
-			dockref.MustParse("nginx:1.15@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
-			dockref.MustParse("nginx:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
-			dockref.MustParse("nginx:latest@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
-		}, nil)
-
-	po.mockResolver.OnFindAllTags(dockref.MustParse("menedev/testimagea")).
-		Return([]dockref.Reference{
-			dockref.MustParse("menedev/testimagea:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
-		}, nil)
-
-	processorMock := &FormatProcessorMock{}
-
-	pin := func(refStr, expected string) {
-		ran := false
-		processorMock.process = func(imageNameProcessor dockfmt.ImageNameProcessor) error {
-			ref, e := imageNameProcessor(dockref.MustParse(refStr))
-			assert.Nil(t, e)
-			str := ref.String()
-			assert.Equal(t, expected, str)
-			ran = true
-			return nil
-		}
-		predicate, e := dockproc.AnyPredicateNew()
-		assert.Nil(t, e)
-
-		po.applyFormatProcessor(predicate, processorMock)
-		assert.True(t, ran)
-	}
-
-	pinNginx := func(expected string) {
-		pin("nginx", expected)
-	}
-
-	t.Run("tag and sha", func(t *testing.T) {
-		po.ReferenceFormat.ForceDomain = false
-		po.ReferenceFormat.NoName = false
-		po.ReferenceFormat.NoTag = false
-		po.ReferenceFormat.NoDigest = false
-
-		pinNginx("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
-	})
-	t.Run("tag only", func(t *testing.T) {
-		po.ReferenceFormat.ForceDomain = false
-		po.ReferenceFormat.NoName = false
-		po.ReferenceFormat.NoTag = false
-		po.ReferenceFormat.NoDigest = true
-
-		pinNginx("nginx:tag")
-	})
-	t.Run("sha and name", func(t *testing.T) {
-		po.ReferenceFormat.ForceDomain = false
-		po.ReferenceFormat.NoName = false
-		po.ReferenceFormat.NoTag = true
-		po.ReferenceFormat.NoDigest = false
-
-		pinNginx("nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
-	})
-	t.Run("sha only", func(t *testing.T) {
-		po.ReferenceFormat.ForceDomain = false
-		po.ReferenceFormat.NoName = true
-		po.ReferenceFormat.NoTag = true
-		po.ReferenceFormat.NoDigest = false
-
-		pinNginx("d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
-	})
-
-	t.Run("FindAllTags to most precise tag", func(t *testing.T) {
-		po.ReferenceFormat.ForceDomain = false
-		po.ReferenceFormat.NoName = false
-		po.ReferenceFormat.NoTag = false
-		po.ReferenceFormat.NoDigest = false
-
-		pin("nginx:latest", "nginx:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991")
-	})
-	t.Run("Does not add domain to well-known user image references when ForceDomain = false", func(t *testing.T) {
-		po.ReferenceFormat.ForceDomain = false
-		po.ReferenceFormat.NoName = false
-		po.ReferenceFormat.NoTag = false
-		po.ReferenceFormat.NoDigest = false
-
-		pin("menedev/testimagea", "menedev/testimagea:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991")
-	})
+	//po := pinOptionsTestNew()
+	//po.mockResolver.OnFindAllTags(dockref.MustParse("nginx")).
+	//	Return([]dockref.Reference{dockref.MustParse("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")}, nil)
+	//
+	//po.mockResolver.OnFindAllTags(dockref.MustParse("nginx:latest")).
+	//	Return([]dockref.Reference{
+	//		dockref.MustParse("nginx:1@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
+	//		dockref.MustParse("nginx:1.15@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
+	//		dockref.MustParse("nginx:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
+	//		dockref.MustParse("nginx:latest@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
+	//	}, nil)
+	//
+	//po.mockResolver.OnFindAllTags(dockref.MustParse("menedev/testimagea")).
+	//	Return([]dockref.Reference{
+	//		dockref.MustParse("menedev/testimagea:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991"),
+	//	}, nil)
+	//
+	//processorMock := &FormatProcessorMock{}
+	//
+	//pin := func(refStr, expected string) {
+	//	ran := false
+	//	processorMock.process = func(imageNameProcessor dockfmt.ImageNameProcessor) error {
+	//		ref, e := imageNameProcessor(dockref.MustParse(refStr))
+	//		assert.Nil(t, e)
+	//		str := ref.String()
+	//		assert.Equal(t, expected, str)
+	//		ran = true
+	//		return nil
+	//	}
+	//	predicate, e := dockproc.AnyPredicateNew()
+	//	assert.Nil(t, e)
+	//
+	//	po.applyFormatProcessor(predicate, processorMock)
+	//	assert.True(t, ran)
+	//}
+	//
+	//pinNginx := func(expected string) {
+	//	pin("nginx", expected)
+	//}
+	//
+	//t.Run("tag and sha", func(t *testing.T) {
+	//	po.ReferenceFormat.ForceDomain = false
+	//	po.ReferenceFormat.NoName = false
+	//	po.ReferenceFormat.NoTag = false
+	//	po.ReferenceFormat.NoDigest = false
+	//
+	//	pinNginx("nginx:tag@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+	//})
+	//t.Run("tag only", func(t *testing.T) {
+	//	po.ReferenceFormat.ForceDomain = false
+	//	po.ReferenceFormat.NoName = false
+	//	po.ReferenceFormat.NoTag = false
+	//	po.ReferenceFormat.NoDigest = true
+	//
+	//	pinNginx("nginx:tag")
+	//})
+	//t.Run("sha and name", func(t *testing.T) {
+	//	po.ReferenceFormat.ForceDomain = false
+	//	po.ReferenceFormat.NoName = false
+	//	po.ReferenceFormat.NoTag = true
+	//	po.ReferenceFormat.NoDigest = false
+	//
+	//	pinNginx("nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+	//})
+	//t.Run("sha only", func(t *testing.T) {
+	//	po.ReferenceFormat.ForceDomain = false
+	//	po.ReferenceFormat.NoName = true
+	//	po.ReferenceFormat.NoTag = true
+	//	po.ReferenceFormat.NoDigest = false
+	//
+	//	pinNginx("d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+	//})
+	//
+	//t.Run("FindAllTags to most precise tag", func(t *testing.T) {
+	//	po.ReferenceFormat.ForceDomain = false
+	//	po.ReferenceFormat.NoName = false
+	//	po.ReferenceFormat.NoTag = false
+	//	po.ReferenceFormat.NoDigest = false
+	//
+	//	pin("nginx:latest", "nginx:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991")
+	//})
+	//t.Run("Does not add domain to well-known user image references when ForceDomain = false", func(t *testing.T) {
+	//	po.ReferenceFormat.ForceDomain = false
+	//	po.ReferenceFormat.NoName = false
+	//	po.ReferenceFormat.NoTag = false
+	//	po.ReferenceFormat.NoDigest = false
+	//
+	//	pin("menedev/testimagea", "menedev/testimagea:1.15.6@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991")
+	//})
 }
 
 func TestFilenameRequiredWithPin(t *testing.T) {

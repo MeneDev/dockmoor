@@ -34,7 +34,7 @@ RESULTS=results
 
 mkdir -p $RESULTS || fail 2 "Cannot create $RESULTS folder"
 
-## list commandd
+## list command
 
 CASE_ID=1
 ( # find any file with supported format (i.e. Dockerfile) in folder and subfolder
@@ -361,6 +361,9 @@ hasNoLine "$stdout" "example.com/other-image:latest" || fail ${CASE_ID} "Unexpec
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
 echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
 
+
+# pin command
+
 CASE_ID=17
 CASE_NAME=pinWithDockerd
 ( # pin all image references to same file
@@ -474,28 +477,6 @@ rm -f pin-examples/Dockerfile-nginx
 cp pin-examples/Dockerfile-nginx.org pin-examples/Dockerfile-nginx
 
 CASE_ID=22
-CASE_NAME=pinNginxLatestNoDigestWithDockerd
-( # pin all image references in nginx dockerfile to same file
-rm -f pin-examples/Dockerfile-nginx
-cp pin-examples/Dockerfile-nginx.org pin-examples/Dockerfile-nginx
-
-#tag::pinNginxLatestNoDigestWithDockerd[]
-dockmoor pin --latest --no-digest pin-examples/Dockerfile-nginx
-#end::pinNginxLatestNoDigestWithDockerd[]
-) >$RESULTS/${CASE_NAME}.stdout 2>$RESULTS/${CASE_NAME}.stderr
-exitCode=$?
-[ $exitCode -eq 0 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
-stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
-stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
-[[ -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
-[[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
-cmp pin-examples/Dockerfile-nginx-latest-no-digest.expected pin-examples/Dockerfile-nginx || fail ${CASE_ID} "unexpected result"
-echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
-# cleanup
-rm -f pin-examples/Dockerfile-nginx
-cp pin-examples/Dockerfile-nginx.org pin-examples/Dockerfile-nginx
-
-CASE_ID=23
 CASE_NAME=pinUnknownReportsError
 ( # pin all image references in nginx dockerfile to same file
 #tag::pinUnknownReportsError[]
@@ -506,12 +487,77 @@ exitCode=$?
 [ $exitCode -eq 4 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
 stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
 stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
-[[ ! -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
+[[ ! -z $stdout ]] || fail ${CASE_ID} "Expected empty non-stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
 cmp pin-examples/Dockerfile-unknown.expected pin-examples/Dockerfile-unknown || fail ${CASE_ID} "unexpected result"
 echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
 contains "$stdout" "No such image: unknown" || fail ${CASE_ID} "Unexpected stdout"
 
 
+CASE_ID=23
+CASE_NAME=pinTagUnknownToDaemonReportsError
+( # pin fails when the tag is not known to the daemon but the daemon(=default) resolver is used
+rm -f pin-examples/Dockerfile-testimagea-registry-only
+cp pin-examples/Dockerfile-testimagea-registry-only.org pin-examples/Dockerfile-testimagea-registry-only
+
+#tag::pinTagUnknownToDaemonReportsError[]
+dockmoor pin pin-examples/Dockerfile-testimagea-registry-only
+#end::pinTagUnknownToDaemonReportsError[]
+) >$RESULTS/${CASE_NAME}.stdout 2>$RESULTS/${CASE_NAME}.stderr
+exitCode=$?
+[ $exitCode -eq 4 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
+stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
+stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
+[[ ! -z $stdout ]] || fail ${CASE_ID} "Expected non-empty stdout"
+[[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
+echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
+contains "$stdout" "No such image" || fail ${CASE_ID} "Unexpected stdout"
+
+
+CASE_ID=23
+CASE_NAME=pinTagUnknownToDaemonButKnownToDockerHubWorks
+( # pin succeeds when the tag is not known to the daemon but the hub and registry resolver is used
+rm -f pin-examples/Dockerfile-testimagea-registry-only
+cp pin-examples/Dockerfile-testimagea-registry-only.org pin-examples/Dockerfile-testimagea-registry-only
+
+#tag::pinTagUnknownToDaemonButKnownToDockerHubWorks[]
+dockmoor pin --resolver=registry pin-examples/Dockerfile-testimagea-registry-only
+#end::pinTagUnknownToDaemonButKnownToDockerHubWorks[]
+) >$RESULTS/${CASE_NAME}.stdout 2>$RESULTS/${CASE_NAME}.stderr
+exitCode=$?
+[ $exitCode -eq 0 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
+stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
+stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
+[[ -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
+[[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
+cmp pin-examples/Dockerfile-testimagea-registry-only.expected pin-examples/Dockerfile-testimagea-registry-only || fail ${CASE_ID} "unexpected result"
+echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
+
+
+CASE_ID=24
+CASE_NAME=pinWithDockerHub
+( # pin all image references to same file
+rm -f pin-examples/Dockerfile-testimagea
+cp pin-examples/Dockerfile-testimagea.org pin-examples/Dockerfile-testimagea
+
+#tag::pinWithDockerHub[]
+dockmoor pin --resolver=registry pin-examples/Dockerfile-testimagea
+#end::pinWithDockerHub[]
+) >$RESULTS/${CASE_NAME}.stdout 2>$RESULTS/${CASE_NAME}.stderr
+exitCode=$?
+[ $exitCode -eq 0 ] || fail ${CASE_ID} "Unexpected exit code $exitCode"
+stdout="$(cat $RESULTS/${CASE_NAME}.stdout)"
+stderr="$(cat $RESULTS/${CASE_NAME}.stderr)"
+[[ -z $stdout ]] || fail ${CASE_ID} "Expected empty stdout"
+[[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"
+cmp pin-examples/Dockerfile-testimagea-any.expected pin-examples/Dockerfile-testimagea || fail ${CASE_ID} "unexpected result"
+echo $exitCode >$RESULTS/${CASE_NAME}.exitCode
+# cleanup
+rm -f pin-examples/Dockerfile-testimagea
+cp pin-examples/Dockerfile-testimagea.org pin-examples/Dockerfile-testimagea
+
+
+
 # When we reach this, everything is fine!
 echo "All tests passed!"
+

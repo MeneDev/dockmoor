@@ -24,16 +24,16 @@ type pinOptions struct {
 	} `group:"Reference format" description:"Control the format of references, defaults are sensible, changes are not recommended"`
 
 	PinOptions struct {
-		Resolver    string `required:"no" short:"r" long:"resolver" description:"Strategy to resolve image references" choice:"dockerd" choice:"registry" default:"dockerd"`
-		VersionMode string `required:"no" long:"version-mode" description:"Strategy to resolve image references" choice:"unchanged" default:"unchanged"`
+		Resolver string `required:"no" short:"r" long:"resolver" description:"Strategy to resolve image references" choice:"dockerd" choice:"registry" default:"dockerd"`
+		TagMode  string `required:"no" long:"tag-mode" description:"Strategy to resolve image references" choice:"unchanged" default:"unchanged"`
 	} `group:"Pin Options" description:"Control how the image references are resolved"`
 
 	Output struct {
 		OutputFile flags.Filename `required:"no" short:"o" long:"output" description:"Output file to write to. If empty, input file will be used."`
 	} `group:"Output parameters" description:"Output parameters"`
 
-	resolverFactory        func(name string) dockref.Resolver
-	matches                bool
+	resolverFactory func(name string) dockref.Resolver
+	matches         bool
 }
 
 func (po *pinOptions) Execute(args []string) error {
@@ -70,8 +70,8 @@ func (po *pinOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err
 		return nil
 	})
 
-	if exitCode, ok := exitCodeFromError(err); ok {
-		return exitCode, err
+	if errExitCode, ok := exitCodeFromError(err); ok {
+		return errExitCode, err
 	}
 
 	err = po.WithOutputDo(func(outputPath string) error {
@@ -103,7 +103,7 @@ func (po *pinOptions) applyFormatProcessor(predicate dockproc.Predicate, process
 			po.matches = true
 			repo := po.Resolver()
 
-			mode, e := versionMode(po.PinOptions.VersionMode)
+			mode, e := tagMode(po.PinOptions.TagMode)
 			if e != nil {
 				return nil, e
 			}
@@ -129,7 +129,7 @@ func (po *pinOptions) applyFormatProcessor(predicate dockproc.Predicate, process
 				return formatted, nil
 
 			case dockref.ResolveModeMostPreciseVersion:
-				return nil, errors.Errorf("VersionMode %s not yet implemented", po.PinOptions.VersionMode)
+				return nil, errors.Errorf("VersionMode %s not yet implemented", po.PinOptions.TagMode)
 				//rs, err := repo.FindAllTags(original)
 				//if err != nil {
 				//	po.Log().WithField("error", err.Error()).Errorf("Could not resolve %s", original.Original())
@@ -160,7 +160,7 @@ func (po *pinOptions) applyFormatProcessor(predicate dockproc.Predicate, process
 	})
 }
 
-func versionMode(modeString string) (dockref.ResolveMode, error) {
+func tagMode(modeString string) (dockref.ResolveMode, error) {
 	switch modeString {
 	case "unchanged":
 		return dockref.ResolveModeUnchanged, nil
@@ -183,7 +183,7 @@ func pinOptionsNew(mainOptions *mainOptions) *pinOptions {
 		matches: false,
 	}
 
-	po.PinOptions.VersionMode = "unchanged"
+	po.PinOptions.TagMode = "unchanged"
 	po.resolverFactory = defaultResolverFactory
 
 	return &po
@@ -192,37 +192,24 @@ func pinOptionsNew(mainOptions *mainOptions) *pinOptions {
 func addPinCommand(
 	mainOptions *mainOptions,
 	adder func(opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error) {
-	pinOptions := pinOptionsNew(mainOptions)
 
-	command, e := adder(mainOptions, "pin",
-		"Change image references to a more reproducible format",
-		"Change image references to a more reproducible format by adding version tags or digest",
-		pinOptions)
-	if e != nil {
-		return nil, e
-
-	}
-	return command, e
+	return addPinCommandWith(pinOptionsNew)(mainOptions, adder)
 }
 
-func addPinCommandWith(pinOptionsFactory func (mainOptions *mainOptions) *pinOptions) func(
+func addPinCommandWith(pinOptionsFactory func(mainOptions *mainOptions) *pinOptions) func(
 	mainOptions *mainOptions,
 	adder func(opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error) {
 
-	return func (
+	return func(
 		mainOptions *mainOptions,
 		adder func(opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error) {
 		pinOptions := pinOptionsFactory(mainOptions)
 
 		command, e := adder(mainOptions, "pin",
 			"Change image references to a more reproducible format",
-			"Change image references to a more reproducible format by adding version tags or digest",
+			"Change image references to a more reproducible format",
 			pinOptions)
-		if e != nil {
-			return nil, e
-
-		}
-		return command, nil
+		return command, e
 	}
 }
 

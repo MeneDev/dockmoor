@@ -68,7 +68,7 @@ func applyPredicatesByName(fo *MatchingOptions, names ...string) {
 	}
 }
 
-func TestExitCodeFromError(t *testing.T)  {
+func TestExitCodeFromError(t *testing.T) {
 	t.Run("returns ExitUnknownError for random error", func(t *testing.T) {
 		code, ok := exitCodeFromError(errors.New("unknown"))
 		assert.Equal(t, ExitUnknownError, code)

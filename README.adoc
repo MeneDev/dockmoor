@@ -1,5 +1,5 @@
 
-:branch: master
+:branch: develop
 
 == dockmoor
 image:https://img.shields.io/circleci/project/github/MeneDev/dockmoor/{branch}.svg[Build Status (Circle CI), link=https://circleci.com/gh/MeneDev/dockmoor]
@@ -15,14 +15,15 @@ dockmoor helps you to create reproducible builds with Docker.
 
 *Implemented*
 
-* pin image references to currently used version to make builds reproducible
+* pin image references to currently used image via digest to make builds reproducible
+** works with (remote) docker daemon and docker registry (e.g. docker hub)
 * list image references
 * find Dockerfiles
 * filter by various predicates, e.g. untagged, `latest`, RegEx-match
 
 *Upcomming*
 
-* communicate with docker registries to find images that are not pulled
+* amend missing tags
 * find outdated image references
 * update to newer major, minor or patch version respecting SemVer
 * other formats: docker-compose, GitLab CI, Circle CI, Travis CI, ...
@@ -35,19 +36,16 @@ Note: all digests are abbreviated for better readability
 [[pin-command-examples]]
 === pin command
 
-The `pin` command queries a Docker daemon (local or remote) for images matching the used image references and tries to choose the most precise one.
+The `pin` command queries a Docker daemon (local or remote) or a docker registry (e.g. docker hub) for images matching the used image references and pins the image reference by appending the digest.
 
-*Note* the Docker daemon only knows pulled images! +
-Future dockmoor versions will be able to query repositories, too.
+*Note* the Docker daemon is used by default, but only knows pulled images!
 
-[[_pin_well_known_image_references_by_tag_only]]
-==== Pin well-known image references by tag only
-
-Add missing tags and update tags to the most strict version.
+[[_pin_well_known_image_references]]
+==== Pin well-known image references
 
 [subs=+macros]
 ....
-dockmoor pin --no-digest https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-examples/Dockerfile-nginx[pin-examples/Dockerfile-nginx]
+dockmoor pin https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-examples/Dockerfile-nginx[pin-examples/Dockerfile-nginx]
 ....
 
 Given the following multi-stage dockerfile:
@@ -66,65 +64,18 @@ FROM nginx:1.15-alpine-perl
 RUN something
 ----
 
-We can see that `nginx` employs a widely used tagging strategy: the tags `1` and `1.15` are updated when `1.15.6` is published. All three tags refer to the same image until `1.15.7` is published. +
-Additionally different *variants* are separated from the version by a hyphen.
-
-Executing the command will change the file to:
-
-[source,Dockerfile]
-----
-# originally untagged
-FROM nginx:1.15.6
-# originally tagged 1.15
-FROM nginx:1.15.6
-# originally tagged 1
-FROM nginx:1.15.6
-# originally tagged 1.15-alpine-perl
-FROM nginx:1.15.5-alpine-perl
-
-RUN something
-----
-
-Tags are only changed when a more strict version is found that referrers to the *exact same* image. The `pin` command will never try to update tags to a different (e.g. later) version.
-
-In this example `1.15.6` refers to the same image as `1` and `1.15`. +
-However, `1.15-alpine-perl` referred to the `1.15.5-alpine-perl`.
-
-This example uses the `--no-digest` flag to pin image references by tag only. While tags are the way we usually address different image versions, we’ll learn in the next example that there is a better way.
-
-Other properties of the command: +
-stdout is empty +
-stderr is empty +
-exit code: 0
-
-[[_pin_well_known_image_references_by_tag_and_digest]]
-==== Pin well-known image references by tag and digest
-
-Pinning image references by tag, like we did in the previous example, helps creating more reproducible builds. However, as we also saw in the previous example, tags can be overwritten!
-
-Fortunately dockmoor allows us to use tags and digests to pin our images.
-
-Digests are a direct result of the actual content of the images and thus cannot be overwritten.
-
-This is the default and recommended format: the version conveys semantic information, the digest ensures immutability.
-
-[subs=+macros]
-....
-dockmoor pin https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-examples/Dockerfile-nginx[pin-examples/Dockerfile-nginx]
-....
-
 File after execution:
 
 [source,Dockerfile]
 ----
 # originally untagged
-FROM nginx:1.15.6@sha256:31b..91
+FROM nginx@sha256:31b..91
 # originally tagged 1.15
-FROM nginx:1.15.6@sha256:31b..91
+FROM nginx:1.15@sha256:31b..91
 # originally tagged 1
-FROM nginx:1.15.6@sha256:31b..91
+FROM nginx:1@sha256:31b..91
 # originally tagged 1.15-alpine-perl
-FROM nginx:1.15.5-alpine-perl@sha256:9c6..ae
+FROM nginx:1.15-alpine-perl@sha256:9c6..ae
 
 RUN something
 ----
@@ -133,12 +84,12 @@ stdout is empty +
 stderr is empty +
 exit code: 0
 
-[[_pin_all_image_references_in_a_dockerfile]]
-==== Pin all image references in a dockerfile
+[[_pin_all_image_references_in_a_dockerfile_using_a_docker_registry]]
+==== Pin all image references in a dockerfile using a docker registry
 
 [subs=+macros]
 ....
-dockmoor pin https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-examples/Dockerfile-testimagea[pin-examples/Dockerfile-testimagea]
+dockmoor pin --resolver=registry https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/pin-examples/Dockerfile-testimagea[pin-examples/Dockerfile-testimagea]
 ....
 
 File before execution:
@@ -164,17 +115,17 @@ File after execution:
 
 [source,Dockerfile]
 ----
-FROM menedev/testimagea:1.1.1@sha256:1e2..24
-FROM menedev/testimagea:1.0.1@sha256:c27..4b
+FROM menedev/testimagea:1@sha256:1e2..24
+FROM menedev/testimagea:1.0@sha256:c27..4b
 FROM menedev/testimagea:1.0.0@sha256:f38..df
 FROM menedev/testimagea:1.0.1@sha256:c27..4b
 FROM menedev/testimagea:1.1.0@sha256:bf1..96
 FROM menedev/testimagea:1.1.1@sha256:1e2..24
+FROM menedev/testimagea:2@sha256:3d4..a1
+FROM menedev/testimagea:2.0@sha256:3d4..a1
 FROM menedev/testimagea:2.0.0@sha256:3d4..a1
-FROM menedev/testimagea:2.0.0@sha256:3d4..a1
-FROM menedev/testimagea:2.0.0@sha256:3d4..a1
-FROM menedev/testimagea:2.0.0@sha256:3d4..a1
-FROM menedev/testimagea:2.0.0@sha256:3d4..a1
+FROM menedev/testimagea:latest@sha256:3d4..a1
+FROM menedev/testimagea@sha256:3d4..a1
 
 RUN something
 ----
@@ -204,8 +155,8 @@ FROM menedev/testimagea:1.1.1
 FROM menedev/testimagea:2
 FROM menedev/testimagea:2.0
 FROM menedev/testimagea:2.0.0
-FROM menedev/testimagea:2.0.0@sha256:3d4..a1
-FROM menedev/testimagea:2.0.0@sha256:3d4..a1
+FROM menedev/testimagea:latest@sha256:3d4..a1
+FROM menedev/testimagea@sha256:3d4..a1
 
 RUN something
 ----
@@ -431,9 +382,9 @@ stdout:
 [subs=+macros]
 ....
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
 ....
 
 stderr is empty +
@@ -451,9 +402,9 @@ stdout:
 
 [subs=+macros]
 ....
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
 ....
 
 stderr is empty +
@@ -471,12 +422,12 @@ stdout:
 
 [subs=+macros]
 ....
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-digest[some-folder/Dockerfile-nginx-digest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-tagged-digest[some-folder/Dockerfile-nginx-tagged-digest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-digest[some-folder/Dockerfile-nginx-digest]
 ....
 
 stderr is empty +
@@ -524,8 +475,6 @@ ________________________________________________________________________________
 
 *--version* Show version and exit
 
-*-r*, *--resolver* Strategy to resolve image references (one of `dockerd`)
-
 [[_commands]]
 === Commands
 
@@ -543,14 +492,14 @@ ________________________________________________________
 Test if a file contains image references with matching predicates. Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions and is of valid format, non-null otherwise
 
 [[_domain_predicates]]
-=== Domain Predicates
+===== Domain Predicates
 
 Limit matched image references depending on their domain
 
 *--domain* Matches all images matching one of the specified domains. Surround with '/' for regex i.e. /regex/.
 
 [[_name_predicates]]
-=== Name Predicates
+===== Name Predicates
 
 Limit matched image references depending on their name
 
@@ -561,7 +510,7 @@ Limit matched image references depending on their name
 *--path* Matches all images matching one of the specified paths (e.g. "library/nginx"). Surround with '/' for regex i.e. /regex/.
 
 [[_tag_predicates]]
-=== Tag Predicates
+===== Tag Predicates
 
 Limit matched image references depending on their tag
 
@@ -572,7 +521,7 @@ Limit matched image references depending on their tag
 *--tag* Matches all images matching one of the specified tag. Surround with '/' for regex i.e. /regex/.
 
 [[_digest_predicates]]
-=== Digest Predicates
+===== Digest Predicates
 
 Limit matched image references depending on their digest
 
@@ -590,14 +539,14 @@ ________________________________________________
 List image references with matching predicates. Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions and is of valid format, non-null otherwise
 
 [[_domain_predicates_2]]
-=== Domain Predicates
+===== Domain Predicates
 
 Limit matched image references depending on their domain
 
 *--domain* Matches all images matching one of the specified domains. Surround with '/' for regex i.e. /regex/.
 
 [[_name_predicates_2]]
-=== Name Predicates
+===== Name Predicates
 
 Limit matched image references depending on their name
 
@@ -608,7 +557,7 @@ Limit matched image references depending on their name
 *--path* Matches all images matching one of the specified paths (e.g. "library/nginx"). Surround with '/' for regex i.e. /regex/.
 
 [[_tag_predicates_2]]
-=== Tag Predicates
+===== Tag Predicates
 
 Limit matched image references depending on their tag
 
@@ -619,7 +568,7 @@ Limit matched image references depending on their tag
 *--tag* Matches all images matching one of the specified tag. Surround with '/' for regex i.e. /regex/.
 
 [[_digest_predicates_2]]
-=== Digest Predicates
+===== Digest Predicates
 
 Limit matched image references depending on their digest
 
@@ -634,17 +583,17 @@ ______________________________________________
 dockmoor [OPTIONS] pin [pin-OPTIONS] InputFile
 ______________________________________________
 
-Change image references to a more reproducible format by adding version tags or digest
+Change image references to a more reproducible format
 
 [[_domain_predicates_3]]
-=== Domain Predicates
+===== Domain Predicates
 
 Limit matched image references depending on their domain
 
 *--domain* Matches all images matching one of the specified domains. Surround with '/' for regex i.e. /regex/.
 
 [[_name_predicates_3]]
-=== Name Predicates
+===== Name Predicates
 
 Limit matched image references depending on their name
 
@@ -655,7 +604,7 @@ Limit matched image references depending on their name
 *--path* Matches all images matching one of the specified paths (e.g. "library/nginx"). Surround with '/' for regex i.e. /regex/.
 
 [[_tag_predicates_3]]
-=== Tag Predicates
+===== Tag Predicates
 
 Limit matched image references depending on their tag
 
@@ -666,7 +615,7 @@ Limit matched image references depending on their tag
 *--tag* Matches all images matching one of the specified tag. Surround with '/' for regex i.e. /regex/.
 
 [[_digest_predicates_3]]
-=== Digest Predicates
+===== Digest Predicates
 
 Limit matched image references depending on their digest
 
@@ -675,7 +624,7 @@ Limit matched image references depending on their digest
 *--digest* Matches all image references with one of the provided digests.
 
 [[_reference_format]]
-=== Reference format
+===== Reference format
 
 Control the format of references, defaults are sensible, changes are not recommended
 
@@ -687,8 +636,17 @@ Control the format of references, defaults are sensible, changes are not recomme
 
 *--no-digest* Don't include the digest in the reference
 
+[[_pin_options]]
+===== Pin Options
+
+Control how the image references are resolved
+
+*-r*, *--resolver* Strategy to resolve image references (one of `dockerd`, `registry`)
+
+*--tag-mode* Strategy to resolve image references (one of `unchanged`)
+
 [[_output_parameters]]
-=== Output parameters
+===== Output parameters
 
 Output parameters
 

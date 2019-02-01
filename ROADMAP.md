@@ -11,24 +11,31 @@ The Roadmap is subject to change. It's purpose is to give a rough idea of the vi
 ## v0.1.x
 
 * pin command to rewrite image references.
-  * using tag or digest or both
-  * against local docker or registry
+  * using digest
+  * against local docker daemon
 
 ## v0.2.x
+
+* pin command to rewrite image references.
+  * using digest
+  * against docker registry
+  * rethink tags
+
+## v0.3.x
 
 * outdated filter for contains command
   * SemVer support against tags
 
-## v0.3.x
+## v0.4.x
 
 * update command
   * SemVer support against tags
 
-## v0.4.x
+## v0.5.x
 
 * Support docker-compose.yml Format
 
-## v0.5.x +
+## v0.6.x +
 
 * Other Formats, e.g.
   * gitlab-ci

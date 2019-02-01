@@ -252,6 +252,10 @@ func (r dockref) WithRequestedFormat(format Format) (Reference, error) {
 	cpy := r
 	cpy.format = format | required
 
+	if r.tag == "" {
+		cpy.format &= ^FormatHasTag
+	}
+
 	if r.Format() == FormatHasDigest { // digest-only
 		cpy.format = FormatHasDigest
 	}

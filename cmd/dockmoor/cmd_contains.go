@@ -57,8 +57,8 @@ func (co *containsOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode
 		return errFormat
 	})
 
-	if exitCode, ok := exitCodeFromError(err); ok {
-		return exitCode, err
+	if errExitCode, ok := exitCodeFromError(err); ok {
+		return errExitCode, err
 	}
 
 	if co.matches {

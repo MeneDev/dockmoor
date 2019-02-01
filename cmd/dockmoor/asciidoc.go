@@ -28,8 +28,8 @@ func WriteASCIIDoc(parser *flags.Parser, writer io.Writer) {
 		mdPrintf(writer, "==== %s command\n", cmd.Name)
 		WriteASCIIDocUsage(append(commands, cmd), writer)
 		mdPrintf(writer, "%s\n\n", cmd.LongDescription)
-		WriteASCIIDocOptions(writer, cmd.Options(), 3)
-		WriteASCIIDocGroups(writer, cmd.Groups(), 3)
+		WriteASCIIDocOptions(writer, cmd.Options(), 5)
+		WriteASCIIDocGroups(writer, cmd.Groups(), 5)
 	}
 }
 

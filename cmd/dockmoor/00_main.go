@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/MeneDev/dockmoor/dockfmt"
 	_ "github.com/MeneDev/dockmoor/dockfmt/dockerfile"
+	"github.com/MeneDev/dockmoor/dockmoor"
 	"github.com/jessevdk/go-flags"
 	"github.com/sirupsen/logrus"
 	"io"
@@ -222,17 +223,12 @@ func CommandFromArgs(mainOptions *mainOptions, args []string) (theCommand flags.
 	return
 }
 
-var Version = "<unknown Version>"
-var BuildDate = "<unknown BuildDate>"
-var BuildNumber = "<unknown BuildNumber>"
-var BuildCommit = "<unknown BuildCommit>"
-
 func WriteVersion(log *logrus.Logger, writer io.Writer) {
 	format := "%-13s%s\n"
-	fmtFprintf(log, writer, format, "Version:", Version)
-	fmtFprintf(log, writer, format, "BuildDate:", BuildDate)
-	fmtFprintf(log, writer, format, "BuildNumber:", BuildNumber)
-	fmtFprintf(log, writer, format, "BuildCommit:", BuildCommit)
+	fmtFprintf(log, writer, format, "Version:", dockmoor.Version)
+	fmtFprintf(log, writer, format, "BuildDate:", dockmoor.BuildDate)
+	fmtFprintf(log, writer, format, "BuildNumber:", dockmoor.BuildNumber)
+	fmtFprintf(log, writer, format, "BuildCommit:", dockmoor.BuildCommit)
 }
 
 func fmtFprintf(log *logrus.Logger, w io.Writer, format string, a ...interface{}) {

@@ -8,6 +8,7 @@ import (
 	"github.com/docker/cli/cli/flags"
 	"github.com/docker/cli/opts"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
 	"io"
@@ -46,6 +47,18 @@ func (reser dockerDaemonResolver) imageInspect(reference dockref.Reference) (typ
 
 	return imageInspect, err
 }
+func (reser dockerDaemonResolver) imageList(reference dockref.Reference) ([]types.ImageSummary, error) {
+	ctx := context.Background()
+
+	client, err := reser.newClient()
+	if err != nil {
+		return nil, err
+	}
+
+	summaries, err := client.ImageList(ctx, reference.Original())
+
+	return summaries, err
+}
 
 func (reser dockerDaemonResolver) newClient() (dockerAPIClient, error) {
 
@@ -82,7 +95,8 @@ func (reser dockerDaemonResolver) newClient() (dockerAPIClient, error) {
 }
 
 type dockerAPIClient interface {
-	ImageInspectWithRaw(ctx context.Context, image string) (types.ImageInspect, []byte, error)
+	ImageInspectWithRaw(ctx context.Context, reference string) (types.ImageInspect, []byte, error)
+	ImageList(ctx context.Context, reference string) ([]types.ImageSummary, error)
 }
 
 type dockerCliInterface interface {
@@ -98,8 +112,42 @@ func (d dockerCli) Initialize(options *flags.ClientOptions) error {
 	return d.cli.Initialize(options)
 }
 
+var _ dockerAPIClient = (*dockerCliAdapter)(nil)
+
+type dockerCliAdapter struct {
+	client client.APIClient
+}
+
+func (d *dockerCliAdapter) ImageInspectWithRaw(ctx context.Context, reference string) (types.ImageInspect, []byte, error) {
+	return d.client.ImageInspectWithRaw(ctx, reference)
+}
+
+func (d *dockerCliAdapter) ImageList(ctx context.Context, reference string) ([]types.ImageSummary, error) {
+	filterOpts := opts.NewFilterOpt()
+	filters := filterOpts.Value()
+
+	filters.Add("reference", reference)
+
+	listOptions := types.ImageListOptions{
+		All:     true,
+		Filters: filters,
+	}
+
+	return d.client.ImageList(ctx, listOptions)
+}
+
+func dockerCliAdapterNew(client client.APIClient) dockerAPIClient {
+	adapter := &dockerCliAdapter{
+		client: client,
+	}
+
+	return adapter
+}
+
 func (d dockerCli) Client() dockerAPIClient {
-	return d.cli.Client()
+	cli := d.cli.Client()
+
+	return dockerCliAdapterNew(cli)
 }
 
 func newCli(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
@@ -107,38 +155,74 @@ func newCli(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrus
 }
 
 func (reser dockerDaemonResolver) FindAllTags(reference dockref.Reference) ([]dockref.Reference, error) {
-	imageInspect, err := reser.imageInspect(reference)
+	summaries, err := reser.imageList(reference)
 
 	if err != nil {
 		return nil, err
 	}
 
-	digs := imageInspect.RepoDigests
-	tags := imageInspect.RepoTags
-
 	refs := make([]dockref.Reference, 0)
-	// TODO why can there more than one digest?
-	for _, tag := range tags {
-		tagRef := dockref.MustParse(tag)
-		r := reference.WithTag(tagRef.Tag())
-		for _, dig := range digs {
-			digRef := dockref.MustParse(dig)
-			r = r.WithDigest(digRef.DigestString())
+	for _, summary := range summaries {
+		digs := summary.RepoDigests
+		tags := summary.RepoTags
+
+		for _, tag := range tags {
+			tagRef := dockref.MustParse(tag)
+			r := reference.WithTag(tagRef.Tag())
+			for _, dig := range digs {
+				digRef := dockref.MustParse(dig)
+				r = r.WithDigest(digRef.DigestString())
+				refs = append(refs, r)
+			}
+
+			if len(digs) == 0 {
+				refs = append(refs, r)
+			}
+		}
+
+		if len(digs) == 0 && len(tags) == 0 {
+			r := dockref.MustParseAlgoDigest(summary.ID)
 			refs = append(refs, r)
 		}
 
-		if len(digs) == 0 {
-			refs = append(refs, r)
-		}
 	}
-
-	if len(digs) == 0 && len(tags) == 0 {
-		r := dockref.MustParseAlgoDigest(imageInspect.ID)
-		refs = append(refs, r)
-	}
-
 	return refs, nil
 }
+
+//func (reser dockerDaemonResolver) FindMatchingTags(reference dockref.Reference) ([]dockref.Reference, error) {
+//	// TODO upcoming release
+//	imageInspect, err := reser.imageInspect(reference)
+//
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	digs := imageInspect.RepoDigests
+//	tags := imageInspect.RepoTags
+//
+//	refs := make([]dockref.Reference, 0)
+//	// TODO why can there more than one digest?
+//	for _, tag := range tags {
+//		tagRef := dockref.MustParse(tag)
+//		r := reference.WithTag(tagRef.Tag())
+//		for _, dig := range digs {
+//			digRef := dockref.MustParse(dig)
+//			r = r.WithDigest(digRef.DigestString())
+//			refs = append(refs, r)
+//		}
+//
+//		if len(digs) == 0 {
+//			refs = append(refs, r)
+//		}
+//	}
+//
+//	if len(digs) == 0 && len(tags) == 0 {
+//		r := dockref.MustParseAlgoDigest(imageInspect.ID)
+//		refs = append(refs, r)
+//	}
+//
+//	return refs, nil
+//}
 
 func (reser dockerDaemonResolver) Resolve(reference dockref.Reference) (dockref.Reference, error) {
 	imageInspect, err := reser.imageInspect(reference)
@@ -150,9 +234,8 @@ func (reser dockerDaemonResolver) Resolve(reference dockref.Reference) (dockref.
 	digs := imageInspect.RepoDigests
 	//tags := imageInspect.RepoTags
 
-	// TODO there can be multiple repo digests (with the same digest) when the image has been pulled from multiple
-	// registries
-	// eg
+	// NOTE RepoDigests include the repo name
+	// e.g.
 	// menedev/testimagea@sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624
 	// localhost:5000/menedev/testimagea@sha256:1e2b1cc7d366650a93620ca3cc8691338ed600ababf90a0e5803e1ee32486624
 

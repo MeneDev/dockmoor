@@ -1,0 +1,1 @@
+FROM menedev/testimagea:registry-only

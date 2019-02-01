@@ -1,0 +1,1 @@
+FROM menedev/testimagea:registry-only@sha256:3d4d88675636f0fdf7899e3d3c6f8d5a9cae768e8b7f38f05505d6a88497e7a1

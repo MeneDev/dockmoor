@@ -20,7 +20,7 @@ jobs:
               - /tmp/builder_pushed
       - run:
           name: Build and push image if builder/Dockerfile has changed
-          command:  |
+          command: |
             if [ ! -f /tmp/builder_pushed/builder_pushed ]; then
               docker login -u $DOCKER_USER -p $DOCKER_PASS
               echo "Building $CI_PROJECT_PATH-builder:latest"
@@ -152,7 +152,7 @@ jobs:
 
             echo "Building Tag '$tag'"
             export tag
-            find cmd/ -maxdepth 1 -mindepth 1 -exec bash -c 'cd $0 && gox -ldflags="-s -w -X \"main.Version=${tag}\" -X \"main.BuildDate=$(date --utc)\" -X \"main.BuildNumber=$CIRCLE_BUILD_NUM\" -X \"main.BuildCommit=$CIRCLE_SHA1\"" -os="linux windows darwin" -arch="amd64" -output "../../release/${0##*/}-{{.OS}}_{{.Arch}}"' {} \;
+            find cmd/ -maxdepth 1 -mindepth 1 -exec bash -c 'cd $0 && gox -ldflags="-s -w -X \"github.com/MeneDev/dockmoor/dockmoor.Version=${tag}\" -X \"github.com/MeneDev/dockmoor/dockmoor.BuildDate=$(date --utc)\" -X \"github.com/MeneDev/dockmoor/dockmoor.BuildNumber=$CIRCLE_BUILD_NUM\" -X \"github.com/MeneDev/dockmoor/dockmoor.BuildCommit=$CIRCLE_SHA1\"" -os="linux windows darwin" -arch="amd64" -output "../../release/${0##*/}-{{.OS}}_{{.Arch}}"' {} \;
             release/dockmoor-linux_amd64 --version
 
       - persist_to_workspace:

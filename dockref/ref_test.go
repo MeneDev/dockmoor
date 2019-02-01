@@ -13,6 +13,18 @@ func TestInvalid(t *testing.T) {
 	assert.Error(t, e)
 }
 
+func TestMustParse(t *testing.T) {
+	t.Run("valid returns ref", func(t *testing.T) {
+		ref := MustParse("name")
+		assert.NotNil(t, ref)
+	})
+	t.Run("invalid returns nil", func(t *testing.T) {
+		ref := MustParse("!")
+		assert.Nil(t, ref)
+	})
+
+}
+
 func TestWellknownNames(t *testing.T) {
 	t.Run("Parses untagged library references", func(t *testing.T) {
 		parent := t.Name()
@@ -333,6 +345,7 @@ func TestDockref_Formatted(t *testing.T) {
 			"nginx:latest",
 			"docker.io/library/nginx",
 			"docker.io/library/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
+			"docker.io/library/nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
 			"d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
 		}
 
@@ -401,6 +414,13 @@ func TestDockref_WithRequestedFormat(t *testing.T) {
 		assert.Equal(t, "nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", rName.String())
 	})
 
+	t.Run("from name and digest to name, tag, digest", func(t *testing.T) {
+		r := MustParse("docker.io/library/nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
+		rName, e := r.WithRequestedFormat(FormatHasName | FormatHasTag | FormatHasDigest)
+		assert.Nil(t, e)
+		assert.Equal(t, "nginx@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240", rName.String())
+	})
+
 	t.Run("well known user tag and digest", func(t *testing.T) {
 		r := MustParse("docker.io/menedev/nginx:1.2@sha256:d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240")
 		rName, e := r.WithRequestedFormat(FormatHasTag | FormatHasDigest)
@@ -433,7 +453,7 @@ func TestDockref_WithRequestedFormat(t *testing.T) {
 	})
 }
 
-func TestFromAlgoDigest(t *testing.T) {
+func TestParseAlgoDigest(t *testing.T) {
 	t.Run("Invalid algorithm", func(t *testing.T) {
 		ref, e := ParseAlgoDigest("invalid:3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58")
 		assert.Nil(t, ref)
@@ -448,6 +468,22 @@ func TestFromAlgoDigest(t *testing.T) {
 		ref, e := ParseAlgoDigest("sha256:3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58")
 		assert.NotNil(t, ref)
 		assert.Nil(t, e)
+	})
+
+}
+
+func TestMustParseAlgoDigest(t *testing.T) {
+	t.Run("Invalid algorithm", func(t *testing.T) {
+		ref := MustParseAlgoDigest("invalid:3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58")
+		assert.Nil(t, ref)
+	})
+	t.Run("Invalid hex", func(t *testing.T) {
+		ref := MustParseAlgoDigest("sha256:0000")
+		assert.Nil(t, ref)
+	})
+	t.Run("Valid algo digest", func(t *testing.T) {
+		ref := MustParseAlgoDigest("sha256:3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58")
+		assert.NotNil(t, ref)
 	})
 
 }
@@ -559,15 +595,15 @@ func TestFromAlgoDigest(t *testing.T) {
 //	}
 //}
 
-func toRefs(strs []string) []Reference {
-	refs := make([]Reference, 0)
-	for _, refStr := range strs {
-		ref := MustParse(refStr)
-		refs = append(refs, ref)
-	}
-
-	return refs
-}
+//func toRefs(strs []string) []Reference {
+//	refs := make([]Reference, 0)
+//	for _, refStr := range strs {
+//		ref := MustParse(refStr)
+//		refs = append(refs, ref)
+//	}
+//
+//	return refs
+//}
 
 //func TestDockref_bestSemVer(t *testing.T) {
 //	rootTestCase := t.Name()

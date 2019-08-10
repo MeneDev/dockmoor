@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.2.1
+
+### New features
+
+* API negotiation with docker daemon
+
+### Misc
+
+* Replaced `gometalinter` with `golangci-lint` 
+* Updated go to `go1.12.7`
+
 ## v0.2.0
 
 ### New features

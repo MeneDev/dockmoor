@@ -20,7 +20,7 @@ git clone https://github.com/MeneDev/dockmoor.git src/github.com/MeneDev/dockmoo
 These are optional to get the project running, but are greatly appreciated before creating Pull Requests.
 
 * gometalinter
-  * Easy install by running `curl -L https://git.io/vp6lP | sh`
+  * Easy install by running `curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.17.1`
   * The CI currently uses v2.0.11, but newer should be fine.
 
 ## Working with the go cli tools

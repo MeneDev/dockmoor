@@ -3,14 +3,15 @@ package resolver
 import (
 	"context"
 	"fmt"
-	"github.com/MeneDev/dockmoor/dockref"
-	"github.com/stretchr/testify/assert"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
 	"log"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/MeneDev/dockmoor/dockref"
+	"github.com/stretchr/testify/assert"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 func runForDockerHub(t *testing.T, runAll func(t *testing.T, regAddr string, resolver dockref.Resolver)) {

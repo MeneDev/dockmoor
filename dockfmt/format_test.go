@@ -2,13 +2,14 @@ package dockfmt
 
 import (
 	"bytes"
+	"strings"
+	"testing"
+
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"strings"
-	"testing"
 )
 
 func TestFormatProcessor_ProcessPassesLogAndReaderAndImageProcessor(t *testing.T) {

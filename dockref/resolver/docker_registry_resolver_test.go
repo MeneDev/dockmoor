@@ -3,6 +3,9 @@ package resolver
 import (
 	"context"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/MeneDev/dockmoor/dockref/resolver/mocks"
 	"github.com/docker/cli/cli/config/credentials"
@@ -11,8 +14,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"testing"
-	"time"
 )
 
 func TestDockerRegistryResolver_FindAllTags(t *testing.T) {

@@ -76,7 +76,7 @@ echo $exitCode >$RESULTS/listLatestInFolder.exitCode
 CASE_ID=3
 ( # find any file with latest/no tag
 #tag::listUnpinnedInFolder[]
-find some-folder/ -type f -exec dockmoor list --unpinned {} \; | sort | uniq
+find some-folder -type f -exec dockmoor list --unpinned {} \; | sort | uniq
 #end::listUnpinnedInFolder[]
 ) >$RESULTS/listUnpinnedInFolder.stdout 2>$RESULTS/listUnpinnedInFolder.stderr
 exitCode=$?
@@ -170,7 +170,7 @@ echo $exitCode >$RESULTS/listUnpinnedInFile.exitCode
 CASE_ID=7
 ( # contains all image references in supported file (i.e. Dockerfile)
 #tag::containsAnyInFolder[]
-find some-folder/ -type f -exec dockmoor contains {} \; -print
+find some-folder -type f -exec dockmoor contains {} \; -print
 #end::containsAnyInFolder[]
 ) >$RESULTS/containsAnyInFolder.stdout 2>$RESULTS/containsAnyInFolder.stderr
 exitCode=$?
@@ -190,7 +190,7 @@ CASE_ID=8
 CASE_NAME=containsLatestInFolder
 ( # find any file with latest/no tag and no digest
 #tag::containsLatestInFolder[]
-find some-folder/ -type f -exec dockmoor contains --latest {} \; -print
+find some-folder -type f -exec dockmoor contains --latest {} \; -print
 #end::containsLatestInFolder[]
 ) >$RESULTS/$CASE_NAME.stdout 2>$RESULTS/$CASE_NAME.stderr
 exitCode=$?
@@ -209,7 +209,7 @@ echo $exitCode >$RESULTS/CASE_NAME.exitCode
 CASE_ID=9
 ( # find any file with latest/no tag
 #tag::containsUnpinnedInFolder[]
-find some-folder/ -type f -exec dockmoor contains --unpinned {} \; -print
+find some-folder -type f -exec dockmoor contains --unpinned {} \; -print
 #end::containsUnpinnedInFolder[]
 ) >$RESULTS/containsUnpinnedInFolder.stdout 2>$RESULTS/containsUnpinnedInFolder.stderr
 exitCode=$?
@@ -323,7 +323,7 @@ hasLine "$stdout" "docker.io/library/image-name" || fail ${CASE_ID} "Unexpected 
 hasLine "$stdout" "docker.io/library/image-name:latest" || fail ${CASE_ID} "Unexpected stdout"
 hasNoLine "$stdout" "example.com/image-name:1.12" || fail ${CASE_ID} "Unexpected stdout"
 hasNoLine "$stdout" "example.com/image-name:latest@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
-hasNoLine "$stdout""example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
+hasNoLine "$stdout" "example.com/image-name@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "example.com/other-image" || fail ${CASE_ID} "Unexpected stdout"
 hasLine "$stdout" "example.com/other-image:latest" || fail ${CASE_ID} "Unexpected stdout"
 [[ -z $stderr ]] || fail ${CASE_ID} "Expected empty stderr"

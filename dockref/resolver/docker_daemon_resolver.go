@@ -3,6 +3,11 @@ package resolver
 import (
 	"bytes"
 	"context"
+	"io"
+	"io/ioutil"
+	"os"
+	"strings"
+
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/docker/cli/cli/command"
 	"github.com/docker/cli/cli/flags"
@@ -11,10 +16,6 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
-	"io"
-	"io/ioutil"
-	"os"
-	"strings"
 )
 
 var _ dockref.Resolver = (*dockerDaemonResolver)(nil)
@@ -146,7 +147,7 @@ func dockerCliAdapterNew(client client.APIClient) dockerAPIClient {
 
 func (d dockerCli) Client() dockerAPIClient {
 	cli := d.cli.Client()
-
+	cli.NegotiateAPIVersion(context.Background())
 	return dockerCliAdapterNew(cli)
 }
 
@@ -260,7 +261,13 @@ func (reser dockerDaemonResolver) Resolve(reference dockref.Reference) (dockref.
 		}
 	}
 
-	if dig == nil {
+	if len(digs) == 0 {
+		return nil, errors.Errorf(
+			"no RepoDigests for reference %s. The Docker Daemon Resolver can only resolve pulled images.",
+			reference.Original())
+	}
+
+	if len(digs) > 1 {
 		return nil, errors.Errorf(
 			"ambigious RepoDigests [%s] for reference %s",
 			strings.Join(imageInspect.RepoDigests, ", "),

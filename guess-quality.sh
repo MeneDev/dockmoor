@@ -2,7 +2,7 @@
 
 gofmt -s -w .
 
-report="$(~/go/bin/golangci-lint run)"
+report="$(golangci-lint run)"
 if [[ ! -z "$report" ]]; then
   echo "Problems found by gometalinter"
   echo "$report"

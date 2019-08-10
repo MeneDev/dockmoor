@@ -208,46 +208,17 @@ func (mopts *MatchingOptions) Verify() (ExitCode, error) {
 	return ExitSuccess, result.ErrorOrNil()
 }
 
-var latestPredicateFactory = func() (dockproc.Predicate, error) {
-	return dockproc.LatestPredicateNew()
-}
-
-var latestUnpinnedFactory = func() (dockproc.Predicate, error) {
-	return dockproc.UnpinnedPredicateNew()
-}
-
-var anyPredicateFactory = func() (dockproc.Predicate, error) {
-	return dockproc.AnyPredicateNew()
-}
-
-var domainsPredicateFactory = func(domains []string) (dockproc.Predicate, error) {
-	return dockproc.DomainsPredicateNew(domains)
-}
-var namePredicateFactory = func(names []string) (dockproc.Predicate, error) {
-	return dockproc.NamesPredicateNew(names)
-}
-var familiarNamePredicateFactory = func(familiarNames []string) (dockproc.Predicate, error) {
-	return dockproc.FamiliarNamesPredicateNew(familiarNames)
-}
-var pathsPredicateFactory = func(paths []string) (dockproc.Predicate, error) {
-	return dockproc.PathsPredicateNew(paths)
-}
-
-//var outdatedPredicateFactory = func() (dockproc.Predicate, error) {
-//	return dockproc.OutdatedPredicateNew()
-//}
-var untaggedPredicateFactory = func() (dockproc.Predicate, error) {
-	return dockproc.UntaggedPredicateNew()
-}
-var tagsPredicateFactory = func(tags []string) (dockproc.Predicate, error) {
-	return dockproc.TagsPredicateNew(tags)
-}
-var digestsPredicateFactory = func(digests []string) (dockproc.Predicate, error) {
-	return dockproc.DigestsPredicateNew(digests)
-}
-var andPredicateFactory = func(predicates []dockproc.Predicate) (dockproc.Predicate, error) {
-	return dockproc.AndPredicateNew(predicates)
-}
+var latestPredicateFactory = dockproc.LatestPredicateNew
+var latestUnpinnedFactory = dockproc.UnpinnedPredicateNew
+var anyPredicateFactory = dockproc.AnyPredicateNew
+var domainsPredicateFactory = dockproc.DomainsPredicateNew
+var namePredicateFactory = dockproc.NamesPredicateNew
+var familiarNamePredicateFactory = dockproc.FamiliarNamesPredicateNew
+var pathsPredicateFactory = dockproc.PathsPredicateNew
+var untaggedPredicateFactory = dockproc.UntaggedPredicateNew
+var tagsPredicateFactory = dockproc.TagsPredicateNew
+var digestsPredicateFactory = dockproc.DigestsPredicateNew
+var andPredicateFactory = dockproc.AndPredicateNew
 
 func (mopts *MatchingOptions) getPredicate() (dockproc.Predicate, error) {
 
@@ -282,11 +253,6 @@ func (mopts *MatchingOptions) getPredicate() (dockproc.Predicate, error) {
 		err = multierror.Append(err, e)
 		predicates = append(predicates, p)
 	}
-
-	//if mopts.TagPredicates.Outdated {
-	//	p := outdatedPredicateFactory()
-	//	predicates = append(predicates, p)
-	//}
 
 	if mopts.TagPredicates.Untagged {
 		p, e := untaggedPredicateFactory()

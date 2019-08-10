@@ -95,7 +95,7 @@ func TestInvalidDockerfileWithPin(t *testing.T) {
 
 	format := new(FormatMock)
 	format.OnName().Return("mock")
-	format.OnValidateInput(mock.Anything, mock.Anything, mock.Anything).Return(errors.New("Not my department"))
+	format.OnValidateInput(mock.Anything, mock.Anything, mock.Anything).Return(errors.New("not my department"))
 
 	formatProvider.OnFormats().Return([]dockfmt.Format{format})
 
@@ -228,7 +228,7 @@ func TestPinCommand_FailsWhenErrorInProcess(t *testing.T) {
 
 	format := &FormatMock{}
 	format.OnName().Return("Mock")
-	expected := errors.New("A Process Error")
+	expected := errors.New("a Process Error")
 
 	format.OnProcess(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(expected)
 
@@ -520,7 +520,7 @@ func TestPinWritesToOutputFileAndNotToInputfile(t *testing.T) {
 
 func TestPinOptions_applyFormatProcessor_ReturnsError(t *testing.T) {
 	po := pinOptionsTestNew()
-	expected := errors.New("An error")
+	expected := errors.New("an error")
 
 	processorMock := &FormatProcessorMock{}
 	processorMock.process = func(imageNameProcessor dockfmt.ImageNameProcessor) error {

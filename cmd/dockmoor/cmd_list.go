@@ -34,7 +34,7 @@ func addListCommand(mainOptions *mainOptions, adder func(opts *mainOptions, comm
 }
 
 func (lo *listOptions) Execute(args []string) error {
-	return errors.New("Use ExecuteWithExitCode instead")
+	return errors.New("use ExecuteWithExitCode instead")
 }
 
 func (lo *listOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err error) {

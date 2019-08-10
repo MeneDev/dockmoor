@@ -92,22 +92,20 @@ func WriteMarkDownUsage(commands []*flags.Command, writer io.Writer) {
 
 		if !isLastCommand {
 			mdPrintf(writer, " ")
-		} else {
-			if len(visibleCommands(command.Commands())) > 0 {
-				var cmds []string
-				for _, cmd := range visibleCommands(command.Commands()) {
-					cmds = append(cmds, fmt.Sprintf("[%s](#%s)", cmd.Name, strings.ToLower(cmd.Name)+"-command"))
-				}
-
-				var fmt string
-				if command.SubcommandsOptional {
-					fmt = " [%s]"
-				} else {
-					fmt = " &lt;%s&gt;"
-				}
-				mdPrintf(writer, fmt, strings.Join(cmds, " | "))
-				mdPrintf(writer, " \\[command-OPTIONS\\]")
+		} else if len(visibleCommands(command.Commands())) > 0 {
+			var cmds []string
+			for _, cmd := range visibleCommands(command.Commands()) {
+				cmds = append(cmds, fmt.Sprintf("[%s](#%s)", cmd.Name, strings.ToLower(cmd.Name)+"-command"))
 			}
+
+			var fmt string
+			if command.SubcommandsOptional {
+				fmt = " [%s]"
+			} else {
+				fmt = " &lt;%s&gt;"
+			}
+			mdPrintf(writer, fmt, strings.Join(cmds, " | "))
+			mdPrintf(writer, " \\[command-OPTIONS\\]")
 		}
 	}
 
@@ -144,7 +142,7 @@ func WriteMarkdownOptions(writer io.Writer, options []*flags.Option, level int) 
 			names = append(names, "-"+string(opt.ShortName))
 		}
 		if opt.LongNameWithNamespace() != "" {
-			names = append(names, "--"+string(opt.LongNameWithNamespace()))
+			names = append(names, "--"+opt.LongNameWithNamespace())
 		}
 
 		mdPrintf(writer, strings.Join(names, "**, **"))

@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"io"
-	//"strings"
 	"testing"
 )
 
@@ -153,7 +152,7 @@ func TestDockerDaemonRegistry_Resolve_Error_in_Initialize(t *testing.T) {
 
 	mockClient := &mockDockerAPIClient{}
 
-	expected := errors.New("Initialize error")
+	expected := errors.New("initialize error")
 	mockCli.On("Initialize", mock.Anything).Return(expected)
 	mockCli.On("Client").Return(mockClient)
 

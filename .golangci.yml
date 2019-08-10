@@ -46,7 +46,14 @@ linters:
     - maligned
     - prealloc
     - gochecknoglobals
-
+    - nakedret
+    - goimports
+    - dupl
+    - interfacer
+    - unparam
+    - lll
+    - goconst
+    - gochecknoinits
 run:
   skip-dirs:
     - test/testdata_etc
@@ -54,9 +61,55 @@ run:
 
 issues:
   exclude-rules:
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+        - scopelint
+    - path: cmd/dockmoor/markdown\.go
+      linters:
+        - errcheck
+    - text: "singleCaseSwitch"
+      linters:
+        - gocritic
+    - text: "commentFormatting"
+      linters:
+        - gocritic
+    - text: "commentedOutCode:"
+      linters:
+        - gocritic
+    - text: "importShadow"
+      linters:
+        - gocritic
+    - text: "rangeValCopy"
+      linters:
+        - gocritic
+    - text: "paramTypeCombine"
+      linters:
+        - gocritic
+    - text: "exitAfterDefer"
+      linters:
+        - gocritic
+    - text: "hugeParam"
+      linters:
+        - gocritic
     - text: "weak cryptographic primitive"
       linters:
         - gosec
+    - text: ".isSetPredicateByName"
+      linters:
+        - gocyclo
+    - text: "WriteASCIIDocUsage"
+      linters:
+        - gocyclo
+    - text: "WriteMarkDownUsage"
+      linters:
+        - gocyclo
+    - text: "getPredicate"
+      linters:
+        - gocyclo
 
 # golangci.com configuration
 # https://github.com/golangci/golangci/wiki/Configuration

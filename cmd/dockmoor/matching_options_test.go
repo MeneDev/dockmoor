@@ -54,8 +54,6 @@ func applyPredicatesByName(fo *MatchingOptions, names ...string) {
 			fo.TagPredicates.Untagged = true
 		case equalsAnyString(tagPred, name):
 			fo.TagPredicates.Tags = []string{"a", "b"}
-		case equalsAnyString(unpinnedPred, name):
-			fo.DigestPredicates.Unpinned = true
 		case equalsAnyString(digestsPred, name):
 			fo.DigestPredicates.Digests = []string{"a", "b"}
 		case equalsAnyString(familiarNamePred, name):
@@ -369,9 +367,7 @@ func TestAndPredicateWhenUnpinnedAndLatestSet(t *testing.T) {
 		expectedLatest, e := dockproc.LatestPredicateNew()
 		assert.Nil(t, e)
 		switch typeOfP {
-		case reflect.TypeOf(expectedUnpinned):
-			fallthrough
-		case reflect.TypeOf(expectedLatest):
+		case reflect.TypeOf(expectedUnpinned), reflect.TypeOf(expectedLatest):
 			matches++
 		}
 	}

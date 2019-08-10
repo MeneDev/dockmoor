@@ -125,7 +125,7 @@ func TestDockerfilePassProcessorErrors(t *testing.T) {
 	format := New()
 	format.ValidateInput(log, strings.NewReader(file), "anything")
 
-	expected := errors.New("Expected")
+	expected := errors.New("expected")
 	err := format.Process(log, strings.NewReader(file), bytes.NewBuffer(nil), func(r dockref.Reference) (dockref.Reference, error) {
 		return r, expected
 	})

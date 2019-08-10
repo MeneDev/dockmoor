@@ -72,7 +72,7 @@ func TestInvalidDockerfileWithContains(t *testing.T) {
 
 	format := new(FormatMock)
 	format.OnName().Return("mock")
-	format.OnValidateInput(mock.Anything, mock.Anything, mock.Anything).Return(errors.New("Not my department"))
+	format.OnValidateInput(mock.Anything, mock.Anything, mock.Anything).Return(errors.New("not my department"))
 
 	formatProvider.OnFormats().Return([]dockfmt.Format{format})
 
@@ -107,7 +107,7 @@ func TestReportInvalidPredicateWithContains(t *testing.T) {
 	format := new(FormatMock)
 	format.OnName().Return("mock")
 	format.OnValidateInput(mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	expected := errors.New("Process Error")
+	expected := errors.New("process Error")
 	format.OnProcess(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(expected)
 
 	formatProvider.OnFormats().Return([]dockfmt.Format{format})
@@ -149,7 +149,7 @@ func TestContainsCallsFindExecuteWithContains(t *testing.T) {
 func TestOpenErrorsArePropagatedWithContains(t *testing.T) {
 	fo := containsOptionsTestNew()
 	fo.TagPredicates.Latest = true
-	expectedError := errors.New("Could not open")
+	expectedError := errors.New("could not open")
 	fo.MainOptions().openerMock.On("Open", mock.Anything).Return(nil, expectedError)
 
 	//exitCode, err := fo.matchAndProcess()
@@ -160,7 +160,7 @@ func TestOpenErrorsArePropagatedWithContains(t *testing.T) {
 
 func TestExecuteReturnsErrorWithContains(t *testing.T) {
 	fo := containsOptionsTestNew()
-	expected := "Use ExecuteWithExitCode instead"
+	expected := "use ExecuteWithExitCode instead"
 	err := fo.Execute(nil)
 
 	assert.Equal(t, expected, err.Error())

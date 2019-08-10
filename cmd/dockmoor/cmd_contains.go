@@ -33,7 +33,7 @@ func addContainsCommand(mainOptions *mainOptions, adder func(opts *mainOptions, 
 }
 
 func (co *containsOptions) Execute(args []string) error {
-	return errors.New("Use ExecuteWithExitCode instead")
+	return errors.New("use ExecuteWithExitCode instead")
 }
 
 func (co *containsOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err error) {

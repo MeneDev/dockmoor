@@ -37,7 +37,7 @@ type pinOptions struct {
 }
 
 func (po *pinOptions) Execute(args []string) error {
-	return errors.New("Use ExecuteWithExitCode instead")
+	return errors.New("use ExecuteWithExitCode instead")
 }
 
 func (po *pinOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err error) {
@@ -130,29 +130,6 @@ func (po *pinOptions) applyFormatProcessor(predicate dockproc.Predicate, process
 
 			case dockref.ResolveModeMostPreciseVersion:
 				return nil, errors.Errorf("VersionMode %s not yet implemented", po.PinOptions.TagMode)
-				//rs, err := repo.FindAllTags(original)
-				//if err != nil {
-				//	po.Log().WithField("error", err.Error()).Errorf("Could not resolve %s", original.Original())
-				//	return nil, err
-				//}
-				//
-				//format, err := po.RefFormat()
-				//if err != nil {
-				//	return nil, err
-				//}
-				//
-				//mostPrecise, err := dockref.MostPreciseTag(rs, po.Log())
-				//
-				//if err == nil {
-				//	po.matches = true
-				//	reference, e := mostPrecise.WithRequestedFormat(format)
-				//	if e != nil {
-				//		return nil, e
-				//	}
-				//	mostPrecise = reference
-				//	return mostPrecise, err
-				//}
-				//return mostPrecise, err
 			}
 
 		}
@@ -244,7 +221,7 @@ func (po *pinOptions) RefFormat() (dockref.Format, error) {
 		format &= ^dockref.FormatHasName
 	}
 	if rf.NoTag {
-		format = format & ^dockref.FormatHasTag
+		format &= ^dockref.FormatHasTag
 	}
 	if rf.NoDigest {
 		format &= ^dockref.FormatHasDigest

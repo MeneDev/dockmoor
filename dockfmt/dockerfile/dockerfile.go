@@ -77,7 +77,7 @@ func (format *dockerfileFormat) validateInput(log logrus.FieldLogger, reader io.
 	for scanner.Scan() {
 		line := scanner.Text()
 		lines = append(lines, line)
-		full = full + line
+		full += line
 	}
 
 	result, err := format.parseFunction(strings.NewReader(full))

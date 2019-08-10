@@ -84,7 +84,7 @@ func Parse(original string) (ref Reference, e error) {
 	return
 }
 
-// MustParse same functionallity as Parse, but hides errors.
+// MustParse same functionality as Parse, but hides errors.
 // Use this function only when you know that the input cannot have an error
 func MustParse(original string) Reference {
 	ref, e := Parse(original)
@@ -122,7 +122,7 @@ func (format Format) Valid() (bool, error) {
 	valid := f == 0
 	var err error
 	if !valid {
-		err = fmt.Errorf("Invalid format, %d", format)
+		err = fmt.Errorf("invalid format, %d", format)
 	}
 	return valid, err
 }

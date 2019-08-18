@@ -82,7 +82,6 @@ jobs:
           command: |
             if [ ! -d ./vendor ]; then
                 go mod vendor
-                find vendor/ -maxdepth 3 -mindepth 3 -exec bash -c 'cd $0 && go build  ./...' {} \;
             fi
       - save_cache:
           key: gopkg-{{ checksum "go.sum" }}
@@ -175,8 +174,7 @@ jobs:
           name: Download and build libraries
           command: |
             if [ ! -d ./vendor ]; then
-                /go/bin/dep ensure
-                find vendor/ -maxdepth 3 -mindepth 3 -exec bash -c 'cd $0 && go build  ./...' {} \;
+                go mod vendor
             fi
       - save_cache:
           key: gopkg-{{ checksum "go.sum" }}
@@ -286,7 +284,6 @@ jobs:
           command: |
             if [ ! -d ./vendor ]; then
                 go mod vendor
-                find vendor/ -maxdepth 3 -mindepth 3 -exec bash -c 'cd $0 && go build  ./...' {} \;
             fi
       - save_cache:
           key: gopkg-{{ checksum "go.sum" }}

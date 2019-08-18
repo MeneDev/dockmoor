@@ -37,6 +37,7 @@ func runForDockerRegistryWithoutAuth(t *testing.T, runAll func(t *testing.T, reg
 			WithStatusCodeMatcher(func(status int) bool {
 				return status == 200
 			}),
+		SkipReaper: true,
 	}
 
 	registryServer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{

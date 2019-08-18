@@ -11,7 +11,6 @@ require (
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/bugsnag/bugsnag-go v1.5.1 // indirect
 	github.com/bugsnag/panicwrap v1.2.0 // indirect
-	github.com/cenkalti/backoff v2.1.1+incompatible // indirect
 	github.com/cloudflare/cfssl v0.0.0-20190506234652-e03d70fc14f2 // indirect
 	github.com/containerd/continuity v0.0.0-20190426062206-aaeac12a7ffc // indirect
 	github.com/docker/cli v0.0.0-20181026145426-51668a30f262
@@ -34,7 +33,6 @@ require (
 	github.com/mattn/go-shellwords v1.0.5
 	github.com/miekg/pkcs11 v1.0.2 // indirect
 	github.com/moby/buildkit v0.3.3
-	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
 	github.com/opencontainers/go-digest v1.0.0-rc1
 	github.com/opencontainers/runc v1.0.1-0.20190307181833-2b18fe1d885e // indirect
 	github.com/pkg/errors v0.8.1
@@ -44,7 +42,7 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.3.2 // indirect
 	github.com/stretchr/testify v1.3.0
-	github.com/testcontainers/testcontainers-go v0.0.4
+	github.com/testcontainers/testcontainers-go v0.0.5
 	github.com/theupdateframework/notary v0.6.1 // indirect
 	golang.org/x/sys v0.0.0-20190312061237-fead79001313 // indirect
 	golang.org/x/text v0.3.1-0.20181227161524-e6919f6577db // indirect
@@ -53,4 +51,5 @@ require (
 	gopkg.in/gorethink/gorethink.v3 v3.0.5 // indirect
 )
 
-replace github.com/testcontainers/testcontainers-go => ../testcontainers-go
+// replace github.com/testcontainers/testcontainers-go => ../testcontainers-go
+replace github.com/testcontainers/testcontainers-go => github.com/MeneDev/testcontainers-go v0.0.5

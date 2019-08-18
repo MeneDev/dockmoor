@@ -127,6 +127,7 @@ func withRegistry(t *testing.T, containerName string, callback func(registryAddr
 			WithStatusCodeMatcher(func(status int) bool {
 				return status == 200
 			}),
+		SkipReaper: true,
 	}
 
 	registryServer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{

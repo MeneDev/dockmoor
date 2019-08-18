@@ -15,7 +15,7 @@ jobs:
               circleci step halt
             fi
       - restore_cache:
-          key: builder2-{{ checksum ".builder/Dockerfile" }}
+          key: builder2-{{ checksum "builder-Dockerfile" }}
           paths:
               - /tmp/builder_pushed
       - run:
@@ -25,14 +25,14 @@ jobs:
               docker login -u $DOCKER_USER -p $DOCKER_PASS
               echo "Building $CI_PROJECT_PATH-builder:latest"
               docker pull "$CI_PROJECT_PATH-builder:latest" || true
-              docker build -f .builder/Dockerfile -t "$CI_PROJECT_PATH-builder:latest" -t "$CI_PROJECT_PATH-builder:$CIRCLE_SHA1" .
+              docker build -f builder-Dockerfile -t "$CI_PROJECT_PATH-builder:latest" -t "$CI_PROJECT_PATH-builder:$CIRCLE_SHA1" .
               docker push "$CI_PROJECT_PATH-builder:latest"
               docker push "$CI_PROJECT_PATH-builder:$CIRCLE_SHA1"
               mkdir -p /tmp/builder_pushed
               echo 1 > /tmp/builder_pushed/builder_pushed
             fi
       - save_cache:
-          key: builder2-{{ checksum ".builder/Dockerfile" }}
+          key: builder2-{{ checksum "builder-Dockerfile" }}
           paths:
               - /tmp/builder_pushed
 
@@ -42,31 +42,13 @@ jobs:
     steps:
       - checkout
       - run:
-          name: gofmt
+          name: golangci-lint
           command: |
-            report="$(gofmt -s -d .)"
+            report="$(guess-quality.sh)"
             if [[ ! -z "$report" ]]; then
-              echo "Formatting not gofmt conform"
+              echo "golangci-lint report not empty!"
               echo "$report"
               exit 1
-            fi
-      - run:
-          name: ineffassign
-          command: |
-            report="$(ineffassign .)"
-            if [[ ! -z "$report" ]]; then
-              echo "Found inefficient assignments with ineffassign"
-              echo "$report"
-              exit 2
-            fi
-      - run:
-          name: go vet
-          command: |
-            report="$(go vet ./...)"
-            if [[ ! -z "$report" ]]; then
-              echo "Problems found by go vet"
-              echo "$report"
-              exit 3
             fi
 
     working_directory: /go/src/github.com/MeneDev/dockmoor
@@ -77,7 +59,6 @@ jobs:
       
     working_directory: /go/src/github.com/MeneDev/dockmoor
     environment:
-      - DEP_VERSION: 0.5.0
       - GOCACHE: "/tmp/go/cache"
     steps:
       - checkout
@@ -92,7 +73,7 @@ jobs:
               circleci step halt
             fi
       - restore_cache:
-          key: gopkg-{{ checksum "Gopkg.lock" }}
+          key: gopkg-{{ checksum "go.sum" }}
           paths:
               - /go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/vendor
               - /tmp/go/cache
@@ -100,11 +81,11 @@ jobs:
           name: Download and build libraries
           command: |
             if [ ! -d ./vendor ]; then
-                /go/bin/dep ensure
+                go mod vendor
                 find vendor/ -maxdepth 3 -mindepth 3 -exec bash -c 'cd $0 && go build  ./...' {} \;
             fi
       - save_cache:
-          key: gopkg-{{ checksum "Gopkg.lock" }}
+          key: gopkg-{{ checksum "go.sum" }}
           paths:
               - ./vendor
               - /tmp/go/cache
@@ -198,7 +179,7 @@ jobs:
                 find vendor/ -maxdepth 3 -mindepth 3 -exec bash -c 'cd $0 && go build  ./...' {} \;
             fi
       - save_cache:
-          key: gopkg-{{ checksum "Gopkg.lock" }}
+          key: gopkg-{{ checksum "go.sum" }}
           paths:
           - ./vendor
           - /tmp/go/cache
@@ -296,7 +277,7 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - restore_cache:
-          key: gopkg-{{ checksum "Gopkg.lock" }}
+          key: gopkg-{{ checksum "go.sum" }}
           paths:
           - /go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/vendor
           - /tmp/go/cache
@@ -304,11 +285,11 @@ jobs:
           name: Download and build libraries
           command: |
             if [ ! -d ./vendor ]; then
-                /go/bin/dep ensure
+                go mod vendor
                 find vendor/ -maxdepth 3 -mindepth 3 -exec bash -c 'cd $0 && go build  ./...' {} \;
             fi
       - save_cache:
-          key: gopkg-{{ checksum "Gopkg.lock" }}
+          key: gopkg-{{ checksum "go.sum" }}
           paths:
           - ./vendor
           - /tmp/go/cache

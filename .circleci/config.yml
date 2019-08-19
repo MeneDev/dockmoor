@@ -15,30 +15,61 @@ jobs:
               circleci step halt
             fi
       - restore_cache:
-          key: builder2-{{ checksum "builder-Dockerfile" }}
+          key: builder-base-{{ checksum ".builder/Dockerfile" }}
           paths:
-              - /tmp/builder_pushed
+              - /tmp/builder-base_pushed
       - run:
-          name: Build and push image if builder/Dockerfile has changed
+          name: Build and push base image if builder/Dockerfile has changed
           command: |
+            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+            if [ ! -f /tmp/builder-base_pushed/builder-base_pushed ]; then
+              echo "Building $CI_PROJECT_PATH-builder-base:latest"
+              docker pull "$CI_PROJECT_PATH-builder-base:latest" || true
+              docker build --build-arg "PROJECT_USERNAME=$CI_PROJECT_NAMESPACE" --build-arg "PROJECT_REPONAME=$CI_PROJECT_NAME" -f .builder/Dockerfile --target=builder-base -t "$CI_PROJECT_PATH-builder-base:latest" -t "$CI_PROJECT_PATH-builder-base:$CIRCLE_SHA1" .
+              docker push "$CI_PROJECT_PATH-builder-base:latest"
+              docker push "$CI_PROJECT_PATH-builder-base:$CIRCLE_SHA1"
+              mkdir -p /tmp/builder-base_pushed
+              echo 1 > /tmp/builder-base_pushed/builder-base_pushed
+            else
+              docker pull "$CI_PROJECT_PATH-builder-base:latest"
+              docker tag "$CI_PROJECT_PATH-builder-base:latest" "$CI_PROJECT_PATH-builder-base:$CIRCLE_SHA1"
+              docker push "$CI_PROJECT_PATH-builder-base:$CIRCLE_SHA1"
+            fi
+      - save_cache:
+          key: builder-base-{{ checksum ".builder/Dockerfile" }}
+          paths:
+              - /tmp/builder-base_pushed
+
+      - restore_cache:
+          key: builder-{{ checksum ".builder/Dockerfile" }}-{{ checksum "go.sum" }}
+          paths:
+            - /tmp/builder_pushed
+      - run:
+          name: Build and push image if builder/Dockerfile or go.sum has changed
+          command: |
+            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
             if [ ! -f /tmp/builder_pushed/builder_pushed ]; then
-              docker login -u $DOCKER_USER -p $DOCKER_PASS
               echo "Building $CI_PROJECT_PATH-builder:latest"
               docker pull "$CI_PROJECT_PATH-builder:latest" || true
-              docker build -f builder-Dockerfile -t "$CI_PROJECT_PATH-builder:latest" -t "$CI_PROJECT_PATH-builder:$CIRCLE_SHA1" .
+              docker build --build-arg "PROJECT_USERNAME=$CI_PROJECT_NAMESPACE" --build-arg "PROJECT_REPONAME=$CI_PROJECT_NAME" -f .builder/Dockerfile -t "$CI_PROJECT_PATH-builder:latest" -t "$CI_PROJECT_PATH-builder:$CIRCLE_SHA1" .
               docker push "$CI_PROJECT_PATH-builder:latest"
               docker push "$CI_PROJECT_PATH-builder:$CIRCLE_SHA1"
               mkdir -p /tmp/builder_pushed
               echo 1 > /tmp/builder_pushed/builder_pushed
+            else
+              docker pull "$CI_PROJECT_PATH-builder:latest"
+              docker tag "$CI_PROJECT_PATH-builder:latest" "$CI_PROJECT_PATH-builder:$CIRCLE_SHA1"
+              docker push "$CI_PROJECT_PATH-builder:$CIRCLE_SHA1"
             fi
       - save_cache:
-          key: builder2-{{ checksum "builder-Dockerfile" }}
+          key: builder-{{ checksum ".builder/Dockerfile" }}-{{ checksum "go.sum" }}
           paths:
-              - /tmp/builder_pushed
+            - /tmp/builder_pushed
+
 
   guess_quality:
     docker:
-    - image: "$CI_PROJECT_PATH-builder:latest"
+    - image: "$CI_PROJECT_PATH-builder:$CIRCLE_SHA1"
     steps:
       - checkout
       - run:
@@ -55,11 +86,9 @@ jobs:
 
   build:
     docker:
-      - image: "$CI_PROJECT_PATH-builder:latest"
+      - image: "$CI_PROJECT_PATH-builder:$CIRCLE_SHA1"
       
     working_directory: /go/src/github.com/MeneDev/dockmoor
-    environment:
-      - GOCACHE: "/tmp/go/cache"
     steps:
       - checkout
       - run:
@@ -72,22 +101,6 @@ jobs:
               echo "This is a commit with generated content, skipping"
               circleci step halt
             fi
-      - restore_cache:
-          key: gopkg-{{ checksum "go.sum" }}
-          paths:
-              - /go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/vendor
-              - /tmp/go/cache
-      - run:
-          name: Download and build libraries
-          command: |
-            if [ ! -d ./vendor ]; then
-                go mod vendor
-            fi
-      - save_cache:
-          key: gopkg-{{ checksum "go.sum" }}
-          paths:
-              - ./vendor
-              - /tmp/go/cache
 
       - setup_remote_docker
 
@@ -141,7 +154,7 @@ jobs:
             - release
   release:
     docker:
-      - image: "$CI_PROJECT_PATH-builder:latest"
+      - image: "$CI_PROJECT_PATH-builder:$CIRCLE_SHA1"
     working_directory: /go/src/github.com/MeneDev/dockmoor
     steps:
       - checkout
@@ -165,22 +178,6 @@ jobs:
               echo "Missing Changelog entry for $tag, refusing to release"
               exit 1
             fi
-      - restore_cache:
-          key: gopkg-{{ checksum "Gopkg.lock" }}
-          paths:
-          - /go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/vendor
-          - /tmp/go/cache
-      - run:
-          name: Download and build libraries
-          command: |
-            if [ ! -d ./vendor ]; then
-                go mod vendor
-            fi
-      - save_cache:
-          key: gopkg-{{ checksum "go.sum" }}
-          paths:
-          - ./vendor
-          - /tmp/go/cache
 
       - setup_remote_docker
 
@@ -257,7 +254,7 @@ jobs:
 
   simulate_release:
     docker:
-      - image: "$CI_PROJECT_PATH-builder:latest"
+      - image: "$CI_PROJECT_PATH-builder:$CIRCLE_SHA1"
     working_directory: /go/src/github.com/MeneDev/dockmoor
     steps:
       - checkout
@@ -274,22 +271,6 @@ jobs:
 
       - attach_workspace:
           at: /tmp/workspace
-      - restore_cache:
-          key: gopkg-{{ checksum "go.sum" }}
-          paths:
-          - /go/src/github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/vendor
-          - /tmp/go/cache
-      - run:
-          name: Download and build libraries
-          command: |
-            if [ ! -d ./vendor ]; then
-                go mod vendor
-            fi
-      - save_cache:
-          key: gopkg-{{ checksum "go.sum" }}
-          paths:
-          - ./vendor
-          - /tmp/go/cache
 
       - setup_remote_docker
 

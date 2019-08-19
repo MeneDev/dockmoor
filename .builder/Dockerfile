@@ -24,9 +24,11 @@ RUN echo "/go/src/github.com/${PROJECT_USERNAME}/${PROJECT_REPONAME}"
 RUN mkdir -p "/go/src/github.com/${PROJECT_USERNAME}/${PROJECT_REPONAME}"
 WORKDIR "/go/src/github.com/${PROJECT_USERNAME}/${PROJECT_REPONAME}"
 
+ENV GO111MODULE on
+
 FROM builder-base
 
 COPY --chown=circleci go.mod .
 COPY --chown=circleci go.sum .
 
-RUN GO111MODULE=on go mod download
+RUN go mod download

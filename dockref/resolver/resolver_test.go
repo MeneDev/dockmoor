@@ -30,7 +30,7 @@ func runForDockerRegistryWithoutAuth(t *testing.T, runAll func(t *testing.T, reg
 		//	"REGISTRY_AUTH_HTPASSWD_REALM": "registry",
 		//},
 		WaitingFor: wait.NewHTTPStrategy("/").
-			WithStartupTimeout(2 * time.Second).
+			WithStartupTimeout(60 * time.Second).
 			WithPort("5000/tcp").
 			WithTLS(true).
 			WithAllowInsecure(true).

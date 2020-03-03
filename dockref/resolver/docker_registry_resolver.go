@@ -158,10 +158,12 @@ func getHTTPTransport(authConfig types.AuthConfig, endpoint registry.APIEndpoint
 	// get the http transport, this will be used in a client to upload manifest
 	base := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
-		Dial: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-		}).Dial,
+		DialContext: func(ctx context.Context, network, addr string) (conn net.Conn, e error) {
+			return (&net.Dialer{
+				Timeout:   60 * time.Second,
+				KeepAlive: 60 * time.Second,
+			}).DialContext(ctx, network, addr)
+		},
 		TLSHandshakeTimeout: 10 * time.Second,
 		TLSClientConfig:     endpoint.TLSConfig,
 		DisableKeepAlives:   true,

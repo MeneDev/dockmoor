@@ -120,14 +120,17 @@ jobs:
             docker tag nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae nginx:1.15.5-alpine-perl
 
             docker pull menedev/testimagea:1
+            docker pull menedev/testimagea:1.1
+            docker pull menedev/testimagea:1.1.1
+            docker pull menedev/testimagea:mainline
+            docker pull menedev/testimagea:1.1.0
             docker pull menedev/testimagea:1.0
             docker pull menedev/testimagea:1.0.0
             docker pull menedev/testimagea:1.0.1
-            docker pull menedev/testimagea:1.1.0
-            docker pull menedev/testimagea:1.1.1
             docker pull menedev/testimagea:2
             docker pull menedev/testimagea:2.0
             docker pull menedev/testimagea:2.0.0
+            docker pull menedev/testimagea:edge
             docker pull menedev/testimagea:latest
             docker pull menedev/testimagea
 

@@ -131,6 +131,8 @@ jobs:
             docker pull menedev/testimagea:latest
             docker pull menedev/testimagea
 
+            docker build -f test_images/test_registry/Dockerfile -t registry_test test_images/test_registry
+
       - run:
           name: Test
           command: |

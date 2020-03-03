@@ -2,15 +2,11 @@ FROM circleci/golang:1.14.0 AS builder-base
 ARG PROJECT_USERNAME
 ARG PROJECT_REPONAME
 
-RUN go get -u github.com/tcnksm/ghr
+RUN GO111MODULE=on go get -u github.com/tcnksm/ghr
 
-RUN mkdir -p /go/src/github.com/mitchellh/gox
-RUN git clone --branch master https://github.com/mitchellh/gox.git /go/src/github.com/mitchellh/gox
-RUN cd /go/src/github.com/mitchellh/gox && git reset --hard d8caaff5a9dc98f4cfa1fcce6e7265a04689f641
-RUN cd /go/src/github.com/mitchellh/gox && go install -v ./... && go clean
-RUN rm -rf /go/src/github.com/mitchellh/gox
+RUN GO111MODULE=on go get github.com/mitchellh/gox@v1.0.1
 
-RUN go get github.com/mattn/goveralls
+RUN GO111MODULE=on go get github.com/mattn/goveralls@v0.0.5
 
 RUN sudo apt-get install ruby \
     && sudo gem install asciidoctor

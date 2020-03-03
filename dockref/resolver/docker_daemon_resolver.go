@@ -152,7 +152,13 @@ func (d dockerCli) Client() dockerAPIClient {
 }
 
 func newCli(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
-	return &dockerCli{command.NewDockerCli(in, out, errWriter, isTrusted, nil)}
+
+	cli, _ := command.NewDockerCli(command.WithInputStream(in),
+		command.WithOutputStream(out),
+		command.WithErrorStream(errWriter),
+		command.WithContentTrust(isTrusted))
+
+	return &dockerCli{cli}
 }
 
 func (reser dockerDaemonResolver) FindAllTags(reference dockref.Reference) ([]dockref.Reference, error) {

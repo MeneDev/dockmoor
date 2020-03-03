@@ -3,13 +3,13 @@ package resolver
 import (
 	"context"
 	"fmt"
+	types2 "github.com/docker/cli/cli/config/types"
 	"testing"
 	"time"
 
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/MeneDev/dockmoor/dockref/resolver/mocks"
 	"github.com/docker/cli/cli/config/credentials"
-	"github.com/docker/docker/api/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/testcontainers/testcontainers-go"
@@ -22,7 +22,7 @@ func TestDockerRegistryResolver_FindAllTags(t *testing.T) {
 		resolver := DockerRegistryResolverNew().(*dockerRegistryResolver)
 		resolver.credentialsStoreFactory = func(ref dockref.Reference) (credentials.Store, error) {
 			store := &mocks.Store{}
-			store.On("Get", mock.AnythingOfType("string")).Return(types.AuthConfig{
+			store.On("Get", mock.AnythingOfType("string")).Return(types2.AuthConfig{
 				Username: "testuser",
 				Password: "testpassword",
 			}, nil)
@@ -52,7 +52,7 @@ func TestDockerRegistryResolver_Resolve_resolves_versions_to_most_exact_version(
 			resolver := DockerRegistryResolverNew().(*dockerRegistryResolver)
 			resolver.credentialsStoreFactory = func(ref dockref.Reference) (credentials.Store, error) {
 				store := &mocks.Store{}
-				store.On("Get", mock.AnythingOfType("string")).Return(types.AuthConfig{
+				store.On("Get", mock.AnythingOfType("string")).Return(types2.AuthConfig{
 					Username: "testuser",
 					Password: "testpassword",
 				}, nil)

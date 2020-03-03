@@ -54,8 +54,13 @@ github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZm
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
 github.com/docker/cli v0.0.0-20181026145426-51668a30f262 h1:koqycNrb60EKQRm25LhMxA9xFlLPCsxU9wphV4jtiuY=
 github.com/docker/cli v0.0.0-20181026145426-51668a30f262/go.mod h1:JLrzqnKDaYBop7H2jaqPtU4hHvMKP+vjCwu2uszcLI8=
+github.com/docker/cli v0.0.0-20200210162036-a4bedce16568/go.mod h1:JLrzqnKDaYBop7H2jaqPtU4hHvMKP+vjCwu2uszcLI8=
+github.com/docker/cli v0.0.0-20200303162255-7d407207c304 h1:A7SYzidcyuQ/yS4wezWGYeUioUFJQk8HYWY9aMYTF4I=
+github.com/docker/cli v0.0.0-20200303162255-7d407207c304/go.mod h1:JLrzqnKDaYBop7H2jaqPtU4hHvMKP+vjCwu2uszcLI8=
 github.com/docker/distribution v2.7.1-0.20190205005809-0d3efadf0154+incompatible h1:dvc1KSkIYTVjZgHf/CTC2diTYC8PzhaA5sFISRfNVrE=
 github.com/docker/distribution v2.7.1-0.20190205005809-0d3efadf0154+incompatible/go.mod h1:J2gT2udsDAN96Uj4KfcMRqY0/ypR+oyYUYmja8H+y+w=
+github.com/docker/docker v0.0.0-20200204220554-5f6d6f3f2203/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
+github.com/docker/docker v0.7.3-0.20190506211059-b20a14b54661 h1:ZuxGvIvF01nfc/G9RJ5Q7Va1zQE2WJyG18Zv3DqCEf4=
 github.com/docker/docker v0.7.3-0.20190506211059-b20a14b54661/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
 github.com/docker/docker v1.14.0-0.20190319215453-e7b5f7dbe98c h1:rZ+3jNsgjvYgdZ0Nrd4Udrv8rneDbWBohAPuXsTsvGU=
 github.com/docker/docker v1.14.0-0.20190319215453-e7b5f7dbe98c/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
@@ -279,6 +284,8 @@ github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJy
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/testcontainers/testcontainers-go v0.3.0 h1:Fc+D4uuBrKmt1fOxpGYW+9pFtzwDqhZOecpBbdyUgaE=
 github.com/testcontainers/testcontainers-go v0.3.0/go.mod h1:br7bkzIukhPSIjy07Ma3OuXjjFvl2jm7CDU0LQNsqLw=
+github.com/testcontainers/testcontainers-go v0.3.1 h1:KZkEKNfnlsipJblzGCz6fmzd+0DzJ3djulYrislG3Zw=
+github.com/testcontainers/testcontainers-go v0.3.1/go.mod h1:br7bkzIukhPSIjy07Ma3OuXjjFvl2jm7CDU0LQNsqLw=
 github.com/theupdateframework/notary v0.6.1 h1:7wshjstgS9x9F5LuB1L5mBI2xNMObWqjz+cjWoom6l0=
 github.com/theupdateframework/notary v0.6.1/go.mod h1:MOfgIfmox8s7/7fduvB2xyPPMJCrjRLRizA8OFwpnKY=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
@@ -398,3 +405,5 @@ gotest.tools v0.0.0-20181223230014-1083505acf35 h1:zpdCK+REwbk+rqjJmHhiCN6iBIigr
 gotest.tools v0.0.0-20181223230014-1083505acf35/go.mod h1:R//lfYlUuTOTfblYI3lGoAAAebUdzjvbmQsuB7Ykd90=
 honnef.co/go/tools v0.0.0-20180728063816-88497007e858/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
+vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 h1:O69FD9pJA4WUZlEwYatBEEkRWKQ5cKodWpdKTrCS/iQ=
+vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787/go.mod h1:so/NYdZXCz+E3ZpW0uAoCj6uzU2+8OWDFv/HxUSs7kI=

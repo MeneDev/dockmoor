@@ -12,9 +12,9 @@ require (
 	github.com/bugsnag/bugsnag-go v1.5.3 // indirect
 	github.com/bugsnag/panicwrap v1.2.0 // indirect
 	github.com/cloudflare/cfssl v0.0.0-20190506234652-e03d70fc14f2 // indirect
-	github.com/docker/cli v0.0.0-20181026145426-51668a30f262
+	github.com/docker/cli v0.0.0-20200303162255-7d407207c304
 	github.com/docker/distribution v2.7.1-0.20190205005809-0d3efadf0154+incompatible
-	github.com/docker/docker v1.14.0-0.20190319215453-e7b5f7dbe98c
+	github.com/docker/docker v0.7.3-0.20190506211059-b20a14b54661
 	github.com/docker/docker-credential-helpers v0.6.3 // indirect
 	github.com/docker/go v1.5.1-1 // indirect
 	github.com/docker/go-metrics v0.0.1 // indirect
@@ -46,7 +46,7 @@ require (
 	github.com/spf13/cobra v0.0.6 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.4.0
-	github.com/testcontainers/testcontainers-go v0.3.0
+	github.com/testcontainers/testcontainers-go v0.3.1
 	github.com/theupdateframework/notary v0.6.1 // indirect
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859 // indirect
 	golang.org/x/text v0.3.2 // indirect
@@ -56,4 +56,5 @@ require (
 	gopkg.in/fatih/pool.v2 v2.0.0 // indirect
 	gopkg.in/gorethink/gorethink.v3 v3.0.5 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
+	vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 // indirect
 )

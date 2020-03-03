@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/MeneDev/dockmoor/dockref"
-	"github.com/docker/cli/cli"
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/credentials"
 	"github.com/docker/distribution"
@@ -139,7 +138,8 @@ func (repo *dockerRegistryResolver) tagService(ctx context.Context, ref dockref.
 		return nil, err
 	}
 	lrr := lookupReference{ref}
-	roundTripper, err := getHTTPTransport(authConfig, endpoints[0], lrr.Name(), UserAgent())
+	authConfig2 := types.AuthConfig{authConfig.Username, authConfig.Password, authConfig.Auth, authConfig.Email, authConfig.ServerAddress, authConfig.IdentityToken, authConfig.RegistryToken}
+	roundTripper, err := getHTTPTransport(authConfig2, endpoints[0], lrr.Name(), UserAgent())
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,6 @@ func getHTTPTransport(authConfig types.AuthConfig, endpoint registry.APIEndpoint
 		Dial: (&net.Dialer{
 			Timeout:   30 * time.Second,
 			KeepAlive: 30 * time.Second,
-			DualStack: true,
 		}).Dial,
 		TLSHandshakeTimeout: 10 * time.Second,
 		TLSClientConfig:     endpoint.TLSConfig,
@@ -204,5 +203,5 @@ func (th *existingTokenHandler) Scheme() string {
 
 // UserAgent returns the user agent string used for making API requests
 func UserAgent() string {
-	return "dockmoor/" + cli.Version + " (" + runtime.GOOS + ")"
+	return "dockmoor/0 (" + runtime.GOOS + ")"
 }

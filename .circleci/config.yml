@@ -105,7 +105,7 @@ jobs:
       - setup_remote_docker
 
       - run:
-          name: docker pull
+          name: docker pull images for testing
           command: |
             docker pull nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e
             docker pull nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991

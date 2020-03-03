@@ -1,4 +1,4 @@
-FROM circleci/golang:1.12.8 AS builder-base
+FROM circleci/golang:1.14.0 AS builder-base
 ARG PROJECT_USERNAME
 ARG PROJECT_REPONAME
 

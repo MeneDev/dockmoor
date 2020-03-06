@@ -14,3 +14,5 @@ update-time\.sh
 README\.adoc
 
 cmd/dockmoor/doc/dockmoor\.adoc
+
+/release/

@@ -3,6 +3,12 @@ github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 h1:w+iIsaOQNcT7O
 github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78/go.mod h1:LmzpDX56iTiv29bbRTIsUNlaFfuhWRQBWjQdVyAevI8=
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/MeneDev/testcontainers-go v0.3.2-0.20200307133232-28523c2c49fc h1:WOH0z38mi00I7QsiPSwhQv1MwyDdlsUdyGZxlIpurUc=
+github.com/MeneDev/testcontainers-go v0.3.2-0.20200307133232-28523c2c49fc/go.mod h1:br7bkzIukhPSIjy07Ma3OuXjjFvl2jm7CDU0LQNsqLw=
+github.com/MeneDev/testcontainers-go v0.3.2-0.20200307150835-bc0094b24337 h1:FnTSAud0bMlPxyVnFqngJiCNZ0P/mQHfeEpKEvsdqQA=
+github.com/MeneDev/testcontainers-go v0.3.2-0.20200307150835-bc0094b24337/go.mod h1:br7bkzIukhPSIjy07Ma3OuXjjFvl2jm7CDU0LQNsqLw=
+github.com/MeneDev/testcontainers-go v0.3.2-0.20200307152149-448de2dfe13b h1:4U42CUuJ5jOdomlwBXwGsyFmEZy6cHowGJyk5jM95yo=
+github.com/MeneDev/testcontainers-go v0.3.2-0.20200307152149-448de2dfe13b/go.mod h1:br7bkzIukhPSIjy07Ma3OuXjjFvl2jm7CDU0LQNsqLw=
 github.com/Microsoft/go-winio v0.4.11 h1:zoIOcVf0xPN1tnMVbTtEdI+P8OofVk3NObnwOQ6nK2Q=
 github.com/Microsoft/go-winio v0.4.11/go.mod h1:VhR8bwka0BXejwEJY73c50VrPtXAaKcyvVC4A4RozmA=
 github.com/Microsoft/go-winio v0.4.14 h1:+hMXMk01us9KgxGb7ftKQt2Xpf5hH/yky+TDA+qxleU=

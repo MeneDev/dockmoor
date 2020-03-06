@@ -68,3 +68,5 @@ require (
 // https://github.com/golang/go/issues/28489#issuecomment-528122909
 // v19.03.0
 replace github.com/docker/docker => github.com/docker/engine v0.0.0-20190717161051-705d9623b7c1
+
+replace github.com/testcontainers/testcontainers-go => github.com/MeneDev/testcontainers-go v0.3.2-0.20200307152149-448de2dfe13b

@@ -2,8 +2,11 @@ package resolver
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	types2 "github.com/docker/cli/cli/config/types"
+	"io/ioutil"
+	"net/http"
 	"testing"
 	"time"
 
@@ -17,7 +20,7 @@ import (
 )
 
 func TestDockerRegistryResolver_FindAllTags(t *testing.T) {
-	withRegistry(t, "registry_test", func(regAddr string) {
+	withContaineredRegistry(t, "registry_test", func(regAddr string) {
 
 		resolver := DockerRegistryResolverNew().(*dockerRegistryResolver)
 		resolver.credentialsStoreFactory = func(ref dockref.Reference) (credentials.Store, error) {
@@ -107,21 +110,21 @@ func TestDockerRegistryResolver_Resolve_resolves_versions_to_most_exact_version(
 			dockref.ResolveModeUnchanged}))
 	}
 
-	withRegistry(t, "registry_test", runAll)
+	withContaineredRegistry(t, "registry_test", runAll)
 }
 
-func withRegistry(t *testing.T, containerName string, callback func(registryAddress string)) {
+func withContaineredRegistry(t *testing.T, containerName string, callback func(registryAddress string)) {
 	ctx := context.Background()
 	req := testcontainers.ContainerRequest{
 		Image:        containerName,
-		ExposedPorts: []string{"5000/tcp"},
+		ExposedPorts: []string{"5001/tcp"},
 		Env: map[string]string{
 			"REGISTRY_AUTH_HTPASSWD_PATH":  "/auth/.htpasswd",
 			"REGISTRY_AUTH_HTPASSWD_REALM": "registry",
 		},
 		WaitingFor: wait.NewHTTPStrategy("/").
-			WithStartupTimeout(2 * time.Second).
-			WithPort("5000/tcp").
+			WithStartupTimeout(20 * time.Minute).
+			WithPort("5001/tcp").
 			WithTLS(true).
 			WithAllowInsecure(true).
 			WithStatusCodeMatcher(func(status int) bool {
@@ -138,6 +141,7 @@ func withRegistry(t *testing.T, containerName string, callback func(registryAddr
 	if err != nil {
 		t.Error(err)
 	}
+
 	defer func() {
 		registryServerErr := registryServer.Terminate(ctx)
 		if registryServerErr != nil {
@@ -149,12 +153,40 @@ func withRegistry(t *testing.T, containerName string, callback func(registryAddr
 	if err != nil {
 		t.Error(err)
 	}
+
 	port, err := registryServer.MappedPort(ctx, "5000/tcp")
 	if err != nil {
 		t.Error(err)
 	}
 
 	registryAddress := fmt.Sprintf("%s:%s/", ip, port.Port())
+
+	// TODO remove me
+
+	time.Sleep(3 * time.Second)
+
+	tripper := http.DefaultTransport
+
+	tripper.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+
+	client := http.Client{Transport: tripper}
+	req2, err := http.NewRequest("GET", "https://"+registryAddress+"v2/_catalog", nil)
+	if err != nil {
+		fmt.Printf("ERROR in test client %+v\n", err)
+	}
+
+	resp, err := client.Do(req2)
+	if err != nil {
+		fmt.Printf("ERROR in test client %+v\n", err)
+	}
+	fmt.Printf("RESP %+v\n", resp)
+
+	if b, err := ioutil.ReadAll(resp.Body); err == nil {
+		fmt.Printf("RESP: %s", string(b))
+	} else {
+		fmt.Printf("ERROR in test client %+v\n", err)
+	}
+	// end TODO
 
 	callback(registryAddress)
 }

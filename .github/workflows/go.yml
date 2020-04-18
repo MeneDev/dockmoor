@@ -33,5 +33,11 @@ jobs:
       - name: Build
         run: go build -v ./...
 
-      - name: Tet
+      - name: Log into docker hub
+        uses: azure/docker-login@v1
+        with:
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Test
         run: go test -v ./...

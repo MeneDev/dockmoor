@@ -117,14 +117,14 @@ func withContaineredRegistry(t *testing.T, containerName string, callback func(r
 	ctx := context.Background()
 	req := testcontainers.ContainerRequest{
 		Image:        containerName,
-		ExposedPorts: []string{"5001/tcp"},
+		ExposedPorts: []string{"5000/tcp"},
 		Env: map[string]string{
 			"REGISTRY_AUTH_HTPASSWD_PATH":  "/auth/.htpasswd",
 			"REGISTRY_AUTH_HTPASSWD_REALM": "registry",
 		},
 		WaitingFor: wait.NewHTTPStrategy("/").
-			WithStartupTimeout(20 * time.Minute).
-			WithPort("5001/tcp").
+			WithStartupTimeout(20 * time.Second).
+			WithPort("5000/tcp").
 			WithTLS(true).
 			WithAllowInsecure(true).
 			WithStatusCodeMatcher(func(status int) bool {

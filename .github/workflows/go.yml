@@ -72,3 +72,10 @@ jobs:
 
       - name: Test
         run: go test -v ./...
+
+      - name: Install gox
+        run: go get github.com/mitchellh/gox@v1.0.1
+
+      - name: Cross-compile
+        run: cd cmd/dockmoor && gox -os="linux darwin windows" -arch="amd64" -output "../../release/dockmoor-{{.OS}}_{{.Arch}}"
+

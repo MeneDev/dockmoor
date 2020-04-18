@@ -41,6 +41,8 @@ require (
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/miekg/pkcs11 v1.0.3 // indirect
 	github.com/moby/buildkit v0.3.3
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/opencontainers/go-digest v1.0.0-rc1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/procfs v0.0.10 // indirect
@@ -56,15 +58,17 @@ require (
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859 // indirect
 	golang.org/x/text v0.3.2 // indirect
+	golang.org/x/tools v0.0.0-20190524140312-2c0ae7006135 // indirect
 	gopkg.in/dancannon/gorethink.v3 v3.0.5 // indirect
 	gopkg.in/fatih/pool.v2 v2.0.0 // indirect
 	gopkg.in/gorethink/gorethink.v3 v3.0.5 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
+	honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc // indirect
 	vbom.ml/util v0.0.0-20180919145318-efcd4e0f9787 // indirect
 )
 
 // https://github.com/golang/go/issues/28489#issuecomment-528122909
-// v19.03.0
-replace github.com/docker/docker => github.com/docker/engine v0.0.0-20190717161051-705d9623b7c1
+// v19.03.6
+replace github.com/docker/docker => github.com/docker/engine v0.0.0-20200204220554-5f6d6f3f2203
 
 replace github.com/testcontainers/testcontainers-go => github.com/MeneDev/testcontainers-go v0.3.2-0.20200418134517-09f104aace0b

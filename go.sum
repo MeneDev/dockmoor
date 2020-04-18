@@ -79,6 +79,8 @@ github.com/docker/docker-credential-helpers v0.6.3 h1:zI2p9+1NQYdnG6sMU26EX4aVGl
 github.com/docker/docker-credential-helpers v0.6.3/go.mod h1:WRaJzqw3CTB9bk10avuGsjVBZsD05qeibJ1/TYlvc0Y=
 github.com/docker/engine v0.0.0-20190717161051-705d9623b7c1 h1:pKV3lCoWunXtXfyRUcqYflvdaiFU3BMxHw5izMsYDhY=
 github.com/docker/engine v0.0.0-20190717161051-705d9623b7c1/go.mod h1:3CPr2caMgTHxxIAZgEMd3uLYPDlRvPqCpyeRf6ncPcY=
+github.com/docker/engine v0.0.0-20200204220554-5f6d6f3f2203 h1:KZjvdDwOEuPHFnT/wvRgTLhTsiJ3F8OXQqlEmIEHx6w=
+github.com/docker/engine v0.0.0-20200204220554-5f6d6f3f2203/go.mod h1:3CPr2caMgTHxxIAZgEMd3uLYPDlRvPqCpyeRf6ncPcY=
 github.com/docker/go v1.5.1-1 h1:hr4w35acWBPhGBXlzPoHpmZ/ygPjnmFVxGxxGnMyP7k=
 github.com/docker/go v1.5.1-1/go.mod h1:CADgU4DSXK5QUlFslkQu2yW2TKzFZcXq/leZfM0UH5Q=
 github.com/docker/go-connections v0.4.0 h1:El9xVISelRB7BuFusrZozjnkIM5YnzCViNKohAFqRJQ=

@@ -20,7 +20,9 @@ jobs:
         id: go
 
       - name: Install gox
-        run: GO111MODULE=on go get github.com/mitchellh/gox@v1.0.1
+        run: |
+          GO111MODULE=on go get github.com/mitchellh/gox@v1.0.1
+          GO111MODULE=on go get github.com/mattn/goveralls
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
@@ -74,7 +76,9 @@ jobs:
           docker build -f test_images/test_registry/Dockerfile -t registry_test test_images/test_registry
 
       - name: Test
-        run: GO111MODULE=on go test -v ./...
+        run: |
+          GO111MODULE=on go test -v ./... -cover -race -coverprofile=/tmp/coverage.out
+          /home/runner/go/bin/goveralls -coverprofile=/tmp/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
 
       - name: End-to-End Test
         run: (cd cmd/dockmoor/end-to-end && ./test.sh)

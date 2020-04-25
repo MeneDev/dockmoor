@@ -76,6 +76,9 @@ jobs:
       - name: Test
         run: GO111MODULE=on go test -v ./...
 
+      - name: End-to-End Test
+        run: (cd cmd/dockmoor/end-to-end && ./test.sh)
+
       - name: Cross-compile
         run: cd cmd/dockmoor && GO111MODULE=on /home/runner/go/bin/gox -os="windows" -arch="amd64" -output "../../release/dockmoor-{{.OS}}_{{.Arch}}"
 

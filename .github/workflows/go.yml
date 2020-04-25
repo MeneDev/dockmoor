@@ -79,6 +79,8 @@ jobs:
         run: |
           GO111MODULE=on go test -v ./... -cover -race -coverprofile=/tmp/coverage.out
           /home/runner/go/bin/goveralls -coverprofile=/tmp/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
 
       - name: End-to-End Test
         run: (cd cmd/dockmoor/end-to-end && ./test.sh)

@@ -13,6 +13,7 @@ require (
 	github.com/bugsnag/panicwrap v1.2.0 // indirect
 	github.com/cloudflare/cfssl v0.0.0-20190506234652-e03d70fc14f2 // indirect
 	github.com/containerd/containerd v1.3.3 // indirect
+	github.com/containerd/fifo v0.0.0-20200410184934-f15a3290365b // indirect
 	github.com/containerd/ttrpc v1.0.0 // indirect
 	github.com/containerd/typeurl v0.0.0-20200205145503-b45ef1f1f737 // indirect
 	github.com/coreos/go-systemd/v22 v22.0.0 // indirect
@@ -57,7 +58,6 @@ require (
 	github.com/theupdateframework/notary v0.6.1 // indirect
 	github.com/urfave/cli v1.22.2 // indirect
 	github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 // indirect
-	golang.org/x/sys v0.0.0-20190830141801-acfa387b8d69 // indirect
 	golang.org/x/text v0.3.2 // indirect
 	gopkg.in/dancannon/gorethink.v3 v3.0.5 // indirect
 	gopkg.in/fatih/pool.v2 v2.0.0 // indirect

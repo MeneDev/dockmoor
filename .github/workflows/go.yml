@@ -19,25 +19,22 @@ jobs:
           go-version: 1.12.16
         id: go
 
-#      - name: go version
-#        run: go version
-
       - name: Install gox
         run: GO111MODULE=on go get github.com/mitchellh/gox@v1.0.1
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
 
-#      - name: Get dependencies
-#        run: |
-#          GO111MODULE=on go get -v -t -d ./...
-#          if [ -f Gopkg.toml ]; then
-#              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-#              dep ensure
-#          fi
+      - name: Get dependencies
+        run: |
+          GO111MODULE=on go get -v -t -d ./...
+          if [ -f Gopkg.toml ]; then
+              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+              dep ensure
+          fi
 
-#      - name: Build
-#        run: GO111MODULE=on go build -v ./...
+      - name: Build
+        run: GO111MODULE=on go build -v ./...
 
       - name: Log into docker hub
         uses: azure/docker-login@v1
@@ -45,39 +42,39 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-#      - name: Prepare docker deamon for testing
-#        run: |
-#          docker pull nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e
-#          docker pull nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991
-#          docker pull nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae
-#          docker tag nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e nginx:1.15.5
-#          docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:1
-#          docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:1.15
-#          docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:1.15.6
-#          docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:latest
-#          docker tag nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae nginx:1-alpine-perl
-#          docker tag nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae nginx:1.15-alpine-perl
-#          docker tag nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae nginx:1.15.5-alpine-perl
-#
-#          docker pull menedev/testimagea:1
-#          docker pull menedev/testimagea:1.1
-#          docker pull menedev/testimagea:1.1.1
-#          docker pull menedev/testimagea:mainline
-#          docker pull menedev/testimagea:1.1.0
-#          docker pull menedev/testimagea:1.0
-#          docker pull menedev/testimagea:1.0.0
-#          docker pull menedev/testimagea:1.0.1
-#          docker pull menedev/testimagea:2
-#          docker pull menedev/testimagea:2.0
-#          docker pull menedev/testimagea:2.0.0
-#          docker pull menedev/testimagea:edge
-#          docker pull menedev/testimagea:latest
-#          docker pull menedev/testimagea
-#
-#          docker build -f test_images/test_registry/Dockerfile -t registry_test test_images/test_registry
+      - name: Prepare docker deamon for testing
+        run: |
+          docker pull nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e
+          docker pull nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991
+          docker pull nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae
+          docker tag nginx@sha256:b73f527d86e3461fd652f62cf47e7b375196063bbbd503e853af5be16597cb2e nginx:1.15.5
+          docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:1
+          docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:1.15
+          docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:1.15.6
+          docker tag nginx@sha256:31b8e90a349d1fce7621f5a5a08e4fc519b634f7d3feb09d53fac9b12aa4d991 nginx:latest
+          docker tag nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae nginx:1-alpine-perl
+          docker tag nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae nginx:1.15-alpine-perl
+          docker tag nginx@sha256:9c632b0423d3ceba7e94a6744a127b694caacb6117238aff033ab6bdc88c1fae nginx:1.15.5-alpine-perl
 
-#      - name: Test
-#        run: GO111MODULE=on go test -v ./...
+          docker pull menedev/testimagea:1
+          docker pull menedev/testimagea:1.1
+          docker pull menedev/testimagea:1.1.1
+          docker pull menedev/testimagea:mainline
+          docker pull menedev/testimagea:1.1.0
+          docker pull menedev/testimagea:1.0
+          docker pull menedev/testimagea:1.0.0
+          docker pull menedev/testimagea:1.0.1
+          docker pull menedev/testimagea:2
+          docker pull menedev/testimagea:2.0
+          docker pull menedev/testimagea:2.0.0
+          docker pull menedev/testimagea:edge
+          docker pull menedev/testimagea:latest
+          docker pull menedev/testimagea
+
+          docker build -f test_images/test_registry/Dockerfile -t registry_test test_images/test_registry
+
+      - name: Test
+        run: GO111MODULE=on go test -v ./...
 
       - name: Cross-compile
         run: cd cmd/dockmoor && GO111MODULE=on /home/runner/go/bin/gox -os="windows" -arch="amd64" -output "../../release/dockmoor-{{.OS}}_{{.Arch}}"

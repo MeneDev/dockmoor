@@ -48,12 +48,6 @@ jobs:
               dep ensure
           fi
 
-      - uses: actions/cache@v1
-        if: steps.go-dependencies-cache.outputs.cache-hit != 'true'
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-dependencies-${{ hashFiles('go.sum') }}
-
       - name: Build
         run: GO111MODULE=on go build -v ./...
 
@@ -105,7 +99,11 @@ jobs:
         run: (cd cmd/dockmoor/end-to-end && ./test.sh)
 
       - name: Cross-compile
-        run: cd cmd/dockmoor && GO111MODULE=on /home/runner/go/bin/gox -os="darwin linux windows" -arch="amd64" -output "../../release/dockmoor-{{.OS}}_{{.Arch}}"
+        run: |
+          # increase for old circleCI workflow
+          build_number = $((GITHUB_RUN_NUMBER + 636))
+          tag=${{ steps.get_version.outputs.version }}
+          cd cmd/dockmoor && GO111MODULE=on /home/runner/go/bin/gox -ldflags="-s -w -X \"github.com/MeneDev/dockmoor/dockmoor.Version=${tag}\" -X \"github.com/MeneDev/dockmoor/dockmoor.BuildDate=$(date --utc)\" -X \"github.com/MeneDev/dockmoor/dockmoor.BuildNumber=$GITHUB_RUN_NUMBER\" -X \"github.com/MeneDev/dockmoor/dockmoor.BuildCommit=$GITHUB_SHA\"" -os="darwin linux windows" -arch="amd64" -output "../../release/dockmoor-{{.OS}}_{{.Arch}}"
 
       - name: Install documentation tools
         run: |
@@ -119,8 +117,9 @@ jobs:
         run: echo ::set-output name=version::${GITHUB_REF##*/}
 
       - name: Verify CHANGELOG contains release tag
+        if: "startsWith(github.ref, 'refs/tags/v')"
         run: |
-          tag=$CIRCLE_TAG
+          tag=${{ steps.get_version.outputs.version }}
           if ! cat CHANGELOG.md | grep "## $tag" ; then
             echo "Missing Changelog entry for $tag, refusing to release"
             exit 1
@@ -149,15 +148,15 @@ jobs:
 
           git add README.adoc
           # --allow-empty for rebuilds without release
-          git commit --allow-empty -m ":gem: Simulate Release"
         env:
           GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
           GIT_USER: ${{ secrets.GIT_USER }}
 
-      - name: Simulate release to master
+      - name: Simulate push to master
         if: "!startsWith(github.ref, 'refs/tags/v')"
         run: |
           set -v
+          git commit --allow-empty -m ":gem: Simulate Release"
           git push --force-with-lease --dry-run origin master --tags
 
       - name: Move git tag for release
@@ -165,6 +164,7 @@ jobs:
         run: |
           set -v
           tag=${{ steps.get_version.outputs.version }}
+          git commit --allow-empty -m ":gem: Release $tag"
           git tag -fa "$tag" -m "Release $tag"
           git push --delete origin "$tag" || true
           git push --force-with-lease origin master --tags
@@ -189,6 +189,7 @@ jobs:
           git push origin develop
 
       - name: Create Release
+        id: create_release
         if: "startsWith(github.ref, 'refs/tags/v')"
         uses: actions/create-release@latest
         env:
@@ -196,9 +197,19 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
-          body: |
-            Changes in this Release
-            - First Change
-            - Second Change
+#          body: |
+#            Changes in this Release
+#            - First Change
+#            - Second Change
           draft: false
-          prerelease: falserelease/
+          prerelease: false
+
+      - name: Upload Release Asset
+        if: "startsWith(github.ref, 'refs/tags/v')"
+        uses: csexton/release-asset-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          pattern: release/*
+          release-url: ${{ steps.create_release.outputs.upload_url }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}

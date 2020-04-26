@@ -156,3 +156,9 @@ jobs:
         env:
           GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
           GIT_USER: ${{ secrets.GIT_USER }}
+      - name: Update end-to-end results as artifact
+        uses: actions/upload-artifact@v1
+        if: failure()
+        with:
+          name: end-to-end
+          path: cmd/dockmoor/end-to-end/

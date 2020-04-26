@@ -30,6 +30,16 @@ jobs:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
 
+      - name: Get the version
+        id: git_info
+        run: |
+          echo ::set-output name=version::${GITHUB_REF##*/}
+          echo ::set-output name=release_commit_msg::"$(git log -1 --pretty=%B | head -n 1 || true)"
+
+      - name: Cancel generated release commit
+        if: 'steps.git_info.outputs.release_commit_msg == format('':gem: Release '', steps.git_info.outputs.version)'
+        uses: andymckay/cancel-action@0.2
+
       - run: |
           git fetch --prune --unshallow
 
@@ -102,7 +112,7 @@ jobs:
         run: |
           # increase for old circleCI workflow
           build_number = $((GITHUB_RUN_NUMBER + 636))
-          tag=${{ steps.get_version.outputs.version }}
+          tag=${{ steps.git_info.outputs.version }}
           cd cmd/dockmoor && GO111MODULE=on /home/runner/go/bin/gox -ldflags="-s -w -X \"github.com/MeneDev/dockmoor/dockmoor.Version=${tag}\" -X \"github.com/MeneDev/dockmoor/dockmoor.BuildDate=$(date --utc)\" -X \"github.com/MeneDev/dockmoor/dockmoor.BuildNumber=$GITHUB_RUN_NUMBER\" -X \"github.com/MeneDev/dockmoor/dockmoor.BuildCommit=$GITHUB_SHA\"" -os="darwin linux windows" -arch="amd64" -output "../../release/dockmoor-{{.OS}}_{{.Arch}}"
 
       - name: Install documentation tools
@@ -112,14 +122,10 @@ jobs:
           wget https://github.com/jgm/pandoc/releases/download/2.4/pandoc-2.4-1-amd64.deb
           sudo dpkg -i pandoc-2.4-1-amd64.deb
 
-      - name: Get the version
-        id: get_version
-        run: echo ::set-output name=version::${GITHUB_REF##*/}
-
       - name: Verify CHANGELOG contains release tag
         if: "startsWith(github.ref, 'refs/tags/v')"
         run: |
-          tag=${{ steps.get_version.outputs.version }}
+          tag=${{ steps.git_info.outputs.version }}
           if ! cat CHANGELOG.md | grep "## $tag" ; then
             echo "Missing Changelog entry for $tag, refusing to release"
             exit 1
@@ -128,7 +134,7 @@ jobs:
       - name: Update README.adoc
         run: |
           set -v
-          tag=${{ steps.get_version.outputs.version }}
+          tag=${{ steps.git_info.outputs.version }}
 
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "$GIT_USER"
@@ -163,7 +169,7 @@ jobs:
         if: "startsWith(github.ref, 'refs/tags/v')"
         run: |
           set -v
-          tag=${{ steps.get_version.outputs.version }}
+          tag=${{ steps.git_info.outputs.version }}
           git commit --allow-empty -m ":gem: Release $tag"
           git tag -fa "$tag" -m "Release $tag"
           git push --delete origin "$tag" || true

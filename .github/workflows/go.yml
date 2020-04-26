@@ -27,13 +27,26 @@ jobs:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v2
 
+      - uses: actions/cache@v1
+        id: go-dependencies-cache
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-dependencies-${{ hashFiles('go.sum') }}
+
       - name: Get dependencies
+        if: steps.go-dependencies-cache.outputs.cache-hit != 'true'
         run: |
           GO111MODULE=on go get -v -t -d ./...
           if [ -f Gopkg.toml ]; then
               curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
               dep ensure
           fi
+
+      - uses: actions/cache@v1
+        if: steps.go-dependencies-cache.outputs.cache-hit != 'true'
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-dependencies-${{ hashFiles('go.sum') }}
 
       - name: Build
         run: GO111MODULE=on go build -v ./...
@@ -77,10 +90,13 @@ jobs:
 
       - name: Test
         run: |
-          GO111MODULE=on go test -v ./... -cover -race -coverprofile=/tmp/coverage.out
-          /home/runner/go/bin/goveralls -coverprofile=/tmp/coverage.out -service=circle-ci -repotoken=$COVERALLS_TOKEN
-        env:
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+          GO111MODULE=on go test -v ./... -cover -race -coverprofile=/tmp/lcov.info
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: /tmp/lcov.info
 
       - name: End-to-End Test
         run: (cd cmd/dockmoor/end-to-end && ./test.sh)

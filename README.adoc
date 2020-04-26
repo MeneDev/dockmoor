@@ -1,5 +1,5 @@
 
-:branch: develop
+:branch: master
 
 == dockmoor
 image:https://img.shields.io/circleci/project/github/MeneDev/dockmoor/{branch}.svg[Build Status (Circle CI), link=https://circleci.com/gh/MeneDev/dockmoor]
@@ -310,7 +310,7 @@ exit code: 0
 
 [subs=+macros]
 ....
-find https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/[some-folder/] -type f -exec dockmoor list --unpinned {} \; | sort | uniq
+find some-folder -type f -exec dockmoor list --unpinned {} \; | sort | uniq
 ....
 
 stdout:
@@ -374,17 +374,17 @@ exit code: 0
 
 [subs=+macros]
 ....
-find https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/[some-folder/] -type f -exec dockmoor contains --unpinned {} \; -print
+find some-folder -type f -exec dockmoor contains --unpinned {} \; -print
 ....
 
 stdout:
 
 [subs=+macros]
 ....
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 ....
 
 stderr is empty +
@@ -395,7 +395,7 @@ exit code: 0
 
 [subs=+macros]
 ....
-find https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/[some-folder/] -type f -exec dockmoor contains --latest {} \; -print
+find some-folder -type f -exec dockmoor contains --latest {} \; -print
 ....
 
 stdout:
@@ -403,8 +403,8 @@ stdout:
 [subs=+macros]
 ....
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 ....
 
 stderr is empty +
@@ -415,19 +415,19 @@ exit code: Unresolved directive in cmdContains.adoc - include::../end-to-end/res
 
 [subs=+macros]
 ....
-find https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/[some-folder/] -type f -exec dockmoor contains {} \; -print
+find some-folder -type f -exec dockmoor contains {} \; -print
 ....
 
 stdout:
 
 [subs=+macros]
 ....
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-tagged-digest[some-folder/Dockerfile-nginx-tagged-digest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-tagged-digest[some-folder/Dockerfile-nginx-tagged-digest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-digest[some-folder/Dockerfile-nginx-digest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 ....
 
 stderr is empty +

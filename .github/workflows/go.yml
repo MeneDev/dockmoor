@@ -111,9 +111,9 @@ jobs:
       - name: Cross-compile
         run: |
           # increase for old circleCI workflow
-          build_number = $((GITHUB_RUN_NUMBER + 636))
+          build_number=$((GITHUB_RUN_NUMBER + 636))
           tag=${{ steps.git_info.outputs.version }}
-          cd cmd/dockmoor && GO111MODULE=on /home/runner/go/bin/gox -ldflags="-s -w -X \"github.com/MeneDev/dockmoor/dockmoor.Version=${tag}\" -X \"github.com/MeneDev/dockmoor/dockmoor.BuildDate=$(date --utc)\" -X \"github.com/MeneDev/dockmoor/dockmoor.BuildNumber=$GITHUB_RUN_NUMBER\" -X \"github.com/MeneDev/dockmoor/dockmoor.BuildCommit=$GITHUB_SHA\"" -os="darwin linux windows" -arch="amd64" -output "../../release/dockmoor-{{.OS}}_{{.Arch}}"
+          cd cmd/dockmoor && GO111MODULE=on /home/runner/go/bin/gox -ldflags="-s -w -X \"github.com/MeneDev/dockmoor/dockmoor.Version=${tag}\" -X \"github.com/MeneDev/dockmoor/dockmoor.BuildDate=$(date --utc)\" -X \"github.com/MeneDev/dockmoor/dockmoor.BuildNumber=$build_number\" -X \"github.com/MeneDev/dockmoor/dockmoor.BuildCommit=$GITHUB_SHA\"" -os="darwin linux windows" -arch="amd64" -output "../../release/dockmoor-{{.OS}}_{{.Arch}}"
 
       - name: Install documentation tools
         run: |
@@ -202,7 +202,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          release_name: ${{ github.ref }}
 #          body: |
 #            Changes in this Release
 #            - First Change

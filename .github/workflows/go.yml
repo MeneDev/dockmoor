@@ -88,42 +88,30 @@ jobs:
       - name: Cross-compile
         run: cd cmd/dockmoor && GO111MODULE=on /home/runner/go/bin/gox -os="darwin linux windows" -arch="amd64" -output "../../release/dockmoor-{{.OS}}_{{.Arch}}"
 
-  release:
-    name: Publish
-    runs-on: ubuntu-18.04
-    if: "startsWith(github.ref, 'refs/tags/v')"
-    steps:
-      - name: Get the version
-        id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
-      - name: Verify CHANGELOG contains release tag
-        run: |
-          tag=$GITHUB_REF # refs/heads/feature-branch-1
-          if ! cat CHANGELOG.md | grep "## $tag" ; then
-            echo "Missing Changelog entry for $tag, refusing to release"
-            exit 1
-          fi
-
-  simulate_release:
-    name: Simulate Release
-    runs-on: ubuntu-18.04
-    if: "!startsWith(github.ref, 'refs/tags/v')"
-    steps:
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
-      - name: Install
+      - name: Install documentation tools
         run: |
           sudo apt-get install ruby
           sudo gem install asciidoctor
           wget https://github.com/jgm/pandoc/releases/download/2.4/pandoc-2.4-1-amd64.deb
           sudo dpkg -i pandoc-2.4-1-amd64.deb
+
       - name: Get the version
         id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF##*/}
+        run: echo ::set-output name=version::${GITHUB_REF##*/}
+
+      - name: Verify CHANGELOG contains release tag
+        run: |
+          tag=$CIRCLE_TAG
+          if ! cat CHANGELOG.md | grep "## $tag" ; then
+            echo "Missing Changelog entry for $tag, refusing to release"
+            exit 1
+          fi
+
       - name: Update README.adoc
+        if: "startsWith(github.ref, 'refs/tags/v')"
         run: |
           set -v
-          tag=${{ steps.tag.outputs.result }}
+          tag=${{ steps.get_version.outputs.version }}
 
           git config --global user.email "$GIT_EMAIL"
           git config --global user.name "$GIT_USER"
@@ -139,26 +127,60 @@ jobs:
           echo "START README.adoc"
           cat README.adoc
           echo "END README.adoc"
-
           set -v
 
           git add README.adoc
           # --allow-empty for rebuilds without release
           git commit --allow-empty -m ":gem: Simulate Release"
-
-          git push --force-with-lease --dry-run origin master --tags
-
-          # Forward developer to master
-          digest=$(git rev-parse HEAD)
-          git checkout -b develop 2>/dev/null || git checkout develop
-          git reset --hard $digest
-          git push --dry-run origin develop
         env:
           GIT_EMAIL: ${{ secrets.GIT_EMAIL }}
           GIT_USER: ${{ secrets.GIT_USER }}
-      - name: Update end-to-end results as artifact
-        uses: actions/upload-artifact@v1
-        if: failure()
+
+      - name: Simulate release to master
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        run: |
+          set -v
+          git push --force-with-lease --dry-run origin master --tags
+
+      - name: Move git tag for release
+        if: "startsWith(github.ref, 'refs/tags/v')"
+        run: |
+          set -v
+          tag=${{ steps.get_version.outputs.version }}
+          git tag -fa "$tag" -m "Release $tag"
+          git push --delete origin "$tag" || true
+          git push --force-with-lease origin master --tags
+
+      - name: Forward developer to master
+        run: |
+          set -v
+          digest=$(git rev-parse HEAD)
+          git checkout -b develop 2>/dev/null || git checkout develop
+          git reset --hard $digest
+
+      - name: Simulate push to develop
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        run: |
+          set -v
+          git push --dry-run origin develop
+
+      - name: Push to develop
+        if: "startsWith(github.ref, 'refs/tags/v')"
+        run: |
+          set -v
+          git push origin develop
+
+      - name: Create Release
+        if: "startsWith(github.ref, 'refs/tags/v')"
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: end-to-end
-          path: cmd/dockmoor/end-to-end/
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Changes in this Release
+            - First Change
+            - Second Change
+          draft: false
+          prerelease: falserelease/

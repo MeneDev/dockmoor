@@ -2,15 +2,16 @@ package dockerfile
 
 import (
 	"bytes"
+	"io"
+	"strings"
+	"testing"
+
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"io"
-	"strings"
-	"testing"
 )
 
 var log = logrus.New()
@@ -197,7 +198,6 @@ func TestParserSha256(t *testing.T) {
 }
 
 func TestProcessLogsReplacingReferences(t *testing.T) {
-
 	var log = logrus.New()
 	buffer := bytes.NewBuffer(nil)
 	log.SetOutput(buffer)

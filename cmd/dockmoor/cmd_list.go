@@ -3,11 +3,12 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
+
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/jessevdk/go-flags"
-	"io"
 )
 
 type listOptions struct {
@@ -71,7 +72,6 @@ func (lo *listOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, er
 }
 
 func (lo *listOptions) applyFormatProcessor(predicate dockproc.Predicate, processor dockfmt.FormatProcessor) error {
-
 	return processor.Process(func(r dockref.Reference) (dockref.Reference, error) {
 		if predicate.Matches(r) {
 			lo.matches = true

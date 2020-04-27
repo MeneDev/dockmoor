@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/jessevdk/go-flags"
 	"io"
 	"strings"
+
+	"github.com/jessevdk/go-flags"
 )
 
 func WriteASCIIDoc(parser *flags.Parser, writer io.Writer) {
@@ -34,12 +35,10 @@ func WriteASCIIDoc(parser *flags.Parser, writer io.Writer) {
 }
 
 func WriteASCIIDocUsage(commands []*flags.Command, writer io.Writer) {
-
 	commands = visibleCommands(commands)
 
 	mdPrintf(writer, "> ")
 	for idxCommand, command := range commands {
-
 		isFirstCommand := idxCommand == 0
 		isLastCommand := idxCommand+1 == len(commands)
 
@@ -92,7 +91,6 @@ func WriteASCIIDocUsage(commands []*flags.Command, writer io.Writer) {
 }
 
 func WriteASCIIDocGroups(writer io.Writer, groups []*flags.Group, level int) {
-
 	for _, group := range groups {
 		if group.Hidden {
 			continue

@@ -3,11 +3,12 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/MeneDev/dockmoor/dockmoor"
-	"github.com/jessevdk/go-flags"
 	"html"
 	"io"
 	"strings"
+
+	"github.com/MeneDev/dockmoor/dockmoor"
+	"github.com/jessevdk/go-flags"
 )
 
 func visibleCommands(commands []*flags.Command) []*flags.Command {
@@ -59,12 +60,10 @@ func WriteMarkdown(parser *flags.Parser, writer io.Writer) {
 }
 
 func WriteMarkDownUsage(commands []*flags.Command, writer io.Writer) {
-
 	commands = visibleCommands(commands)
 
 	mdPrintf(writer, "> ")
 	for idxCommand, command := range commands {
-
 		isFirstCommand := idxCommand == 0
 		isLastCommand := idxCommand+1 == len(commands)
 
@@ -113,7 +112,6 @@ func WriteMarkDownUsage(commands []*flags.Command, writer io.Writer) {
 }
 
 func WriteMarkdownGroups(writer io.Writer, groups []*flags.Group, level int) {
-
 	for _, group := range groups {
 		if group.Hidden {
 			continue

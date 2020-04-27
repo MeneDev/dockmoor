@@ -1,9 +1,10 @@
 package dockref
 
 import (
+	"testing"
+
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestInvalid(t *testing.T) {
@@ -21,7 +22,6 @@ func TestMustParse(t *testing.T) {
 		ref := MustParse("!")
 		assert.Nil(t, ref)
 	})
-
 }
 
 func TestWellknownNames(t *testing.T) {
@@ -337,7 +337,6 @@ func TestDockref_Format(t *testing.T) {
 }
 
 func TestDockref_Formatted(t *testing.T) {
-
 	t.Run("reformatting with same format is equal", func(t *testing.T) {
 		originals := []string{
 			"nginx",
@@ -364,7 +363,6 @@ func TestDockref_Formatted(t *testing.T) {
 }
 
 func TestDockref_String(t *testing.T) {
-
 	t.Run("String is equal to Original", func(t *testing.T) {
 		originals := []string{
 			"nginx",
@@ -468,7 +466,6 @@ func TestParseAlgoDigest(t *testing.T) {
 		assert.NotNil(t, ref)
 		assert.Nil(t, e)
 	})
-
 }
 
 func TestMustParseAlgoDigest(t *testing.T) {
@@ -484,7 +481,6 @@ func TestMustParseAlgoDigest(t *testing.T) {
 		ref := MustParseAlgoDigest("sha256:3247732819d6cd7af0c45a05b30d0b147f05a25ee2e83d7b9707ee25fcdd0f58")
 		assert.NotNil(t, ref)
 	})
-
 }
 
 //func TestMostPreciseTag(t *testing.T) {

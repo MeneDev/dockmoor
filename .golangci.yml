@@ -41,19 +41,43 @@ linters-settings:
       - dupImport # https://github.com/go-critic/go-critic/issues/845
 
 linters:
-  enable-all: true
-  disable:
-    - maligned
-    - prealloc
-    - gochecknoglobals
-    - nakedret
-    - goimports
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
     - dupl
-    - interfacer
-    - unparam
-    - lll
-    - goconst
-    - gochecknoinits
+    - errcheck
+    - funlen
+#    - gochecknoinits
+#    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - golint
+#    - gomnd
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+#    - interfacer
+#    - lll
+    - misspell
+#    - nakedret
+    - rowserrcheck
+    - scopelint
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+#    - unparam
+    - unused
+    - varcheck
+    - whitespace
 run:
   skip-dirs:
     - test/testdata_etc
@@ -68,9 +92,17 @@ issues:
         - dupl
         - gosec
         - scopelint
+        - dogsled
+        - funlen
+        - nakedret
     - path: cmd/dockmoor/markdown\.go
       linters:
         - errcheck
+        - dupl
+    - path: cmd/dockmoor/asciidoc\.go
+      linters:
+        - errcheck
+        - dupl
     - text: "singleCaseSwitch"
       linters:
         - gocritic
@@ -110,6 +142,12 @@ issues:
     - text: "getPredicate"
       linters:
         - gocyclo
+    - text: "SA5008"
+      linters:
+        - staticcheck
+    - text: "Function 'getPredicate' has too many statements"
+      linters:
+        - funlen
 
 # golangci.com configuration
 # https://github.com/golangci/golangci/wiki/Configuration

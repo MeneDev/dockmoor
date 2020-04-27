@@ -2,14 +2,15 @@ package main
 
 import (
 	"bytes"
+	"io"
+	"os"
+	"testing"
+
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"io"
-	"os"
-	"testing"
 )
 
 type listOptionsTest struct {
@@ -49,7 +50,6 @@ func TestListCallsFindExecute(t *testing.T) {
 }
 
 func TestMainMarkdownWithList(t *testing.T) {
-
 	os.Args = []string{"exe", "--markdown"}
 
 	mainOptions := mainOptionsACNew(addListCommand)
@@ -63,7 +63,6 @@ func TestMainMarkdownWithList(t *testing.T) {
 }
 
 func TestMainAsciiDocWithList(t *testing.T) {
-
 	os.Args = []string{"exe", "--asciidoc-usage"}
 
 	mainOptions := mainOptionsACNew(addListCommand)
@@ -77,7 +76,6 @@ func TestMainAsciiDocWithList(t *testing.T) {
 }
 
 func TestListHelpIsNotAnError(t *testing.T) {
-
 	os.Args = []string{"exe", "list", "--help"}
 
 	mainOptions := mainOptionsACNew(addListCommand)

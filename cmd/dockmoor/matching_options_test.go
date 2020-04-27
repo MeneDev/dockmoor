@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/MeneDev/dockmoor/dockproc"
-	"github.com/jessevdk/go-flags"
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/MeneDev/dockmoor/dockproc"
+	"github.com/jessevdk/go-flags"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEmptyPredicates(t *testing.T) {
@@ -20,7 +21,6 @@ func TestEmptyPredicates(t *testing.T) {
 
 func TestIsSetPredicateByName(t *testing.T) {
 	for _, name := range predicateNames {
-
 		t.Run(name, func(t *testing.T) {
 			mo := MatchingOptions{}
 
@@ -37,7 +37,6 @@ func TestIsSetPredicateByName(t *testing.T) {
 }
 
 func applyPredicatesByName(fo *MatchingOptions, names ...string) {
-
 	for _, name := range names {
 		switch {
 		case equalsAnyString(outdatedPred, name):
@@ -100,7 +99,6 @@ func TestAllPredicateNamesAreRecognizedByParser(t *testing.T) {
 func TestSinglePredicatesIsValid(t *testing.T) {
 	for _, a := range predicateNames {
 		t.Run(a, func(t *testing.T) {
-
 			fo := &MatchingOptions{}
 			applyPredicatesByName(fo, a)
 
@@ -111,9 +109,7 @@ func TestSinglePredicatesIsValid(t *testing.T) {
 }
 
 func TestMultipleFromSameGroupFail(t *testing.T) {
-
 	for i1, p1 := range predicateNames {
-
 		for i2, p2 := range predicateNames {
 			if i1 <= i2 {
 				continue

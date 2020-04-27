@@ -2,9 +2,6 @@ package main
 
 import (
 	"bytes"
-	"github.com/jessevdk/go-flags"
-	"github.com/mattn/go-shellwords"
-	"github.com/stretchr/testify/assert"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -12,6 +9,10 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/jessevdk/go-flags"
+	"github.com/mattn/go-shellwords"
+	"github.com/stretchr/testify/assert"
 )
 
 func dockerfile(content string) (fileName string) {
@@ -133,7 +134,6 @@ func TestContainsInvalidOptions(t *testing.T) {
 }
 
 func TestMainVersion(t *testing.T) {
-
 	os.Args = []string{"exe", "--version"}
 
 	mainOptions := mainOptionsACNew(addContainsCommand)
@@ -143,7 +143,6 @@ func TestMainVersion(t *testing.T) {
 }
 
 func TestMainManpage(t *testing.T) {
-
 	os.Args = []string{"exe", "--manpage"}
 	mainOptions := mainOptionsACNew(addContainsCommand)
 	exitCode := doMain(mainOptions)
@@ -152,7 +151,6 @@ func TestMainManpage(t *testing.T) {
 }
 
 func TestMainMarkdown(t *testing.T) {
-
 	os.Args = []string{"exe", "--markdown"}
 
 	mainOptions := mainOptionsACNew()

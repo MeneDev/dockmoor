@@ -3,10 +3,9 @@ package dockref
 import (
 	_ "crypto/sha256" // side effect: register sha256
 	"fmt"
-	//"github.com/blang/semver"
+
 	"github.com/docker/distribution/reference"
 	"github.com/opencontainers/go-digest"
-	//"github.com/sirupsen/logrus"
 )
 
 type Reference interface {
@@ -100,7 +99,7 @@ const (
 	FormatHasTag    Format = 1 << iota
 	FormatHasDomain Format = 1 << iota
 	FormatHasDigest Format = 1 << iota
-	FormatFull      Format = FormatHasName | FormatHasTag | FormatHasDomain | FormatHasDigest
+	FormatFull             = FormatHasName | FormatHasTag | FormatHasDomain | FormatHasDigest
 )
 
 func (format Format) hasName() bool {
@@ -168,7 +167,6 @@ func (r dockref) Format() Format {
 }
 
 func (r dockref) Formatted() string {
-
 	s := ""
 
 	var name string

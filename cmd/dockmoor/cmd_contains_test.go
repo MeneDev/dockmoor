@@ -3,6 +3,11 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+	"testing"
+
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/MeneDev/dockmoor/dockref"
@@ -10,10 +15,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"io"
-	"io/ioutil"
-	"os"
-	"testing"
 )
 
 type containsOptionsTest struct {
@@ -167,7 +168,6 @@ func TestExecuteReturnsErrorWithContains(t *testing.T) {
 }
 
 func TestMainMarkdownWithContains(t *testing.T) {
-
 	os.Args = []string{"exe", "--markdown"}
 
 	mainOptions := mainOptionsACNew(addContainsCommand)
@@ -181,7 +181,6 @@ func TestMainMarkdownWithContains(t *testing.T) {
 }
 
 func TestMainAsciiDocWithContains(t *testing.T) {
-
 	os.Args = []string{"exe", "--asciidoc-usage"}
 
 	mainOptions := mainOptionsACNew(addContainsCommand)
@@ -195,7 +194,6 @@ func TestMainAsciiDocWithContains(t *testing.T) {
 }
 
 func TestContainsHelpIsNotAnError(t *testing.T) {
-
 	os.Args = []string{"exe", "contains", "--help"}
 
 	mainOptions := mainOptionsACNew(addContainsCommand)

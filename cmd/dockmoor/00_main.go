@@ -3,16 +3,17 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/MeneDev/dockmoor/dockfmt"
-	_ "github.com/MeneDev/dockmoor/dockfmt/dockerfile"
-	"github.com/MeneDev/dockmoor/dockmoor"
-	"github.com/jessevdk/go-flags"
-	"github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/MeneDev/dockmoor/dockfmt"
+	_ "github.com/MeneDev/dockmoor/dockfmt/dockerfile"
+	"github.com/MeneDev/dockmoor/dockmoor"
+	"github.com/jessevdk/go-flags"
+	"github.com/sirupsen/logrus"
 )
 
 type ExitCodeCommander interface {

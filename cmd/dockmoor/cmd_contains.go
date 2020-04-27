@@ -2,11 +2,12 @@ package main
 
 import (
 	"errors"
+	"io"
+
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/jessevdk/go-flags"
-	"io"
 )
 
 type containsOptions struct {

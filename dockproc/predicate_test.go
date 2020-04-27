@@ -1,13 +1,13 @@
 package dockproc
 
 import (
+	"testing"
+
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestAnyPredicate(t *testing.T) {
-
 	predicate, e := AnyPredicateNew()
 	assert.Nil(t, e)
 
@@ -24,7 +24,6 @@ func TestAnyPredicate(t *testing.T) {
 }
 
 func TestLatestPredicate(t *testing.T) {
-
 	predicate, e := LatestPredicateNew()
 	assert.Nil(t, e)
 
@@ -52,11 +51,9 @@ func TestLatestPredicate(t *testing.T) {
 			assert.False(t, predicate.Matches(ref))
 		})
 	}
-
 }
 
 func TestUnpinnedPredicate(t *testing.T) {
-
 	predicate, e := UnpinnedPredicateNew()
 	assert.Nil(t, e)
 
@@ -91,11 +88,9 @@ func TestUnpinnedPredicate(t *testing.T) {
 			assert.False(t, predicate.Matches(ref))
 		})
 	}
-
 }
 
 func TestUntaggedPredicate(t *testing.T) {
-
 	predicate, e := UntaggedPredicateNew()
 	assert.Nil(t, e)
 
@@ -125,11 +120,9 @@ func TestUntaggedPredicate(t *testing.T) {
 			assert.False(t, predicate.Matches(ref))
 		})
 	}
-
 }
 
 func TestDomainsPredicate(t *testing.T) {
-
 	predicate, e := DomainsPredicateNew([]string{"my.com", "my2.com"})
 	assert.Nil(t, e)
 
@@ -174,7 +167,6 @@ func TestDomainsPredicate(t *testing.T) {
 }
 
 func TestDomainsPredicateWithRegExp(t *testing.T) {
-
 	predicate, e := DomainsPredicateNew([]string{"/my\\./", "/my2\\./"})
 	assert.Nil(t, e)
 
@@ -219,7 +211,6 @@ func TestDomainsPredicateWithRegExp(t *testing.T) {
 }
 
 func TestNamesPredicate(t *testing.T) {
-
 	predicate, e := NamesPredicateNew([]string{"nginx", "mongo"})
 	assert.Nil(t, e)
 
@@ -257,11 +248,9 @@ func TestNamesPredicate(t *testing.T) {
 			assert.False(t, predicate.Matches(ref))
 		})
 	}
-
 }
 
 func TestNamesPredicateWithRegExp(t *testing.T) {
-
 	predicate, e := NamesPredicateNew([]string{"/ngin/", "/mon/"})
 	assert.Nil(t, e)
 
@@ -302,7 +291,6 @@ func TestNamesPredicateWithRegExp(t *testing.T) {
 }
 
 func TestFamiliarNamesPredicate(t *testing.T) {
-
 	predicate, e := FamiliarNamesPredicateNew([]string{"nginx", "mongo"})
 	assert.Nil(t, e)
 
@@ -341,11 +329,9 @@ func TestFamiliarNamesPredicate(t *testing.T) {
 			assert.False(t, predicate.Matches(ref))
 		})
 	}
-
 }
 
 func TestFamiliarNamesPredicateWithRegExp(t *testing.T) {
-
 	predicate, e := FamiliarNamesPredicateNew([]string{"/ngin/", "/mon/"})
 	assert.Nil(t, e)
 
@@ -387,7 +373,6 @@ func TestFamiliarNamesPredicateWithRegExp(t *testing.T) {
 }
 
 func TestTagsPredicate(t *testing.T) {
-
 	predicate, e := TagsPredicateNew([]string{"1.2", "3.4.16-windowsservercore-ltsc2016"})
 	assert.Nil(t, e)
 
@@ -425,11 +410,9 @@ func TestTagsPredicate(t *testing.T) {
 			assert.False(t, predicate.Matches(ref))
 		})
 	}
-
 }
 
 func TestTagsPredicateWithRegExp(t *testing.T) {
-
 	predicate, e := TagsPredicateNew([]string{"/1.2/", "/3.4.16-windowsservercore/"})
 	assert.Nil(t, e)
 
@@ -470,7 +453,6 @@ func TestTagsPredicateWithRegExp(t *testing.T) {
 }
 
 func TestDigestsPredicate(t *testing.T) {
-
 	predicate, e := DigestsPredicateNew([]string{
 		"d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b240",
 		"d21b79794850b4b15d8d332b451d95351d14c951542942a816eea69c9e04b241",
@@ -515,7 +497,6 @@ func TestDigestsPredicate(t *testing.T) {
 }
 
 func TestPathsPredicate(t *testing.T) {
-
 	predicate, _ := PathsPredicateNew([]string{
 		"library/nginx",
 		"mongo",
@@ -559,7 +540,6 @@ func TestPathsPredicate(t *testing.T) {
 }
 
 func TestPathsPredicateWithRegExp(t *testing.T) {
-
 	predicate, e := PathsPredicateNew([]string{
 		"/library/ngin/",
 		"/mon/",

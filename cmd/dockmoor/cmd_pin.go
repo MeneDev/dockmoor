@@ -2,15 +2,16 @@ package main
 
 import (
 	"bytes"
+	"io"
+	"io/ioutil"
+	"os"
+
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/MeneDev/dockmoor/dockref/resolver"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
-	"io"
-	"io/ioutil"
-	"os"
 )
 
 type pinOptions struct {
@@ -57,7 +58,6 @@ func (po *pinOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err
 	buffer := bytes.NewBuffer(nil)
 
 	err = mopts.WithInputDo(func(inputPath string, inputReader io.Reader) error {
-
 		errFormat := mopts.WithFormatProcessorDo(inputReader, func(processor dockfmt.FormatProcessor) error {
 			processor = processor.WithWriter(buffer)
 			return po.applyFormatProcessor(predicate, processor)
@@ -75,7 +75,6 @@ func (po *pinOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err
 	}
 
 	err = po.WithOutputDo(func(outputPath string) error {
-
 		mode := os.FileMode(0660)
 
 		info, e := os.Stat(outputPath)
@@ -97,7 +96,6 @@ func (po *pinOptions) ExecuteWithExitCode(args []string) (exitCode ExitCode, err
 }
 
 func (po *pinOptions) applyFormatProcessor(predicate dockproc.Predicate, processor dockfmt.FormatProcessor) error {
-
 	return processor.Process(func(original dockref.Reference) (dockref.Reference, error) {
 		if predicate.Matches(original) {
 			po.matches = true
@@ -131,7 +129,6 @@ func (po *pinOptions) applyFormatProcessor(predicate dockproc.Predicate, process
 			case dockref.ResolveModeMostPreciseVersion:
 				return nil, errors.Errorf("VersionMode %s not yet implemented", po.PinOptions.TagMode)
 			}
-
 		}
 		return original, nil
 	})
@@ -169,14 +166,12 @@ func pinOptionsNew(mainOptions *mainOptions) *pinOptions {
 func addPinCommand(
 	mainOptions *mainOptions,
 	adder func(opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error) {
-
 	return addPinCommandWith(pinOptionsNew)(mainOptions, adder)
 }
 
 func addPinCommandWith(pinOptionsFactory func(mainOptions *mainOptions) *pinOptions) func(
 	mainOptions *mainOptions,
 	adder func(opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error) {
-
 	return func(
 		mainOptions *mainOptions,
 		adder func(opts *mainOptions, command string, shortDescription string, longDescription string, data interface{}) (*flags.Command, error)) (*flags.Command, error) {

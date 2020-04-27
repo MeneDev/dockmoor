@@ -2,9 +2,10 @@ package dockfmt
 
 import (
 	"bytes"
+	"io"
+
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/sirupsen/logrus"
-	"io"
 )
 
 type Format interface {

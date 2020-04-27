@@ -1,9 +1,10 @@
 package dockfmt
 
 import (
+	"io"
+
 	"github.com/hashicorp/go-multierror"
 	"github.com/sirupsen/logrus"
-	"io"
 )
 
 type FormatProvider interface {
@@ -28,7 +29,6 @@ func RegisterFormat(format Format) {
 }
 
 func (defaultFormatProvider) Formats() []Format {
-
 	return registeredFormats
 }
 

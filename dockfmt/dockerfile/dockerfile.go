@@ -3,6 +3,10 @@ package dockerfile
 import (
 	"bufio"
 	"bytes"
+	"io"
+	"reflect"
+	"strings"
+
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/hashicorp/go-multierror"
@@ -10,9 +14,6 @@ import (
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"io"
-	"reflect"
-	"strings"
 )
 
 func init() {

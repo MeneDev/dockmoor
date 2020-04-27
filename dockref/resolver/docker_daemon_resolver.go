@@ -62,7 +62,6 @@ func (reser dockerDaemonResolver) imageList(reference dockref.Reference) ([]type
 }
 
 func (reser dockerDaemonResolver) newClient() (dockerAPIClient, error) {
-
 	dockerTLSVerify := reser.osGetenv("DOCKER_TLS_VERIFY") != ""
 	dockerTLS := reser.osGetenv("DOCKER_TLS") != ""
 
@@ -152,7 +151,6 @@ func (d dockerCli) Client() dockerAPIClient {
 }
 
 func newCli(in io.ReadCloser, out *bytes.Buffer, errWriter *bytes.Buffer, isTrusted bool) dockerCliInterface {
-
 	cli, _ := command.NewDockerCli(command.WithInputStream(in),
 		command.WithOutputStream(out),
 		command.WithErrorStream(errWriter),
@@ -191,7 +189,6 @@ func (reser dockerDaemonResolver) FindAllTags(reference dockref.Reference) ([]do
 			r := dockref.MustParseAlgoDigest(summary.ID)
 			refs = append(refs, r)
 		}
-
 	}
 	return refs, nil
 }
@@ -279,49 +276,7 @@ func (reser dockerDaemonResolver) Resolve(reference dockref.Reference) (dockref.
 			strings.Join(imageInspect.RepoDigests, ", "),
 			reference.Original())
 	}
-	//
-	//digDomain := dig.Domain()
-	//
-	//tagsFilters := []func(tag string) bool{
-	//	func(tag string) bool {
-	//		return true
-	//	},
-	//
-	//	func(dig string) bool {
-	//		digRef := dockref.MustParse(dig)
-	//
-	//		return digRef.Domain() == digDomain
-	//	},
-	//}
-	//
-	//
-	//var tag dockref.Reference
-	//for _, filter := range tagsFilters {
-	//	tags = filterStrings(tags, filter)
-	//	for _, t := range tags {
-	//		tagRef := dockref.MustParse(t)
-	//		t = tagRef.Tag()
-	//		implicitLatestTag := t == "latest" && reference.Tag() == ""
-	//		tagsEqual := reference.Tag() == t
-	//		onlyTag := reference.Tag() == "" && len(tags) == 1
-	//		if implicitLatestTag || tagsEqual || onlyTag {
-	//			tag = tagRef
-	//			break
-	//		}
-	//	}
-	//}
-
-	//if tag == "" {
-	//	return nil, errors.Errorf("non of the tags [%s] matched for %s on %s",
-	//		strings.Join(imageInspect.RepoTags, ","),
-	//		reference.Original(),
-	//		digDomain)
-	//}
-
 	reference = reference.WithDigest(dig.DigestString())
-	//if tag != nil {
-	//	reference = reference.WithTag(tag.Tag())
-	//}
 
 	return reference, nil
 }

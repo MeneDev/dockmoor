@@ -2,16 +2,16 @@ package dockfmt
 
 import (
 	"bytes"
+	"testing"
+
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"testing"
 )
 
 func TestIdentifyFormatWithEmptyFormatProvider(t *testing.T) {
-
 	formatProviderMock := new(FormatProviderMock)
 	formatProviderMock.On("Formats").Return([]Format{})
 
@@ -26,7 +26,6 @@ func TestIdentifyFormatWithEmptyFormatProvider(t *testing.T) {
 }
 
 func TestIdentifyFormatWithSingleNonMatchingFormat(t *testing.T) {
-
 	formatMock := new(FormatMock)
 	formatMock.On("ValidateInput", mock.Anything, mock.Anything, mock.Anything).Return(errors.New("error"))
 	formatMock.On("Name").Return("mockFormat")
@@ -48,7 +47,6 @@ func TestIdentifyFormatWithSingleNonMatchingFormat(t *testing.T) {
 }
 
 func TestIdentifyFormatWithSingleMatchingFormat(t *testing.T) {
-
 	formatMock := new(FormatMock)
 	formatMock.On("ValidateInput", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	formatProviderMock := new(FormatProviderMock)
@@ -66,7 +64,6 @@ func TestIdentifyFormatWithSingleMatchingFormat(t *testing.T) {
 }
 
 func TestIdentifyFormatWithSingleMatchingAndSeveralNonMatchingFormats(t *testing.T) {
-
 	matchingFormatMock := new(FormatMock)
 	matchingFormatMock.On("ValidateInput", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	matchingFormatMock.On("Name").Return("matchingFormatMock")
@@ -142,7 +139,6 @@ func TestDefaultFormatProviderExits(t *testing.T) {
 }
 
 func TestDefaultFormatProviderProvidesRegisteredFormat(t *testing.T) {
-
 	provider := DefaultFormatProvider()
 	formatMock := new(FormatMock)
 

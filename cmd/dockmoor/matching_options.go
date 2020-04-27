@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"os"
+
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/hashicorp/go-multierror"
 	"github.com/jessevdk/go-flags"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"io"
-	"os"
 )
 
 const (
@@ -164,7 +165,6 @@ func (mopts *MatchingOptions) isSetPredicateByName(name string) bool {
 }
 
 func verifyMatchOptions(mo *MatchingOptions) error {
-
 	var err error
 
 	for i1, p1 := range predicateNames {
@@ -221,7 +221,6 @@ var digestsPredicateFactory = dockproc.DigestsPredicateNew
 var andPredicateFactory = dockproc.AndPredicateNew
 
 func (mopts *MatchingOptions) getPredicate() (dockproc.Predicate, error) {
-
 	anyPredicate, e := anyPredicateFactory()
 	if e != nil {
 		return nil, e

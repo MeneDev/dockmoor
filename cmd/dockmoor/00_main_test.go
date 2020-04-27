@@ -2,15 +2,16 @@ package main
 
 import (
 	"bytes"
-	"github.com/jessevdk/go-flags"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/jessevdk/go-flags"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 var NotADockerfile = "notDocker"
@@ -99,7 +100,6 @@ func TestMarkdownIsNotError(t *testing.T) {
 }
 
 func TestOpensStdin(t *testing.T) {
-
 	optionsTest := mainOptionsTestNew()
 	opener := defaultReadableOpener(optionsTest.mainOptions)
 

@@ -2,9 +2,10 @@ package dockfmt
 
 import (
 	"fmt"
+	"io"
+
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/mock"
-	"io"
 )
 
 var _ FormatProvider = (*FormatProviderMock)(nil)
@@ -32,7 +33,6 @@ func getFormats(args mock.Arguments, index int) []Format {
 		panic(fmt.Sprintf("assert: arguments: Error(%d) failed because object wasn't correct type: %v", index, args.Get(index)))
 	}
 	return v
-
 }
 
 var _ Format = (*FormatMock)(nil)

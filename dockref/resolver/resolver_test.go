@@ -85,7 +85,6 @@ func TestResolvers_FindAllTags(t *testing.T) {
 	}
 
 	runWith := func(tcd TestCaseData, resolver dockref.Resolver) func(t *testing.T) {
-
 		return func(t *testing.T) {
 			result, e := resolver.FindAllTags(dockref.MustParse(tcd.ref))
 			assert.Nil(t, e)
@@ -104,7 +103,6 @@ func TestResolvers_FindAllTags(t *testing.T) {
 				assert.Equal(t, len(tcd.tags), len(foundTags), "Results and expected tag list have different length.")
 			}
 		}
-
 	}
 
 	runAllTestCasesForResolver := func(t *testing.T, regAddr string, resolver dockref.Resolver) {
@@ -134,7 +132,6 @@ func TestResolvers_FindAllTags(t *testing.T) {
 }
 
 func TestResolvers_Resolve(t *testing.T) {
-
 	type TestCaseData struct {
 		ref  string
 		tag  string
@@ -143,7 +140,6 @@ func TestResolvers_Resolve(t *testing.T) {
 	}
 
 	runWith := func(tcd TestCaseData, resolver dockref.Resolver) func(t *testing.T) {
-
 		return func(t *testing.T) {
 			result, e := resolver.Resolve(dockref.MustParse(tcd.ref))
 			assert.Nil(t, e)
@@ -153,7 +149,6 @@ func TestResolvers_Resolve(t *testing.T) {
 				assert.Equal(t, tcd.dig, result.DigestString())
 			}
 		}
-
 	}
 
 	runAllTestCasesForResolver := func(t *testing.T, regAddr string, resolver dockref.Resolver) {

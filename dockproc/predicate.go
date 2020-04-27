@@ -1,11 +1,12 @@
 package dockproc
 
 import (
+	"regexp"
+	"strings"
+
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/docker/distribution/reference"
 	"github.com/hashicorp/go-multierror"
-	"regexp"
-	"strings"
 )
 
 type Predicate interface {
@@ -174,9 +175,7 @@ func (p familiarNamesPredicate) Matches(ref dockref.Reference) bool {
 	}
 
 	fam1 := reference.FamiliarName(ref.Named())
-
 	for _, v := range p.familiarNames {
-
 		if isRegex(v) {
 			if regExpMatches(v, fam1) {
 				return true

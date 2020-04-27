@@ -3,14 +3,15 @@ package resolver
 import (
 	"bytes"
 	"context"
+	"io"
+	"testing"
+
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/docker/cli/cli/flags"
 	"github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"io"
-	"testing"
 )
 
 func dockerDaemonResolverNewTest() *dockerDaemonResolver {
@@ -140,7 +141,6 @@ func TestDockerDaemonRegistry_newClient(t *testing.T) {
 		_, e := resolver.newClient()
 		assert.Nil(t, e)
 	})
-
 }
 
 func TestDockerDaemonRegistry_Resolve_Error_in_Initialize(t *testing.T) {

@@ -3,6 +3,10 @@ package main
 import (
 	"bytes"
 	"errors"
+	"io/ioutil"
+	"os"
+	"testing"
+
 	"github.com/MeneDev/dockmoor/dockfmt"
 	"github.com/MeneDev/dockmoor/dockproc"
 	"github.com/MeneDev/dockmoor/dockref"
@@ -11,9 +15,6 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"io/ioutil"
-	"os"
-	"testing"
 )
 
 type pinOptionsTest struct {
@@ -191,7 +192,6 @@ func TestPinOptions_RefFormat(t *testing.T) {
 		_, e := po.RefFormat()
 		assert.Error(t, e)
 	})
-
 }
 
 func TestPinCommand_applyFormatProcessor_FailsWithInvalidFormattingFlags(t *testing.T) {
@@ -515,7 +515,6 @@ func TestPinWritesToOutputFileAndNotToInputfile(t *testing.T) {
 	s = string(fileBytes)
 
 	assert.Equal(t, `FROM img:1.2.3@sha256:2c4269d573d9fc6e9e95d5e8f3de2dd0b07c19912551f25e848415b5dd783acf`, s)
-
 }
 
 func TestPinOptions_applyFormatProcessor_ReturnsError(t *testing.T) {

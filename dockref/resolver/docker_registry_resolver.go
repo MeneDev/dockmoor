@@ -4,6 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"os"
+	"runtime"
+	"time"
+
 	"github.com/MeneDev/dockmoor/dockref"
 	"github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/credentials"
@@ -15,12 +22,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/registry"
 	"github.com/pkg/errors"
-	"io"
-	"net"
-	"net/http"
-	"os"
-	"runtime"
-	"time"
 )
 
 func DockerRegistryResolverNew() dockref.Resolver {
@@ -138,7 +139,7 @@ func (repo *dockerRegistryResolver) tagService(ctx context.Context, ref dockref.
 		return nil, err
 	}
 	lrr := lookupReference{ref}
-	authConfig2 := types.AuthConfig{authConfig.Username, authConfig.Password, authConfig.Auth, authConfig.Email, authConfig.ServerAddress, authConfig.IdentityToken, authConfig.RegistryToken}
+	authConfig2 := types.AuthConfig{Username: authConfig.Username, Password: authConfig.Password, Auth: authConfig.Auth, Email: authConfig.Email, ServerAddress: authConfig.ServerAddress, IdentityToken: authConfig.IdentityToken, RegistryToken: authConfig.RegistryToken}
 	roundTripper, err := getHTTPTransport(authConfig2, endpoints[0], lrr.Name(), UserAgent())
 	if err != nil {
 		return nil, err

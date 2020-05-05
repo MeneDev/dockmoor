@@ -1,5 +1,5 @@
 
-:branch: develop
+:branch: master
 
 == dockmoor
 image:https://github.com/MeneDev/dockmoor/workflows/Go/badge.svg?branch={branch}[Build Status (GitHub Actions), link=https://github.com/MeneDev/dockmoor/actions]
@@ -380,10 +380,10 @@ stdout:
 
 [subs=+macros]
 ....
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 ....
 
 stderr is empty +
@@ -401,9 +401,9 @@ stdout:
 
 [subs=+macros]
 ....
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 ....
 
 stderr is empty +
@@ -421,12 +421,12 @@ stdout:
 
 [subs=+macros]
 ....
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-1.15.3[some-folder/Dockerfile-nginx-1.15.3]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-tagged-digest[some-folder/Dockerfile-nginx-tagged-digest]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-untagged[some-folder/Dockerfile-nginx-untagged]
 https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-digest[some-folder/Dockerfile-nginx-digest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-tagged-digest[some-folder/Dockerfile-nginx-tagged-digest]
-https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/Dockerfile-nginx-latest[some-folder/Dockerfile-nginx-latest]
+https://github.com/MeneDev/dockmoor/blob/master/cmd/dockmoor/end-to-end/some-folder/subfolder/Dockerfile-nginx-latest[some-folder/subfolder/Dockerfile-nginx-latest]
 ....
 
 stderr is empty +
@@ -463,9 +463,9 @@ exit code: 4
 [[_usage]]
 == Usage
 
-____
+___________________________________________________________________________________________________________________________
 dockmoor [OPTIONS] <link:#contains-command[contains] | link:#list-command[list] | link:#pin-command[pin]> [command-OPTIONS]
-____
+___________________________________________________________________________________________________________________________
 
 [[_application_options]]
 == Application Options
@@ -484,9 +484,9 @@ ____
 [[_contains_command]]
 ==== contains command
 
-____
+________________________________________________________
 dockmoor [OPTIONS] contains [contains-OPTIONS] InputFile
-____
+________________________________________________________
 
 Test if a file contains image references with matching predicates. Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions and is of valid format, non-null otherwise
 
@@ -531,9 +531,9 @@ Limit matched image references depending on their digest
 [[_list_command]]
 ==== list command
 
-____
+________________________________________________
 dockmoor [OPTIONS] list [list-OPTIONS] InputFile
-____
+________________________________________________
 
 List image references with matching predicates. Returns exit code 0 when the given input contains at least one image reference that satisfy the given conditions and is of valid format, non-null otherwise
 
@@ -578,9 +578,9 @@ Limit matched image references depending on their digest
 [[_pin_command]]
 ==== pin command
 
-____
+______________________________________________
 dockmoor [OPTIONS] pin [pin-OPTIONS] InputFile
-____
+______________________________________________
 
 Change image references to a more reproducible format
 

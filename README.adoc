@@ -11,6 +11,11 @@ image:https://img.shields.io/twitter/follow/MeneDev.svg?style=social&label=%40Me
 Once you found a nice dock, it's time to moor :anchor: +
 dockmoor helps you to create reproducible builds with Docker.
 
+> **Warning**
+> This is currently unmaintained. Tracking docker as a dependency was a mistake.
+>
+> Renovate bot has a similar feature: https://docs.renovatebot.com/docker/#digest-pinning
+
 == Features
 
 *Implemented*
